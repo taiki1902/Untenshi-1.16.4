@@ -1,0 +1,4 @@
+name: Untenshi
+version: ${project.version}
+main: me.fiveave.untenshi
+api-version: 1.16
