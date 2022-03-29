@@ -271,7 +271,7 @@ public class motion {
                 reqdist[a] = getreqdist(p, 10 * gendefm(decel, speed.get(p), a + 1, i1, i2, i3, i4), lowerSpeed);
             }
             // Pattern run
-            if ((shortestDist < reqdist[8] || isoverspeed3) && !atsping.get(p)) {
+            if (((shortestDist < reqdist[8] || speed.get(p) > lowerSpeed + 3) || isoverspeed3) && !atsping.get(p)) {
                 if (!atsping.get(p) && !atsebing.get(p)) {
                     deductspeeding(p);
                 }
