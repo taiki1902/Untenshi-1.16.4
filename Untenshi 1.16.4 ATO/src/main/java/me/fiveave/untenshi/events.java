@@ -73,6 +73,7 @@ public class events implements Listener {
             }
             if (ebButton().equals(item)) {
                 Bukkit.dispatchCommand(p, "uts eb");
+                atsforced.put(p, 1);
                 event.setCancelled(true);
             }
         }

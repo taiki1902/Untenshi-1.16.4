@@ -148,12 +148,9 @@ public class motion {
         }
         // Have speed drop even if no accel
         speed.put(p, (speed.get(p) - speeddrop * 2));
-        // ATS Forced (35 km/h/s) Easter Egg
+        // ATS Forced Controls
         if (mascon.get(p).equals(-9)) {
             atsforced.putIfAbsent(p, 0);
-            if (atsforced.get(p) >= 10) {
-                speed.put(p, speed.get(p) - 3.5);
-            }
         } else {
             atsforced.put(p, 0);
         }
