@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
+import static me.fiveave.untenshi.main.noperm;
 import static me.fiveave.untenshi.main.playing;
 
 public class utstrain extends SignAction {
@@ -53,17 +54,13 @@ public class utstrain extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (e.getPlayer().hasPermission("uts.sign")) {
-            try {
-                SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "UTS Train Detector");
-                opt.setDescription("detect if the train is a UTS train");
-                return opt.handle(e.getPlayer());
-            } catch (Exception exception) {
-                e.getPlayer().sendMessage(ChatColor.RED + "Numbers are not valid!");
-                e.setCancelled(true);
-            }
-        } else {
-            e.getPlayer().sendMessage(ChatColor.RED + "You do not have permission!");
+        if (noperm(e)) return true;
+        try {
+            SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "UTS Train Detector");
+            opt.setDescription("detect if the train is a UTS train");
+            return opt.handle(e.getPlayer());
+        } catch (Exception exception) {
+            e.getPlayer().sendMessage(ChatColor.RED + "Numbers are not valid!");
             e.setCancelled(true);
         }
         return true;

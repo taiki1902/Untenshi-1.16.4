@@ -2,9 +2,11 @@ package me.fiveave.untenshi;
 
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
 import com.bergerkiller.bukkit.tc.controller.MinecartGroupStore;
+import com.bergerkiller.bukkit.tc.controller.MinecartMemberStore;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,6 +23,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.text.DecimalFormat;
 import java.util.Objects;
 
+import static me.fiveave.untenshi.cmds.atodepartcountdown;
+import static me.fiveave.untenshi.cmds.tta;
 import static me.fiveave.untenshi.main.mascon;
 import static me.fiveave.untenshi.main.*;
 
@@ -62,19 +66,84 @@ public class events implements Listener {
                 event.setCancelled(true);
             }
             if (doorButton().equals(item)) {
-                if (doordiropen.containsKey(p)) {
-                    Bukkit.dispatchCommand(p, "uts dooropen " + !doordiropen.get(p));
-                }
                 event.setCancelled(true);
+                Boolean bl = doordiropen.get(p);
+                doorControls(p, !bl);
             }
             if (sbLever().equals(item)) {
-                Bukkit.dispatchCommand(p, "uts sb");
+                switchback(p);
                 event.setCancelled(true);
             }
             if (ebButton().equals(item)) {
-                Bukkit.dispatchCommand(p, "uts eb");
-                atsforced.put(p, 1);
+                ebButton(p);
                 event.setCancelled(true);
+            }
+        }
+    }
+
+    private void ebButton(Player p) {
+        mascon.put(p, -9);
+        atsforced.put(p, 1);
+    }
+
+    static void switchback(Player p) {
+        if (p.isInsideVehicle()) {
+            if (speed.get(p).equals(0.0)) {
+                MinecartGroupStore.get(p.getVehicle()).reverse();
+                tta(p, ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(MinecartMemberStore.getFromEntity(p.getVehicle())).getDirection() + ")");
+            } else {
+                tta(p, ChatColor.YELLOW, getlang("sbinmotion"));
+            }
+        }
+    }
+
+    static void doorControls(Player p, Boolean open) {
+        doordiropen.putIfAbsent(p, false);
+        if (open) {
+            if (speed.get(p) > 0.0) {
+                tta(p, ChatColor.YELLOW, getlang("dooropeninmotion"));
+                return;
+            }
+            if (fixstoppos.get(p) || reqstopping.get(p)) {
+                tta(p, ChatColor.YELLOW, getlang("fixstoppos"));
+                return;
+            }
+            doordiropen.put(p, true);
+            fixstoppos.put(p, false);
+            doorconfirm.put(p, false);
+            p.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.GREEN + getlang("opening"));
+            // Provide output when open door
+            if (stopoutput.containsKey(p)) {
+                Block b = p.getWorld().getBlockAt(stopoutput.get(p)[0], stopoutput.get(p)[1], stopoutput.get(p)[2]);
+                b.getChunk().load();
+                b.setType(Material.REDSTONE_BLOCK);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    p.getWorld().getBlockAt(stopoutput.get(p)[0], stopoutput.get(p)[1], stopoutput.get(p)[2]).setType(Material.AIR);
+                    stopoutput.remove(p);
+                }, 4);
+            }
+            // Stop penalties (If have)
+            if (!freemode.get(p)) {
+                // In station EB
+                if (staeb.get(p)) {
+                    staeb.put(p, false);
+                    pointCounter(p, getlang("ebstop"), -5, "");
+                }
+                // In station accel
+                if (staaccel.get(p)) {
+                    staaccel.put(p, false);
+                    pointCounter(p, getlang("reaccel"), -5, "");
+                }
+            }
+            // ATO Stop Time Countdown, cancelled if door is closed
+            atodepartcountdown(p);
+        } else {
+            if (doordiropen.get(p)) {
+                doordiropen.put(p, false);
+                reqstopping.put(p, false);
+                overrun.put(p, false);
+                doorconfirm.put(p, false);
+                p.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.RED + getlang("closing"));
             }
         }
     }
@@ -92,12 +161,7 @@ public class events implements Listener {
                     mascon.put(p, -9);
                     current.put(p, -480.0);
                     speed.put(p, 0.0);
-                    if (!freemode.get(p)) {
-                        points.put(p, points.get(p) - 10);
-                        p.sendMessage(utshead + ChatColor.YELLOW + getlang("collidebuffer") + ChatColor.RED + "-10 " + sp + " km/h");
-                    } else {
-                        p.sendMessage(utshead + ChatColor.YELLOW + getlang("collidebuffer") + ChatColor.RED + sp + " km/h");
-                    }
+                    pointCounter(p, getlang("collidebuffer"), -10, " " + sp + " km/h");
                 }
             }
         } catch (Exception ignored) {
@@ -161,27 +225,27 @@ public class events implements Listener {
         return wand;
     }
 
-    protected ItemStack upWand() {
+    protected static ItemStack upWand() {
         return makeItem(Material.STONE_AXE, ChatColor.RED, getlang("upwandname"));
     }
 
-    protected ItemStack nWand() {
+    protected static ItemStack nWand() {
         return makeItem(Material.IRON_AXE, ChatColor.YELLOW, getlang("nwandname"));
     }
 
-    protected ItemStack downWand() {
+    protected static ItemStack downWand() {
         return makeItem(Material.DIAMOND_AXE, ChatColor.GREEN, getlang("downwandname"));
     }
 
-    protected ItemStack doorButton() {
+    protected static ItemStack doorButton() {
         return makeItem(Material.IRON_TRAPDOOR, ChatColor.GOLD, getlang("doorbuttonname"));
     }
 
-    protected ItemStack sbLever() {
+    protected static ItemStack sbLever() {
         return makeItem(Material.LEVER, ChatColor.YELLOW, getlang("sblevername"));
     }
 
-    protected ItemStack ebButton() {
+    protected static ItemStack ebButton() {
         return makeItem(Material.STONE_BUTTON, ChatColor.DARK_RED, getlang("ebbuttonname"));
     }
 }

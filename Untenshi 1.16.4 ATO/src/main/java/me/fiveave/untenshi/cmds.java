@@ -12,7 +12,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -29,7 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static me.fiveave.untenshi.events.makeItem;
+import static me.fiveave.untenshi.events.*;
 import static me.fiveave.untenshi.main.*;
 
 public class cmds implements CommandExecutor, TabCompleter {
@@ -66,7 +65,7 @@ public class cmds implements CommandExecutor, TabCompleter {
             signallimit.putIfAbsent(sender2, 360);
             dooropen.putIfAbsent(sender2, 0);
             fixstoppos.putIfAbsent(sender2, false);
-            instation.putIfAbsent(sender2, false);
+            reqstopping.putIfAbsent(sender2, false);
             doordiropen.putIfAbsent(sender2, false);
             overrun.putIfAbsent(sender2, false);
             frozen.putIfAbsent(sender2, false);
@@ -95,26 +94,23 @@ public class cmds implements CommandExecutor, TabCompleter {
                             switch (args[1]) {
                                 case "1":
                                     tta2(sender, ChatColor.GREEN, args[1]);
-                                    tt(sender, ChatColor.YELLOW, getlang("cmdlist"));
+                                    tt(sender, getlang("cmdlist"));
                                     t(sender, "help <page>", getlang("help1a"));
                                     t(sender, "activate <true/false>", getlang("help1b"));
-                                    t(sender, "dooropen <true/false>", getlang("help1c"));
-                                    t(sender, "emergency/eb", getlang("help1d"));
                                     t(sender, "atsconfirm/ac", getlang("help1e"));
-                                    t(sender, "switchback/sb", getlang("help1f"));
                                     t(sender, "switchends/se", getlang("help1h"));
                                     t(sender, "pa <text>", getlang("help1i"));
-                                    tt(sender, ChatColor.YELLOW, getlang("help1g"));
+                                    tt(sender, getlang("help1g"));
                                     break;
                                 case "2":
                                     tta2(sender, ChatColor.LIGHT_PURPLE, args[1]);
-                                    tt(sender, ChatColor.YELLOW, getlang("cmdlist"));
+                                    tt(sender, getlang("cmdlist"));
                                     t(sender, "help <page>", getlang("help1a"));
                                     t(sender, "reload", getlang("help2a"));
                                     t(sender, "traintype <local/hsr/lrt>", getlang("help2b"));
                                     t(sender, "freemode <true/false>", getlang("help2c"));
                                     t(sender, "allowato <true/false>", getlang("help2d"));
-                                    tt(sender, ChatColor.YELLOW, getlang("help1g"));
+                                    tt(sender, getlang("help1g"));
                                     break;
                                 case "3":
                                     tta2(sender, ChatColor.GOLD, args[1]);
@@ -162,12 +158,12 @@ public class cmds implements CommandExecutor, TabCompleter {
                                             sender2.getInventory().setItem(i, new ItemStack(Material.AIR));
                                         }
                                         // Set wands in place
-                                        sender2.getInventory().setItem(0, makeItem(Material.STONE_AXE, ChatColor.RED, getlang("upwandname")));
-                                        sender2.getInventory().setItem(1, makeItem(Material.IRON_AXE, ChatColor.YELLOW, getlang("nwandname")));
-                                        sender2.getInventory().setItem(2, makeItem(Material.DIAMOND_AXE, ChatColor.GREEN, getlang("downwandname")));
-                                        sender2.getInventory().setItem(6, makeItem(Material.STONE_BUTTON, ChatColor.DARK_RED, getlang("ebbuttonname")));
-                                        sender2.getInventory().setItem(7, makeItem(Material.LEVER, ChatColor.YELLOW, getlang("sblevername")));
-                                        sender2.getInventory().setItem(8, makeItem(Material.IRON_TRAPDOOR, ChatColor.GOLD, getlang("doorbuttonname")));
+                                        sender2.getInventory().setItem(0, upWand());
+                                        sender2.getInventory().setItem(1, nWand());
+                                        sender2.getInventory().setItem(2, downWand());
+                                        sender2.getInventory().setItem(6, ebButton());
+                                        sender2.getInventory().setItem(7, sbLever());
+                                        sender2.getInventory().setItem(8, doorButton());
                                         // Train settings
                                         tprop.setSlowingDown(false);
                                         tprop.setSpeedLimit(0);
@@ -227,88 +223,6 @@ public class cmds implements CommandExecutor, TabCompleter {
                         }
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts activate <true/false>" + ChatColor.YELLOW + "]\n" + getlang("activateinfo1") + "\n" + getlang("activateinfo2"));
                         break;
-                    case "dooropen":
-                        if (args.length == 2) {
-                            switch (args[1].toLowerCase()) {
-                                case "true":
-                                    if (speed.get(sender) > 0.0) {
-                                        tta(sender, ChatColor.YELLOW, getlang("dooropeninmotion"));
-                                        break label;
-                                    }
-                                    if (dooropen.get(sender) == 30) {
-                                        tta(sender, ChatColor.YELLOW, getlang("openedalready"));
-                                        break label;
-                                    }
-                                    if (fixstoppos.get(sender) || instation.get(sender)) {
-                                        tta(sender, ChatColor.YELLOW, getlang("fixstoppos"));
-                                        break label;
-                                    }
-                                    if (!playing.get(sender)) {
-                                        tta(sender, ChatColor.YELLOW, getlang("activatefirst"));
-                                        break label;
-                                    }
-                                    doordiropen.put(sender2, true);
-                                    fixstoppos.put(sender2, false);
-                                    doorconfirm.put(sender2, false);
-                                    sender.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.GREEN + getlang("opening"));
-                                    // Provide output when open door
-                                    if (stopoutput.containsKey(sender2)) {
-                                        Block b = sender2.getWorld().getBlockAt(stopoutput.get(sender)[0], stopoutput.get(sender)[1], stopoutput.get(sender)[2]);
-                                        b.getChunk().load();
-                                        b.setType(Material.REDSTONE_BLOCK);
-                                        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                            sender2.getWorld().getBlockAt(stopoutput.get(sender)[0], stopoutput.get(sender)[1], stopoutput.get(sender)[2]).setType(Material.AIR);
-                                            stopoutput.remove(sender);
-                                        }, 4);
-                                    }
-                                    // Stop penalties (If have)
-                                    if (!freemode.get(sender)) {
-                                        // In station EB
-                                        if (staeb.get(sender)) {
-                                            points.put(sender2, (points.get(sender) - 5));
-                                            staeb.put(sender2, false);
-                                            sender.sendMessage(utshead + ChatColor.YELLOW + getlang("ebstop") + ChatColor.RED + "-5");
-                                        }
-                                        // In station accel
-                                        if (staaccel.get(sender)) {
-                                            points.put(sender2, (points.get(sender) - 5));
-                                            staaccel.put(sender2, false);
-                                            sender.sendMessage(utshead + ChatColor.YELLOW + getlang("reaccel") + ChatColor.RED + "-5");
-                                        }
-                                    }
-                                    // ATO Stop Time Countdown, cancelled if door is closed
-                                    atodepartcountdown(sender2);
-                                    break label;
-                                case "false":
-                                    if (dooropen.get(sender) == 0) {
-                                        tta(sender, ChatColor.YELLOW, getlang("closedalready"));
-                                        break label;
-                                    }
-                                    if (!playing.get(sender)) {
-                                        tta(sender, ChatColor.YELLOW, getlang("activatefirst"));
-                                        break label;
-                                    }
-                                    if (doordiropen.get(sender)) {
-                                        doordiropen.put(sender2, false);
-                                        instation.put(sender2, false);
-                                        overrun.put(sender2, false);
-                                        doorconfirm.put(sender2, false);
-                                        sender.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.RED + getlang("closing"));
-                                        break label;
-                                    }
-                            }
-                        }
-                        sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts dooropen <true/false>" + ChatColor.YELLOW + "]\n" + getlang("doorinfo1") + "\n" + getlang("doorinfo2"));
-                        break;
-                    case "eb":
-                    case "emergency":
-                        if (playing.get(sender2)) {
-                            mascon.put(sender2, -9);
-                            break;
-                        } else {
-                            tta(sender, ChatColor.YELLOW, getlang("activatefirst"));
-                        }
-                        break;
                     case "atsconfirm":
                     case "ac":
                         if (!signallimit.get(sender).equals(0) && ((atsing.get(sender) && !atsebing.get(sender)) || (atsebing.get(sender) && speed.get(sender) <= 0))) {
@@ -366,25 +280,6 @@ public class cmds implements CommandExecutor, TabCompleter {
                             break;
                         }
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts allowato <true/false>" + ChatColor.YELLOW + "]\n" + getlang("atoinfo1") + "\n" + getlang("atoinfo2"));
-                        break;
-                    case "baka":
-                        if (((Player) sender).isInsideVehicle()) {
-                            tta(sender, ChatColor.GOLD, getlang("youbaka"));
-                            MinecartGroupStore.get(sender2.getVehicle()).destroy();
-                        } else {
-                            tta(sender, ChatColor.GOLD, getlang("eh"));
-                        }
-                        break;
-                    case "switchback":
-                    case "sb":
-                        if (playing.get(sender) && sender2.isInsideVehicle()) {
-                            if (speed.get(sender).equals(0.0)) {
-                                MinecartGroupStore.get(sender2.getVehicle()).reverse();
-                                tta(sender, ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(MinecartMemberStore.getFromEntity(sender2.getVehicle())).getDirection() + ")");
-                            } else {
-                                tta(sender, ChatColor.YELLOW, getlang("sbinmotion"));
-                            }
-                        }
                         break;
                     case "switchends":
                     case "se":
@@ -470,32 +365,6 @@ public class cmds implements CommandExecutor, TabCompleter {
                         langdata = new abstractfile(plugin, "lang_" + plugin.getConfig().getString("lang") + ".yml");
                         sender.sendMessage(utshead + ChatColor.YELLOW + getlang("reloaded"));
                         break;
-                    case "shine":
-                        // ATS People
-                        if (sender2.isOp() && sender2.getName().equals("5_AvenueLocal")) {
-                            int arglength = args.length;
-                            if (arglength == 1) {
-                                sender2.sendMessage(utshead + ChatColor.YELLOW + "/uts shine <player>");
-                            } else if (arglength == 2) {
-                                Player p = Bukkit.getPlayerExact(args[1]);
-                                playing.putIfAbsent(p, false);
-                                if (playing.get(p)) {
-                                    atsforced.putIfAbsent(p, 0);
-                                    if (atsforced.get(p) < 10) {
-                                        atsforced.put(p, 10);
-                                        mascon.put(p, -9);
-                                        sender2.sendMessage(utshead + ChatColor.GREEN + args[1] + " will shine!");
-                                        assert p != null;
-                                        p.sendMessage(utshead + ChatColor.RED + getlang("atspeb") + " " + getlang("eh"));
-                                    } else if (atsforced.get(p) == 10) atsforced.put(p, 0);
-                                } else {
-                                    sender2.sendMessage(utshead + ChatColor.RED + args[1] + " cannot shine!");
-                                }
-                            }
-                        } else {
-                            noPerm(sender);
-                        }
-                        break;
                     default:
                         tta(sender, ChatColor.YELLOW, getlang("cmdnotexist"));
                         break;
@@ -525,7 +394,7 @@ public class cmds implements CommandExecutor, TabCompleter {
     }
 
     // ATO Stop Time Countdown
-    private void atodepartcountdown(Player p) {
+    static void atodepartcountdown(Player p) {
         if (playing.get(p)) {
             if (atostoptime.containsKey(p)) {
                 if (atostoptime.get(p) > 0) {
@@ -533,7 +402,7 @@ public class cmds implements CommandExecutor, TabCompleter {
                     atostoptime.put(p, atostoptime.get(p) - 1);
                     Bukkit.getScheduler().runTaskLater(plugin, () -> atodepartcountdown(p), 20);
                 } else {
-                    Bukkit.dispatchCommand(p, "uts dooropen false");
+                    doorControls(p, false);
                     // Reset values in order to depart
                     atostoptime.remove(p);
                     atodest.remove(p);
@@ -544,7 +413,7 @@ public class cmds implements CommandExecutor, TabCompleter {
         }
     }
 
-    private void atodoorcloseddepart(Player p) {
+    private static void atodoorcloseddepart(Player p) {
         if (playing.get(p)) {
             // Wait doors fully closed then depart
             if (dooropen.get(p).equals(0) && doorconfirm.get(p)) {
@@ -564,16 +433,16 @@ public class cmds implements CommandExecutor, TabCompleter {
         sender.sendMessage(utshead + ChatColor.RED + getlang("noperm"));
     }
 
-    protected void tta2(CommandSender sender, ChatColor color, String arg) {
+    protected static void tta2(CommandSender sender, ChatColor color, String arg) {
         sender.sendMessage(pureutstitle + color + " ----- " + getlang("help" + arg + "title") + " -----");
     }
 
-    protected void tta(CommandSender sender, ChatColor yellow, String s) {
+    protected static void tta(CommandSender sender, ChatColor yellow, String s) {
         sender.sendMessage(pureutstitle + yellow + s);
     }
 
-    protected void tt(CommandSender sender, ChatColor yellow, String s) {
-        sender.sendMessage(yellow + s);
+    protected void tt(CommandSender sender, String s) {
+        sender.sendMessage(ChatColor.YELLOW + s);
     }
 
     protected void t(CommandSender sender, String s, String t) {
@@ -594,10 +463,7 @@ public class cmds implements CommandExecutor, TabCompleter {
         List<String> result = new ArrayList<>();
         int arglength = args.length;
         if (arglength == 1) {
-            ta.addAll(Arrays.asList("help", "activate", "dooropen", "emergency", "eb", "atsconfirm", "ac", "switchback", "switchends", "sb", "se", "traintype", "freemode", "reload", "baka", "pa", "allowato"));
-            if (sender instanceof Player && sender.getName().equals("5_AvenueLocal")) {
-                ta.add("shine");
-            }
+            ta.addAll(Arrays.asList("help", "activate", "atsconfirm", "ac", "switchends", "se", "traintype", "freemode", "reload", "pa", "allowato"));
             for (String a : ta) {
                 if (a.toLowerCase().startsWith(args[0].toLowerCase())) {
                     result.add(a);
@@ -611,19 +477,11 @@ public class cmds implements CommandExecutor, TabCompleter {
                     break;
                 case "activate":
                 case "freemode":
-                case "dooropen":
                 case "allowato":
                     ta.addAll(Arrays.asList("true", "false"));
                     break;
                 case "traintype":
                     ta.addAll(Arrays.asList("local", "hsr", "lrt"));
-                    break;
-                case "shine":
-                    if (sender instanceof Player && sender.getName().equals("5_AvenueLocal")) {
-                        for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-                            ta.add(p.getName());
-                        }
-                    }
                     break;
                 default:
                     ta.add("");

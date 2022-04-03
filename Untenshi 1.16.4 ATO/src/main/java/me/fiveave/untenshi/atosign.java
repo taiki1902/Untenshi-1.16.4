@@ -63,34 +63,30 @@ public class atosign extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (e.getPlayer().hasPermission("uts.sign")) {
-            try {
-                SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "ATO sign");
-                if (e.getLine(2).equals("stoptime")) {
-                    opt.setDescription("set ATO station stopping time for train");
-                    if (parseInt(e.getLine(3)) < 1) {
-                        e.getPlayer().sendMessage(ChatColor.RED + "The value should not be less than 1.");
-                        e.setCancelled(true);
-                    }
-                } else {
-                    double val = parseInt(e.getLine(2));
-                    opt.setDescription(val >= 0 ? "set ATO indirect pattern for train" : "set ATO direct pattern for train");
-                    if (val > 360) {
-                        e.getPlayer().sendMessage(ChatColor.RED + "The value should not be more than 360.");
-                        e.setCancelled(true);
-                    }
-                    for (String i : e.getLine(3).split(" ")) {
-                        parseInt(i);
-                    }
+        if (noperm(e)) return true;
+        try {
+            SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "ATO sign");
+            if (e.getLine(2).equals("stoptime")) {
+                opt.setDescription("set ATO station stopping time for train");
+                if (parseInt(e.getLine(3)) < 1) {
+                    e.getPlayer().sendMessage(ChatColor.RED + "The value should not be less than 1.");
+                    e.setCancelled(true);
                 }
-                return opt.handle(e.getPlayer());
-            } catch (Exception exception) {
-                e.getPlayer().sendMessage(ChatColor.RED + "The number is not valid!");
-                exception.printStackTrace();
-                e.setCancelled(true);
+            } else {
+                double val = parseInt(e.getLine(2));
+                opt.setDescription(val >= 0 ? "set ATO indirect pattern for train" : "set ATO direct pattern for train");
+                if (val > 360) {
+                    e.getPlayer().sendMessage(ChatColor.RED + "The value should not be more than 360.");
+                    e.setCancelled(true);
+                }
+                for (String i : e.getLine(3).split(" ")) {
+                    parseInt(i);
+                }
             }
-        } else {
-            e.getPlayer().sendMessage(ChatColor.RED + "You do not have permission!");
+            return opt.handle(e.getPlayer());
+        } catch (Exception exception) {
+            e.getPlayer().sendMessage(ChatColor.RED + "The number is not valid!");
+            exception.printStackTrace();
             e.setCancelled(true);
         }
         return true;

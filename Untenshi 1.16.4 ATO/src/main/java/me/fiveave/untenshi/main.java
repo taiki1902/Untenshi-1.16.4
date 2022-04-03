@@ -1,6 +1,7 @@
 package me.fiveave.untenshi;
 
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
+import com.bergerkiller.bukkit.tc.events.SignChangeActionEvent;
 import com.bergerkiller.bukkit.tc.properties.TrainProperties;
 import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import org.bukkit.ChatColor;
@@ -46,7 +47,7 @@ public final class main extends JavaPlugin implements Listener {
     static HashMap<Player, String> signaltype = new HashMap<>();
     static HashMap<Player, Boolean> playing = new HashMap<>();
     static HashMap<Player, Boolean> freemode = new HashMap<>();
-    static HashMap<Player, Boolean> instation = new HashMap<>();
+    static HashMap<Player, Boolean> reqstopping = new HashMap<>();
     static HashMap<Player, Boolean> overrun = new HashMap<>();
     static HashMap<Player, Boolean> fixstoppos = new HashMap<>();
     static HashMap<Player, Boolean> staaccel = new HashMap<>();
@@ -68,7 +69,7 @@ public final class main extends JavaPlugin implements Listener {
     public static abstractfile traindata;
     public static abstractfile playerdata;
 
-    private static FileConfiguration getLConfig() {
+    static FileConfiguration getLConfig() {
         return langdata.dataconfig;
     }
 
@@ -76,7 +77,6 @@ public final class main extends JavaPlugin implements Listener {
         langdata.reloadConfig();
         return Objects.requireNonNull(getLConfig().getString(path));
     }
-
     stoppos v1 = new stoppos();
     speedsign v2 = new speedsign();
     signalsign v3 = new signalsign();
@@ -122,11 +122,33 @@ public final class main extends JavaPlugin implements Listener {
         SignAction.unregister(v5);
     }
 
-    public static String pureutstitle = ChatColor.YELLOW + "[========== " + ChatColor.GREEN + "Untenshi " + ChatColor.YELLOW + "==========]\n";
+    static boolean noperm(SignChangeActionEvent e) {
+        if (!e.getPlayer().hasPermission("uts.sign")) {
+            e.getPlayer().sendMessage(ChatColor.RED + getlang("noperm"));
+            e.setCancelled(true);
+            return true;
+        }
+        return false;
+    }
 
-    public static String utshead = "[" + ChatColor.GREEN + "Untenshi" + ChatColor.WHITE + "] ";
+    static String pureutstitle = ChatColor.YELLOW + "[========== " + ChatColor.GREEN + "Untenshi " + ChatColor.YELLOW + "==========]\n";
 
-    public static void restoreinit(Player p) {
+    static String utshead = "[" + ChatColor.GREEN + "Untenshi" + ChatColor.WHITE + "] ";
+
+    static void pointCounter(Player p, String s, int pts, String str) {
+        ChatColor color2 = ChatColor.RED;
+        String ptsstr = String.valueOf(pts);
+        if (freemode.get(p)) {
+            ptsstr = "";
+        }
+        if (pts > 0) {
+            color2 = ChatColor.GREEN;
+        }
+        p.sendMessage(utshead + ChatColor.YELLOW + s + color2 + ptsstr + str);
+        points.put(p, points.get(p) + pts);
+    }
+
+    static void restoreinit(Player p) {
         // Get train group and stop train and open doors
         playing.putIfAbsent(p, false);
         if (playing.get(p)) {
@@ -140,7 +162,7 @@ public final class main extends JavaPlugin implements Listener {
             points.put(p, 30);
             atsdelay.put(p, 0);
             overrun.put(p, false);
-            instation.put(p, false);
+            reqstopping.put(p, false);
             fixstoppos.put(p, false);
             playing.put(p, false);
             train.remove(p);

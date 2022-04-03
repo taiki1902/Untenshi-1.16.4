@@ -95,33 +95,29 @@ public class speedsign extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (e.getPlayer().hasPermission("uts.sign")) {
-            try {
-                int intspeed;
-                SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Speed limit sign");
-                if (!e.getLine(2).equals("warn")) {
-                    intspeed = parseInt(e.getLine(2));
-                    if (!(intspeed > 0) || !(intspeed <= 360) || !(Math.floorMod(intspeed, 5) == 0)) {
-                        e.getPlayer().sendMessage(ChatColor.RED + getlang("speedlimitdiv5"));
-                        e.setCancelled(true);
-                    }
-                    opt.setDescription("set speed limit for train");
-                } else {
-                    String[] temp = e.getLine(3).split(" ");
-                    parseInt(temp[0]);
-                    parseInt(temp[1]);
-                    parseInt(temp[2]);
-                    opt.setDescription("set speed limit warning for train");
+        if (noperm(e)) return true;
+        try {
+            int intspeed;
+            SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Speed limit sign");
+            if (!e.getLine(2).equals("warn")) {
+                intspeed = parseInt(e.getLine(2));
+                if (!(intspeed > 0) || !(intspeed <= 360) || !(Math.floorMod(intspeed, 5) == 0)) {
+                    e.getPlayer().sendMessage(ChatColor.RED + getlang("speedlimitdiv5"));
+                    e.setCancelled(true);
                 }
-                return opt.handle(e.getPlayer());
-            } catch (Exception exception) {
-                e.getPlayer().sendMessage(ChatColor.RED + getlang("signimproper"));
-                e.setCancelled(true);
-                exception.printStackTrace();
+                opt.setDescription("set speed limit for train");
+            } else {
+                String[] temp = e.getLine(3).split(" ");
+                parseInt(temp[0]);
+                parseInt(temp[1]);
+                parseInt(temp[2]);
+                opt.setDescription("set speed limit warning for train");
             }
-        } else {
-            e.getPlayer().sendMessage(ChatColor.RED + getlang("noperm"));
+            return opt.handle(e.getPlayer());
+        } catch (Exception exception) {
+            e.getPlayer().sendMessage(ChatColor.RED + getlang("signimproper"));
             e.setCancelled(true);
+            exception.printStackTrace();
         }
         return true;
     }

@@ -35,8 +35,8 @@ public class stoppos extends SignAction {
                     loc2[a] = Integer.parseInt(sloc2[a]);
                 }
             }
-            loc[0] = loc[0] + 0.5;
-            loc[2] = loc[2] + 0.5;
+            loc[0] += 0.5;
+            loc[2] += 0.5;
             //noinspection rawtypes
             for (MinecartMember cart : cartevent.getMembers()) {
                 // For each passenger on cart
@@ -52,7 +52,7 @@ public class stoppos extends SignAction {
                         if (!cartevent.getLine(3).isEmpty()) {
                             stopoutput.put(p, loc2);
                         }
-                        instation.put(p, true);
+                        reqstopping.put(p, true);
                         p.sendMessage(utshead + ChatColor.YELLOW + getlang("nextstop"));
                     }
                 }
@@ -62,27 +62,23 @@ public class stoppos extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (e.getPlayer().hasPermission("uts.sign")) {
-            String[] loc = e.getLine(2).split(" ");
-            String[] loc2 = e.getLine(3).split(" ");
-            try {
-                SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Stop positioner");
-                opt.setDescription("set stop position for train");
-                parseInt(loc[0]);
-                parseInt(loc[1]);
-                parseInt(loc[2]);
-                if (!e.getLine(3).isEmpty()) {
-                    parseInt(loc2[0]);
-                    parseInt(loc2[1]);
-                    parseInt(loc2[2]);
-                }
-                return opt.handle(e.getPlayer());
-            } catch (Exception exception) {
-                e.getPlayer().sendMessage(ChatColor.RED + "Numbers are not valid!");
-                e.setCancelled(true);
+        if (noperm(e)) return true;
+        String[] loc = e.getLine(2).split(" ");
+        String[] loc2 = e.getLine(3).split(" ");
+        try {
+            SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Stop positioner");
+            opt.setDescription("set stop position for train");
+            parseInt(loc[0]);
+            parseInt(loc[1]);
+            parseInt(loc[2]);
+            if (!e.getLine(3).isEmpty()) {
+                parseInt(loc2[0]);
+                parseInt(loc2[1]);
+                parseInt(loc2[2]);
             }
-        } else {
-            e.getPlayer().sendMessage(ChatColor.RED + "You do not have permission!");
+            return opt.handle(e.getPlayer());
+        } catch (Exception exception) {
+            e.getPlayer().sendMessage(ChatColor.RED + "Numbers are not valid!");
             e.setCancelled(true);
         }
         return true;
