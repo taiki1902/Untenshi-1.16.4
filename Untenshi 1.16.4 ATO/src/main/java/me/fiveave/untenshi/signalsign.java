@@ -9,10 +9,13 @@ import com.bergerkiller.bukkit.tc.signactions.SignActionType;
 import com.bergerkiller.bukkit.tc.utils.SignBuildOptions;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.main.*;
@@ -44,81 +47,142 @@ public class signalsign extends SignAction {
                 for (Object cartobj : cartpassengers) {
                     Player p = (Player) cartobj;
                     idk = p;
-                    playing.putIfAbsent(p, false);
-                    signaltype.putIfAbsent(p, "ats");
-                    if (playing.get(p) && cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
-                        // Main content starts here
-                        if (signalspeed <= 360 && signalspeed >= 0 && Math.floorMod(signalspeed, 5) == 0 && (checktype(cartevent))) {
-                            String signalmsg = "";
-                            // Put signal speed limit
-                            switch (l1(cartevent)) {
-                                // Set signal speed limit
-                                case "set":
-                                    atsdelay.put(p, 0);
-                                    signallimit.put(p, signalspeed);
-                                    if (!l2(cartevent).equals("atc")) {
-                                        signaltype.put(p, "ats");
-                                    } else {
-                                        signaltype.put(p, "atc");
-                                    }
-                                    signalmsg = signalName(l2(cartevent), signalmsg);
-                                    if (signalmsg.equals("")) {
+                    if (playing.containsKey(p)) {
+                        signaltype.putIfAbsent(p, "ats");
+                        if (playing.get(p) && cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
+                            // Main content starts here
+                            if (signalspeed <= 360 && signalspeed >= 0 && Math.floorMod(signalspeed, 5) == 0 && (checktype(cartevent))) {
+                                String signalmsg = "";
+                                // Put signal speed limit
+                                switch (l1(cartevent)) {
+                                    // Set signal speed limit
+                                    case "set":
+                                        lastresetablesign.putIfAbsent(p, new Location[1]);
+                                        // Update sign with line 4
+                                        if (cartevent.getLine(3).isEmpty()) {
+                                            cartevent.setLine(3, "default " + l2(cartevent) + " " + signalspeed);
+                                        } else {
+                                            signalorderptn.put(p, cartevent.getLine(3).split(" ")[0]);
+                                        }
+                                        // Check if that location exists in any other train, then delete that record
+                                        Location currentloc = cartevent.getLocation();
+                                        for (Player p2 : plugin.getServer().getOnlinePlayers()) {
+                                            // Prevent plugin shutdown affecting playing status
+                                            if (playing.get(p2)) {
+                                                Location[] locs = lastresetablesign.get(p);
+                                                for (int i = 0; i < locs.length; i++) {
+                                                    if (locs[i] == currentloc) {
+                                                        locs[i] = null;
+                                                        lastresetablesign.put(p, locs);
+                                                        resetSignals(cartevent.getWorld(), locs[i]);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        signallimit.put(p, signalspeed);
+                                        if (!l2(cartevent).equals("atc")) {
+                                            signaltype.put(p, "ats");
+                                        } else {
+                                            signaltype.put(p, "atc");
+                                        }
+                                        signalmsg = signalName(l2(cartevent), signalmsg);
+                                        if (signalmsg.equals("")) {
+                                            signimproper(cartevent, p);
+                                            break;
+                                        }
+                                        String temp = signalspeed + " km/h";
+                                        if (signalspeed >= 360) {
+                                            temp = getlang("nolimit");
+                                        }
+                                        p.sendMessage(utshead + ChatColor.YELLOW + getlang("signalset") + signalmsg + ChatColor.GRAY + " " + temp);
+                                        // If red light need to wait signal change, if not then delete variable
+                                        if (signalspeed != 0) {
+                                            // Get signal order (testing)
+                                            List<String> ptn = signalorder.dataconfig.getStringList("signal." + signalorderptn.get(p));
+                                            int ptnlen = ptn.size();
+                                            int halfptnlen = ptnlen / 2;
+                                            String[] ptnsisi = new String[ptnlen];
+                                            int[] ptnsisp = new int[ptnlen];
+                                            for (int i = 0; i < ptnlen; i++) {
+                                                if (Math.floorMod(i, 2) == 0) {
+                                                    ptnsisi[i / 2] = ptn.get(i);
+                                                } else {
+                                                    ptnsisp[(i - 1) / 2] = Integer.parseInt(ptn.get(i));
+                                                }
+                                            }
+                                            Location[] newloc = new Location[halfptnlen];
+                                            Location[] oldloc = lastresetablesign.get(p);
+                                            for (int i = 0; i < oldloc.length; i++) {
+                                                if (i + 1 < newloc.length) {
+                                                    newloc[i + 1] = oldloc[i];
+                                                }
+                                            }
+                                            newloc[0] = cartevent.getLocation();
+                                            // Remove variables
+                                            lastsisign.remove(p);
+                                            lastsisp.remove(p);
+                                            // Reset signals if too much (oldloc.length > newloc.length)
+                                            if (oldloc.length > newloc.length) {
+                                                for (int i = newloc.length + 1; i < oldloc.length; i++) {
+                                                    // Get resetable signs
+                                                    resetSignals(cartevent.getWorld(), oldloc[i]);
+                                                }
+                                            }
+                                            // Set signs with new signal and speed
+                                            for (int i = 0; i < halfptnlen; i++) {
+                                                Sign setable = null;
+                                                try {
+                                                    setable = (Sign) cartevent.getWorld().getBlockAt(newloc[i]).getState();
+                                                } catch (Exception ignored) {
+                                                }
+                                                if (setable != null) {
+                                                    int defaultsp = Integer.parseInt(setable.getLine(3).split(" ")[2]);
+                                                    String str = ptnsisi[i] + " " + ptnsisp[i];
+                                                    if (ptnsisp[i] > defaultsp) {
+                                                        str = ptnsisi[i] + " " + defaultsp;
+                                                    }
+                                                    setable.setLine(2, "set " + str);
+                                                    setable.update();
+                                                }
+                                            }
+                                            lastresetablesign.put(p, newloc);
+                                        }
+                                        break;
+                                    // Signal speed limit warn
+                                    case "warn":
+                                        if ((!atsebing.get(p) && signaltype.get(p).equals("ats")) || signaltype.get(p).equals("atc")) {
+                                            Sign warn = getSign(cartevent);
+                                            if (warn != null && warn.getLine(1).equals("signalsign")) {
+                                                // lastsisign and lastsisp are for detecting signal change
+                                                lastsisign.put(p, warn.getLocation());
+                                                String warnsi = warn.getLine(2).split(" ")[1];
+                                                String warnsp = warn.getLine(2).split(" ")[2];
+                                                lastsisp.put(p, Integer.valueOf(warnsp));
+                                                signalmsg = signalName(warnsi, signalmsg);
+                                                if (signalmsg.equals("")) {
+                                                    signimproper(cartevent, p);
+                                                    break;
+                                                }
+                                                String temp2 = warnsp + " km/h";
+                                                if (parseInt(warnsp) >= 360) {
+                                                    temp2 = getlang("nolimit");
+                                                }
+                                                p.sendMessage(utshead + ChatColor.YELLOW + getlang("signalwarn") + signalmsg + ChatColor.GRAY + " " + temp2);
+                                            } else {
+                                                signimproper(cartevent, p);
+                                            }
+                                        }
+                                        break;
+                                    case "sign":
+                                        if (!overrun.get(p)) {
+                                            // Set line 4 of sign at (line 3 of this sign) to turn signal
+                                            changesign(cartevent);
+                                        }
+                                        break;
+                                    default:
                                         signimproper(cartevent, p);
                                         break;
-                                    }
-                                    String temp = signalspeed + " km/h";
-                                    if (signalspeed >= 360) {
-                                        temp = getlang("nolimit");
-                                    }
-                                    p.sendMessage(utshead + ChatColor.YELLOW + getlang("signalset") + signalmsg + ChatColor.GRAY + " " + temp);
-                                    // If red light need to wait signal change, if not then delete variable
-                                    if (signalspeed != 0) {
-                                        lastsisign.remove(p);
-                                        lastsisp.remove(p);
-                                        Location[] oldloc = lastresetablesign.get(p);
-                                        String[] oldtxt = lastresetabletxt.get(p);
-                                        oldloc[1] = oldloc[0];
-                                        oldtxt[1] = oldtxt[0];
-                                        oldloc[0] = cartevent.getLocation();
-                                        oldtxt[0] = cartevent.getLine(2);
-                                        lastresetablesign.put(p, oldloc);
-                                        lastresetabletxt.put(p, oldtxt);
-                                    }
-                                    break;
-                                // Signal speed limit warn
-                                case "warn":
-                                    if ((!atsebing.get(p) && signaltype.get(p).equals("ats")) || signaltype.get(p).equals("atc")) {
-                                        Sign warn = getSign(cartevent);
-                                        if (warn != null && warn.getLine(1).equals("signalsign")) {
-                                            // lastsisign and lastsisp are for detecting signal change
-                                            lastsisign.put(p, warn.getLocation());
-                                            String warnsi = warn.getLine(2).split(" ")[1];
-                                            String warnsp = warn.getLine(2).split(" ")[2];
-                                            lastsisp.put(p, Integer.valueOf(warnsp));
-                                            signalmsg = signalName(warnsi, signalmsg);
-                                            if (signalmsg.equals("")) {
-                                                signimproper(cartevent, p);
-                                                break;
-                                            }
-                                            String temp2 = warnsp + " km/h";
-                                            if (parseInt(warnsp) >= 360) {
-                                                temp2 = getlang("nolimit");
-                                            }
-                                            p.sendMessage(utshead + ChatColor.YELLOW + getlang("signalwarn") + signalmsg + ChatColor.GRAY + " " + temp2);
-                                        } else {
-                                            signimproper(cartevent, p);
-                                        }
-                                    }
-                                    break;
-                                case "sign":
-                                    if (!overrun.get(p)) {
-                                        // Set line 4 of sign at (line 3 of this sign) to turn signal
-                                        changesign(cartevent);
-                                    }
-                                    break;
-                                default:
-                                    signimproper(cartevent, p);
-                                    break;
+                                }
                             }
                         }
                     }
@@ -134,6 +198,17 @@ public class signalsign extends SignAction {
             }
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    protected static void resetSignals(World world, Location locs) {
+        try {
+            // Get resetable signs
+            Sign resetable = (Sign) world.getBlockAt(locs).getState();
+            // Copy signal and speed from line 4 to line 3
+            resetable.setLine(2, "set " + resetable.getLine(3).split(" ")[1] + " " + resetable.getLine(3).split(" ")[2]);
+            resetable.update();
+        } catch (Exception ignored) {
         }
     }
 
@@ -208,6 +283,24 @@ public class signalsign extends SignAction {
                 for (String i : e.getLine(3).split(" ")) {
                     parseInt(i);
                 }
+            } else {
+                String[] line4 = e.getLine(3).split(" ");
+                if (!issignaltype(line4[1].toLowerCase())) {
+                    e.getPlayer().sendMessage(ChatColor.RED + getlang("signalarg42"));
+                }
+                parseInt(line4[2]);
+                if (parseInt(line4[2]) > 360) {
+                    e.getPlayer().sendMessage(ChatColor.RED + getlang("signalmax360"));
+                    e.setCancelled(true);
+                }
+                if (parseInt(line4[2]) < 0) {
+                    e.getPlayer().sendMessage(ChatColor.RED + getlang("signalmin0"));
+                    e.setCancelled(true);
+                }
+                if (Math.floorMod(parseInt(line4[2]), 5) != 0) {
+                    e.getPlayer().sendMessage(ChatColor.RED + getlang("signaldiv5"));
+                    e.setCancelled(true);
+                }
             }
             return opt.handle(e.getPlayer());
         } catch (Exception exception) {
@@ -219,8 +312,18 @@ public class signalsign extends SignAction {
     }
 
     // Simplify
+    protected static boolean issignaltype(String s) {
+        List<String> list = Arrays.asList("g", "yg", "gy", "y", "yy", "r", "atc");
+        for (String str : list) {
+            if (Objects.equals(s, str)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     protected boolean checktype(SignActionEvent e) {
-        return l1(e).equals("warn") || ((l1(e).equals("set") || l1(e).equals("sign")) && (l2is(e, "atc") || l2is(e, "g") || l2is(e, "yg") || l2is(e, "gy") || l2is(e, "y") || l2is(e, "yy") || l2is(e, "r")));
+        return l1(e).equals("warn") || ((l1(e).equals("set") || l1(e).equals("sign")) && issignaltype(l2(e)));
     }
 
     // l[n]: "n"th split text in line 3
@@ -230,10 +333,6 @@ public class signalsign extends SignAction {
 
     protected static String l2(SignActionEvent e) {
         return e.getLine(2).toLowerCase().split(" ")[1];
-    }
-
-    protected boolean l2is(SignActionEvent e, String s) {
-        return e.getLine(2).toLowerCase().split(" ")[1].equals(s);
     }
 
     protected String l3(SignActionEvent e) {

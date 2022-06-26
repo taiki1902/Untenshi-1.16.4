@@ -18,7 +18,6 @@ import java.util.Set;
 
 import static me.fiveave.untenshi.ato.atosys;
 import static me.fiveave.untenshi.events.doorControls;
-import static me.fiveave.untenshi.main.mascon;
 import static me.fiveave.untenshi.main.stoppos;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.signalName;
@@ -108,7 +107,6 @@ public class motion {
         decel /= 10;
         lasty.putIfAbsent(p, Objects.requireNonNull(p.getVehicle()).getLocation().getY());
         // Electric current brake
-        current.putIfAbsent(p, -480.0);
         double ecb = 0;
         double currentnow = current.get(p);
         // Rounding
@@ -151,7 +149,6 @@ public class motion {
         speed.put(p, (speed.get(p) - speeddrop * 2));
         // ATS Forced Controls
         if (mascon.get(p).equals(-9)) {
-            atsforced.putIfAbsent(p, 0);
             if (atsforced.get(p) >= 10) {
                 speed.put(p, speed.get(p) - 3.5);
             }
@@ -175,7 +172,11 @@ public class motion {
         }
         //// Slope speed adjust
         double trainy = p.getVehicle().getLocation().getY();
-        speed.put(p, Double.parseDouble(df3.format(speed.get(p) + (lasty.get(p) - trainy))));
+        if (lasty.get(p) - trainy > 0) {
+            speed.put(p, Double.parseDouble(df3.format(speed.get(p) + 0.176359)));
+        } else if (lasty.get(p) - trainy < 0) {
+            speed.put(p, Double.parseDouble(df3.format(speed.get(p) - 0.176359)));
+        }
         lasty.put(p, trainy);
         df3.setRoundingMode(RoundingMode.CEILING);
         speed.put(p, Double.valueOf(df3.format(speed.get(p))));
@@ -197,11 +198,11 @@ public class motion {
         String actionbarmsg = "" + ctrltext + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + ChatColor.WHITE + df0.format(speed.get(p)) + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + points.get(p);
         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbarmsg));
         // Count points
-        if (!freemode.get(p) && getmascon(p).equals(-9) && speed.get(p) > 20 && !atsing.get(p) && !atsebing.get(p)) {
+        if (freemodenoato(p) && getmascon(p).equals(-9) && speed.get(p) > 20 && !atsing.get(p) && !atsebing.get(p)) {
             // Misuse EB
             if (deductdelay.get(p) >= 50) {
                 deductdelay.put(p, 0);
-                pointCounter(p, getlang("misuseeb"), -5, "");
+                pointCounter(p, ChatColor.YELLOW, getlang("misuseeb"), -5, "");
             } else {
                 deductdelay.put(p, deductdelay.get(p) + 1);
             }
@@ -270,16 +271,13 @@ public class motion {
             }
             // Pattern run
             if (((shortestDist < reqdist[8] && speed.get(p) > lowerSpeed + 3) || isoverspeed3) && !atsping.get(p)) {
-                if (!atsping.get(p) && !atsebing.get(p)) {
-                    deductspeeding(p);
-                }
                 atsping.put(p, true);
                 if ((lowerSpeed == 0 && shortestDist - reqdist[5] < 1 && shortestDist < 5) || signallimit.get(p).equals(0)) {
                     mascon.put(p, -9);
-                    p.sendMessage(utshead + ChatColor.RED + getlang("atspeb"));
+                    pointCounter(p, ChatColor.RED, getlang("atspeb") + " ", -5, "");
                 } else {
                     mascon.put(p, -8);
-                    p.sendMessage(utshead + ChatColor.RED + getlang("atspb8"));
+                    pointCounter(p, ChatColor.RED, getlang("atspb8") + " ", -5, "");
                 }
             } else if (shortestDist > reqdist[8] && !isoverspeed0) {
                 atsping.put(p, false);
@@ -295,7 +293,9 @@ public class motion {
         // ATC Signal Speeding (not atsebing, speed limit is 0 or other +3 km/h), Speed limit speeding (+3 km/h)
         if (!atsebing.get(p) && isoverspeed3 && signaltype.get(p).equals("atc")) {
             if (!atsping.get(p) && !atsebing.get(p)) {
-                deductspeeding(p);
+                if (freemodenoato(p)) {
+                    pointCounter(p, ChatColor.YELLOW, getlang("signalspeeding"), -5, "");
+                }
             }
             if (!atsping.get(p)) {
                 p.sendMessage(utshead + ChatColor.RED + getlang("atcrun"));
@@ -305,7 +305,6 @@ public class motion {
         if (signallimit.get(p).equals(0)) {
             atsebing.put(p, true);
             atsing.put(p, false);
-            atsdelay.put(p, 0);
             mascon.put(p, -9);
             current.put(p, -480.0);
         }
@@ -358,7 +357,7 @@ public class motion {
                 staeb.put(p, true);
             }
             // In station accel
-            if (getmascon(p) >= 1 && !staaccel.get(p) && !plugin.getConfig().getBoolean("allowreaccel")) {
+            if (getmascon(p) >= 1 && !staaccel.get(p) && !fixstoppos.get(p) && !plugin.getConfig().getBoolean("allowreaccel")) {
                 staaccel.put(p, true);
             }
             // Stop positions
@@ -380,20 +379,20 @@ public class motion {
             } else if (stopdist < 50 && speed.get(p) == 0 && overrun.get(p) && !fixstoppos.get(p)) {
                 fixstoppos.put(p, true);
                 staaccel.put(p, false);
-                if (!freemode.get(p)) {
-                    pointCounter(p, getlang("stopposover"), Math.toIntExact(-Math.round(stopdist)), shock);
+                if (freemodenoato(p)) {
+                    pointCounter(p, ChatColor.YELLOW, getlang("stopposover"), Math.toIntExact(-Math.round(stopdist)), shock);
                 } else {
                     p.sendMessage(utshead + ChatColor.YELLOW + getlang("stopposover") + ChatColor.RED + Math.round(stopdist) + "m" + shock);
                 }
                 //// cho-hetadane!
             } else if (stopdist >= 50 && overrun.get(p)) {
-                if (!freemode.get(p)) {
+                if (freemodenoato(p)) {
                     if (speed.get(p) > 0) {
                         atsforced.put(p, 10);
                         mascon.put(p, -9);
                     } else {
                         p.sendMessage(utshead + ChatColor.RED + getlang("stopposseriousover"));
-                        Bukkit.dispatchCommand(p, "uts activate false");
+                        restoreinit(p);
                     }
                 } else {
                     reqstopping.put(p, false);
@@ -402,7 +401,7 @@ public class motion {
             }
         }
         // Catch point <= 0 and end game
-        if (!freemode.get(p) && points.get(p) <= 0) {
+        if (freemodenoato(p) && points.get(p) <= 0) {
             p.sendMessage(utshead + ChatColor.RED + getlang("nopoints"));
             Bukkit.dispatchCommand(p, "uts activate false");
         }
@@ -411,7 +410,7 @@ public class motion {
     private static void showstoppos(Player p, String stopposeval, int stopdistcm, String shock, int pts) {
         if (!fixstoppos.get(p)) {
             String s = " ";
-            if (!freemode.get(p)) {
+            if (freemodenoato(p)) {
                 s = " " + ChatColor.GREEN + "+" + pts + " ";
                 points.put(p, (points.get(p) + pts));
             }
@@ -419,15 +418,8 @@ public class motion {
         }
     }
 
-    private static void deductspeeding(Player p) {
-        if (!freemode.get(p)) {
-            if (speed.get(p) > speedlimit.get(p) + 3) {
-                pointCounter(p, getlang("speeding"), -5, "");
-            }
-            if (speed.get(p) > signallimit.get(p) + 3) {
-                pointCounter(p, getlang("signalspeeding"), -5, "");
-            }
-        }
+    static boolean freemodenoato(Player p) {
+        return !freemode.get(p) && !atodest.containsKey(p);
     }
 
 

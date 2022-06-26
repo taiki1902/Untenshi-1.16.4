@@ -35,9 +35,10 @@ public class utstrain extends SignAction {
                 List cartps = cart2.getPassengers();
                 for (Object cartobject : cartps) {
                     Player p = (Player) cartobject;
-                    playing.putIfAbsent(p, false);
-                    if (playing.get(p)) {
-                        utsplayers++;
+                    if (playing.containsKey(p)) {
+                        if (playing.get(p)) {
+                            utsplayers++;
+                        }
                     }
                 }
             }
@@ -56,7 +57,7 @@ public class utstrain extends SignAction {
     public boolean build(SignChangeActionEvent e) {
         if (noperm(e)) return true;
         try {
-            SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "UTS Train Detector");
+            SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Untenshi Train Detector");
             opt.setDescription("detect if the train is a UTS train");
             return opt.handle(e.getPlayer());
         } catch (Exception exception) {

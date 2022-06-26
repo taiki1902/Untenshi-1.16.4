@@ -24,9 +24,10 @@ import java.text.DecimalFormat;
 import java.util.Objects;
 
 import static me.fiveave.untenshi.cmds.atodepartcountdown;
-import static me.fiveave.untenshi.cmds.tta;
+import static me.fiveave.untenshi.cmds.helpwithtitle;
 import static me.fiveave.untenshi.main.mascon;
 import static me.fiveave.untenshi.main.*;
+import static me.fiveave.untenshi.motion.freemodenoato;
 
 public class events implements Listener {
 
@@ -36,34 +37,36 @@ public class events implements Listener {
         Player p = event.getPlayer();
         Action ac = event.getAction();
         ItemStack item = event.getItem();
-        Integer masconstat = mascon.get(p);
+        mascon.putIfAbsent(p, -9);
+        int masconstat = mascon.get(p);
         dooropen.putIfAbsent(p, 0);
         doorconfirm.putIfAbsent(p, true);
         playing.putIfAbsent(p, false);
-        mascon.putIfAbsent(p, -9);
         // Main Part
         if ((ac.equals(Action.LEFT_CLICK_AIR) || ac.equals(Action.LEFT_CLICK_BLOCK) || ac.equals(Action.RIGHT_CLICK_AIR) || ac.equals(Action.RIGHT_CLICK_BLOCK)) && item != null && playing.get(p) && !frozen.get(p)) {
-            if (upWand().equals(item)) {
-                if (masconstat > -9) {
-                    mascon.put(p, masconstat - 1);
-                }
-                event.setCancelled(true);
-            }
-            if (nWand().equals(item)) {
-                if (!atsping.get(p) && !atsebing.get(p)) {
-                    mascon.put(p, 0);
-                }
-                event.setCancelled(true);
-            }
-            if (downWand().equals(item)) {
-                if (!atsping.get(p) && !atsebing.get(p) && (dooropen.get(p) == 0 || (dooropen.get(p) > 0 && masconstat < 0))) {
-                    if (masconstat < 5) {
-                        mascon.put(p, masconstat + 1);
+            if (!atodest.containsKey(p) || atsforced.get(p) == 1) {
+                if (upWand().equals(item)) {
+                    if (masconstat > -9) {
+                        mascon.put(p, masconstat - 1);
                     }
-                } else {
-                    mascon.put(p, -9);
+                    event.setCancelled(true);
                 }
-                event.setCancelled(true);
+                if (nWand().equals(item)) {
+                    if (!atsping.get(p) && !atsebing.get(p)) {
+                        mascon.put(p, 0);
+                    }
+                    event.setCancelled(true);
+                }
+                if (downWand().equals(item)) {
+                    if (!atsping.get(p) && !atsebing.get(p) && (dooropen.get(p) == 0 || (dooropen.get(p) > 0 && masconstat < 0))) {
+                        if (masconstat < 5) {
+                            mascon.put(p, masconstat + 1);
+                        }
+                    } else {
+                        mascon.put(p, -9);
+                    }
+                    event.setCancelled(true);
+                }
             }
             if (doorButton().equals(item)) {
                 event.setCancelled(true);
@@ -90,9 +93,14 @@ public class events implements Listener {
         if (p.isInsideVehicle()) {
             if (speed.get(p).equals(0.0)) {
                 MinecartGroupStore.get(p.getVehicle()).reverse();
-                tta(p, ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(MinecartMemberStore.getFromEntity(p.getVehicle())).getDirection() + ")");
+                if (atodest.containsKey(p) && atospeed.containsKey(p)) {
+                    atodest.remove(p);
+                    atospeed.remove(p);
+                    p.sendMessage(utshead + ChatColor.GOLD + getlang("atopatterncancel"));
+                }
+                helpwithtitle(p, ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(MinecartMemberStore.getFromEntity(p.getVehicle())).getDirection() + ")");
             } else {
-                tta(p, ChatColor.YELLOW, getlang("sbinmotion"));
+                helpwithtitle(p, ChatColor.YELLOW, getlang("sbinmotion"));
             }
         }
     }
@@ -101,11 +109,11 @@ public class events implements Listener {
         doordiropen.putIfAbsent(p, false);
         if (open) {
             if (speed.get(p) > 0.0) {
-                tta(p, ChatColor.YELLOW, getlang("dooropeninmotion"));
+                helpwithtitle(p, ChatColor.YELLOW, getlang("dooropeninmotion"));
                 return;
             }
             if (fixstoppos.get(p) || reqstopping.get(p)) {
-                tta(p, ChatColor.YELLOW, getlang("fixstoppos"));
+                helpwithtitle(p, ChatColor.YELLOW, getlang("fixstoppos"));
                 return;
             }
             doordiropen.put(p, true);
@@ -123,16 +131,16 @@ public class events implements Listener {
                 }, 4);
             }
             // Stop penalties (If have)
-            if (!freemode.get(p)) {
+            if (freemodenoato(p)) {
                 // In station EB
                 if (staeb.get(p)) {
                     staeb.put(p, false);
-                    pointCounter(p, getlang("ebstop"), -5, "");
+                    pointCounter(p, ChatColor.YELLOW, getlang("ebstop"), -5, "");
                 }
                 // In station accel
                 if (staaccel.get(p)) {
                     staaccel.put(p, false);
-                    pointCounter(p, getlang("reaccel"), -5, "");
+                    pointCounter(p, ChatColor.YELLOW, getlang("reaccel"), -5, "");
                 }
             }
             // ATO Stop Time Countdown, cancelled if door is closed
@@ -161,7 +169,7 @@ public class events implements Listener {
                     mascon.put(p, -9);
                     current.put(p, -480.0);
                     speed.put(p, 0.0);
-                    pointCounter(p, getlang("collidebuffer"), -10, " " + sp + " km/h");
+                    pointCounter(p, ChatColor.YELLOW, getlang("collidebuffer"), -10, " " + sp + " km/h");
                 }
             }
         } catch (Exception ignored) {
@@ -216,7 +224,7 @@ public class events implements Listener {
     }
 
     // Simplify
-    protected static ItemStack makeItem(Material m, ChatColor color, String name) {
+    protected static ItemStack getItem(Material m, ChatColor color, String name) {
         ItemStack wand = new ItemStack(m, 1);
         ItemMeta wanditm = wand.getItemMeta();
         Objects.requireNonNull(wanditm).setDisplayName(color + name);
@@ -226,26 +234,26 @@ public class events implements Listener {
     }
 
     protected static ItemStack upWand() {
-        return makeItem(Material.STONE_AXE, ChatColor.RED, getlang("upwandname"));
+        return getItem(Material.STONE_AXE, ChatColor.RED, getlang("upwandname"));
     }
 
     protected static ItemStack nWand() {
-        return makeItem(Material.IRON_AXE, ChatColor.YELLOW, getlang("nwandname"));
+        return getItem(Material.IRON_AXE, ChatColor.YELLOW, getlang("nwandname"));
     }
 
     protected static ItemStack downWand() {
-        return makeItem(Material.DIAMOND_AXE, ChatColor.GREEN, getlang("downwandname"));
+        return getItem(Material.DIAMOND_AXE, ChatColor.GREEN, getlang("downwandname"));
     }
 
     protected static ItemStack doorButton() {
-        return makeItem(Material.IRON_TRAPDOOR, ChatColor.GOLD, getlang("doorbuttonname"));
+        return getItem(Material.IRON_TRAPDOOR, ChatColor.GOLD, getlang("doorbuttonname"));
     }
 
     protected static ItemStack sbLever() {
-        return makeItem(Material.LEVER, ChatColor.YELLOW, getlang("sblevername"));
+        return getItem(Material.LEVER, ChatColor.YELLOW, getlang("sblevername"));
     }
 
     protected static ItemStack ebButton() {
-        return makeItem(Material.STONE_BUTTON, ChatColor.DARK_RED, getlang("ebbuttonname"));
+        return getItem(Material.STONE_BUTTON, ChatColor.DARK_RED, getlang("ebbuttonname"));
     }
 }

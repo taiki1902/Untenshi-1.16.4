@@ -17,6 +17,7 @@ import java.util.List;
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.main.getlang;
 import static me.fiveave.untenshi.main.utshead;
+import static me.fiveave.untenshi.signalsign.issignaltype;
 import static me.fiveave.untenshi.signalsign.signalName;
 
 public class signalcmd implements CommandExecutor, TabCompleter {
@@ -52,7 +53,7 @@ public class signalcmd implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 assert e != null;
-                if ((l1(e).equals("warn") || l1(e).equals("sign")) && (l2is(e, "atc") || l2is(e, "g") || l2is(e, "yg") || l2is(e, "gy") || l2is(e, "y") || l2is(e, "yy") || l2is(e, "r"))) {
+                if ((l1(e).equals("warn") || l1(e).equals("sign"))) {
                     String signalmsg = "";
                     switch (args[3]) {
                         // Signal speed limit warn
@@ -75,11 +76,13 @@ public class signalcmd implements CommandExecutor, TabCompleter {
                             break;
                         // Set line 4 of sign at (line 3 of this sign) to turn signal
                         case "sign":
-                            Sign sign = getSign(sender, cartevent);
-                            sign.setLine(2, "set " + args[4] + " " + args[5]);
-                            sign.update();
-                            sender.sendMessage(utshead + getlang("signalsignchange"));
-                            break;
+                            if (issignaltype(args[4])) {
+                                Sign sign = getSign(sender, cartevent);
+                                sign.setLine(2, "set " + args[4] + " " + args[5]);
+                                sign.update();
+                                sender.sendMessage(utshead + getlang("signalsignchange"));
+                                break;
+                            }
                         default:
                             sender.sendMessage(utshead + getlang("signalarg41"));
                             break;
@@ -99,10 +102,6 @@ public class signalcmd implements CommandExecutor, TabCompleter {
     // l[n]: "n"th split text in line 3
     protected String l1(String e) {
         return e.toLowerCase().split(" ")[0];
-    }
-
-    protected boolean l2is(String e, String s) {
-        return e.toLowerCase().split(" ")[1].equals(s);
     }
 
     protected int getloc(String loctext, int i) {

@@ -7,8 +7,6 @@ import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -20,13 +18,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
 
+import static me.fiveave.untenshi.motion.freemodenoato;
+import static me.fiveave.untenshi.signalsign.resetSignals;
+
 public final class main extends JavaPlugin implements Listener {
     static HashMap<Player, Integer> mascon = new HashMap<>();
     static HashMap<Player, Integer> speedlimit = new HashMap<>();
     static HashMap<Player, Integer> signallimit = new HashMap<>();
     static HashMap<Player, Integer> points = new HashMap<>();
     static HashMap<Player, Integer> deductdelay = new HashMap<>();
-    static HashMap<Player, Integer> atsdelay = new HashMap<>();
     static HashMap<Player, Integer> atsforced = new HashMap<>();
     static HashMap<Player, Integer> lastsisp = new HashMap<>();
     static HashMap<Player, Integer> lastspsp = new HashMap<>();
@@ -42,9 +42,9 @@ public final class main extends JavaPlugin implements Listener {
     static HashMap<Player, Location> lastsisign = new HashMap<>();
     static HashMap<Player, Location> lastspsign = new HashMap<>();
     static HashMap<Player, Location[]> lastresetablesign = new HashMap<>();
-    static HashMap<Player, String[]> lastresetabletxt = new HashMap<>();
     static HashMap<Player, String> traintype = new HashMap<>();
     static HashMap<Player, String> signaltype = new HashMap<>();
+    static HashMap<Player, String> signalorderptn = new HashMap<>();
     static HashMap<Player, Boolean> playing = new HashMap<>();
     static HashMap<Player, Boolean> freemode = new HashMap<>();
     static HashMap<Player, Boolean> reqstopping = new HashMap<>();
@@ -68,6 +68,7 @@ public final class main extends JavaPlugin implements Listener {
     public static abstractfile langdata;
     public static abstractfile traindata;
     public static abstractfile playerdata;
+    public static abstractfile signalorder;
 
     static FileConfiguration getLConfig() {
         return langdata.dataconfig;
@@ -77,6 +78,7 @@ public final class main extends JavaPlugin implements Listener {
         langdata.reloadConfig();
         return Objects.requireNonNull(getLConfig().getString(path));
     }
+
     stoppos v1 = new stoppos();
     speedsign v2 = new speedsign();
     signalsign v3 = new signalsign();
@@ -99,6 +101,7 @@ public final class main extends JavaPlugin implements Listener {
         }
         traindata = new abstractfile(this, "traindata.yml");
         playerdata = new abstractfile(this, "playerdata.yml");
+        signalorder = new abstractfile(this, "signalorder.yml");
         this.saveDefaultConfig();
         PluginManager pm = this.getServer().getPluginManager();
         Objects.requireNonNull(this.getCommand("uts")).setExecutor(new cmds());
@@ -135,7 +138,7 @@ public final class main extends JavaPlugin implements Listener {
 
     static String utshead = "[" + ChatColor.GREEN + "Untenshi" + ChatColor.WHITE + "] ";
 
-    static void pointCounter(Player p, String s, int pts, String str) {
+    static void pointCounter(Player p, ChatColor color, String s, int pts, String str) {
         ChatColor color2 = ChatColor.RED;
         String ptsstr = String.valueOf(pts);
         if (freemode.get(p)) {
@@ -144,8 +147,10 @@ public final class main extends JavaPlugin implements Listener {
         if (pts > 0) {
             color2 = ChatColor.GREEN;
         }
-        p.sendMessage(utshead + ChatColor.YELLOW + s + color2 + ptsstr + str);
-        points.put(p, points.get(p) + pts);
+        p.sendMessage(utshead + color + s + color2 + ptsstr + str);
+        if (freemodenoato(p)) {
+            points.put(p, points.get(p) + pts);
+        }
     }
 
     static void restoreinit(Player p) {
@@ -160,7 +165,6 @@ public final class main extends JavaPlugin implements Listener {
             ntrainprop.setPlayersExit(true);
             speed.put(p, 0.0);
             points.put(p, 30);
-            atsdelay.put(p, 0);
             overrun.put(p, false);
             reqstopping.put(p, false);
             fixstoppos.put(p, false);
@@ -188,22 +192,15 @@ public final class main extends JavaPlugin implements Listener {
             p.updateInventory();
             p.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("activate") + ChatColor.RED + getlang("disable"));
             // Reset signals
-            for (int i = 0; i < lastresetablesign.get(p).length; i++) {
-                BlockState state = null;
-                try {
-                    state = p.getWorld().getBlockAt(lastresetablesign.get(p)[i]).getState();
-                } catch (Exception ignored) {
+            try {
+                Location[] locs = lastresetablesign.get(p);
+                for (int i = 0; i < lastresetablesign.get(p).length; i++) {
+                    resetSignals(p.getWorld(), locs[i]);
                 }
-                if (state instanceof Sign) {
-                    Sign sign = (Sign) state;
-                    if (sign.getLine(2).split(" ")[0].equals("set")) {
-                        sign.setLine(2, lastresetabletxt.get(p)[i]);
-                        sign.update();
-                    }
-                }
+            } catch (Exception ignored) {
             }
             lastresetablesign.remove(p);
-            lastresetabletxt.remove(p);
+            signalorderptn.remove(p);
         }
     }
 }

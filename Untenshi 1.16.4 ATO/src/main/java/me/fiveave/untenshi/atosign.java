@@ -35,22 +35,25 @@ public class atosign extends SignAction {
                     List cartpassengers = cart2.getPassengers();
                     for (Object cartobj : cartpassengers) {
                         Player p = (Player) cartobj;
-                        playing.putIfAbsent(p, false);
-                        if (playing.get(p) && allowatousage.get(p)) {
-                            p.sendMessage(utshead + ChatColor.GOLD + getlang("atodetectpattern"));
-                            if (cartevent.getLine(2).equals("stoptime")) {
-                                atostoptime.put(p, parseInt(cartevent.getLine(3)));
-                            } else {
-                                Integer[] loc = new Integer[3];
-                                String[] sloc = cartevent.getLine(3).split(" ");
-                                for (int a = 0; a <= 2; a++) {
-                                    loc[a] = Integer.parseInt(sloc[a]);
+                        if (playing.containsKey(p)) {
+                            if (playing.get(p) && allowatousage.get(p)) {
+                                if (cartevent.getLine(2).equals("stoptime")) {
+                                    atostoptime.put(p, parseInt(cartevent.getLine(3)));
+                                    p.sendMessage(utshead + ChatColor.GOLD + getlang("atodetectstoptime"));
+                                } else {
+                                    Integer[] loc = new Integer[3];
+                                    String[] sloc = cartevent.getLine(3).split(" ");
+                                    for (int a = 0; a <= 2; a++) {
+                                        loc[a] = Integer.parseInt(sloc[a]);
+                                    }
+                                    overrun.put(p, false);
+                                    double val = Double.parseDouble(cartevent.getLine(2));
+                                    // Direct or indirect pattern?
+                                    atopforcedirect.put(p, val < 0);
+                                    atospeed.put(p, Math.abs(val));
+                                    atodest.put(p, loc);
+                                    p.sendMessage(utshead + ChatColor.GOLD + getlang("atodetectpattern"));
                                 }
-                                overrun.put(p, false);
-                                double val = Double.parseDouble(cartevent.getLine(2));
-                                atopforcedirect.put(p, val < 0);
-                                atospeed.put(p, Math.abs(val));
-                                atodest.put(p, loc);
                             }
                         }
                     }

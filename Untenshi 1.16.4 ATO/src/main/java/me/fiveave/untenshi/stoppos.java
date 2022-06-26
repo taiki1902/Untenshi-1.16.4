@@ -25,18 +25,6 @@ public class stoppos extends SignAction {
     @Override
     public void execute(SignActionEvent cartevent) {
         if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
-            String[] sloc = cartevent.getLine(2).split(" ");
-            String[] sloc2 = cartevent.getLine(3).split(" ");
-            Double[] loc = new Double[3];
-            Integer[] loc2 = new Integer[3];
-            for (int a = 0; a <= 2; a++) {
-                loc[a] = Double.valueOf(sloc[a]);
-                if (!cartevent.getLine(3).equals("")) {
-                    loc2[a] = Integer.parseInt(sloc2[a]);
-                }
-            }
-            loc[0] += 0.5;
-            loc[2] += 0.5;
             //noinspection rawtypes
             for (MinecartMember cart : cartevent.getMembers()) {
                 // For each passenger on cart
@@ -46,14 +34,27 @@ public class stoppos extends SignAction {
                 List cartps = cart2.getPassengers();
                 for (Object cartobject : cartps) {
                     Player p = (Player) cartobject;
-                    playing.putIfAbsent(p, false);
-                    if (playing.get(p)) {
-                        stoppos.put(p, loc);
-                        if (!cartevent.getLine(3).isEmpty()) {
-                            stopoutput.put(p, loc2);
+                    if (playing.containsKey(p)) {
+                        if (playing.get(p)) {
+                            String[] sloc = cartevent.getLine(2).split(" ");
+                            String[] sloc2 = cartevent.getLine(3).split(" ");
+                            Double[] loc = new Double[3];
+                            Integer[] loc2 = new Integer[3];
+                            for (int a = 0; a <= 2; a++) {
+                                loc[a] = Double.valueOf(sloc[a]);
+                                if (!cartevent.getLine(3).equals("")) {
+                                    loc2[a] = Integer.parseInt(sloc2[a]);
+                                }
+                            }
+                            loc[0] += 0.5;
+                            loc[2] += 0.5;
+                            stoppos.put(p, loc);
+                            if (!cartevent.getLine(3).isEmpty()) {
+                                stopoutput.put(p, loc2);
+                            }
+                            reqstopping.put(p, true);
+                            p.sendMessage(utshead + ChatColor.YELLOW + getlang("nextstop"));
                         }
-                        reqstopping.put(p, true);
-                        p.sendMessage(utshead + ChatColor.YELLOW + getlang("nextstop"));
                     }
                 }
             }

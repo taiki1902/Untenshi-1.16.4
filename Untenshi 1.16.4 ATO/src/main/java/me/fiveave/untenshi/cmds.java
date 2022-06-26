@@ -10,7 +10,6 @@ import com.bergerkiller.bukkit.tc.properties.CartProperties;
 import com.bergerkiller.bukkit.tc.properties.TrainProperties;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -50,32 +49,24 @@ public class cmds implements CommandExecutor, TabCompleter {
             Player sender2 = (Player) sender;
             // Initialize from playerdata.yml
             pDataInfo = "players." + sender2.getUniqueId();
-            if (pcontains(".traintype"))
+            if (pContains(".traintype"))
                 traintype.put(sender2, getPConfig().getString(pDataInfo + ".traintype"));
-            if (pcontains(".freemode"))
+            if (pContains(".freemode"))
                 freemode.put(sender2, getPConfig().getBoolean(pDataInfo + ".freemode"));
-            if (pcontains(".allowatousage"))
+            if (pContains(".allowatousage"))
                 allowatousage.put(sender2, getPConfig().getBoolean(pDataInfo + ".allowatousage"));
-            // Initialize if none
+            // Initialize if none (not duplicating)
             playing.putIfAbsent(sender2, false);
             speed.putIfAbsent(sender2, 0.0);
-            points.putIfAbsent(sender2, 30);
             freemode.putIfAbsent(sender2, false);
             traintype.putIfAbsent(sender2, "local");
             signallimit.putIfAbsent(sender2, 360);
             dooropen.putIfAbsent(sender2, 0);
-            fixstoppos.putIfAbsent(sender2, false);
-            reqstopping.putIfAbsent(sender2, false);
             doordiropen.putIfAbsent(sender2, false);
-            overrun.putIfAbsent(sender2, false);
             frozen.putIfAbsent(sender2, false);
             atsing.putIfAbsent(sender2, false);
             atsebing.putIfAbsent(sender2, false);
             allowatousage.putIfAbsent(sender2, false);
-            atsping.putIfAbsent(sender2, false);
-            atspnear.putIfAbsent(sender2, false);
-            lastresetablesign.putIfAbsent(sender2, new Location[2]);
-            lastresetabletxt.putIfAbsent(sender2, new String[2]);
             // Force freemode false if perm not given
             if (!sender.hasPermission("uts.freemode")) {
                 freemode.put(sender2, false);
@@ -87,48 +78,47 @@ public class cmds implements CommandExecutor, TabCompleter {
                 switch (args[0].toLowerCase()) {
                     case "help":
                         if (args.length == 1) {
-                            ta(sender, getlang("help1a"));
+                            helpmsg(sender);
                             break;
                         }
                         if (args.length == 2) {
                             switch (args[1]) {
                                 case "1":
-                                    tta2(sender, ChatColor.GREEN, args[1]);
-                                    tt(sender, getlang("cmdlist"));
-                                    t(sender, "help <page>", getlang("help1a"));
-                                    t(sender, "activate <true/false>", getlang("help1b"));
-                                    t(sender, "atsconfirm/ac", getlang("help1e"));
-                                    t(sender, "switchends/se", getlang("help1h"));
-                                    t(sender, "pa <text>", getlang("help1i"));
-                                    tt(sender, getlang("help1g"));
+                                    helpsectiontitle(sender, ChatColor.GREEN, args[1]);
+                                    helpdesc(sender, getlang("cmdlist"));
+                                    helpinfo(sender, "help <page>", getlang("help1a"));
+                                    helpinfo(sender, "activate <true/false>", getlang("help1b"));
+                                    helpinfo(sender, "atsconfirm/ac", getlang("help1e"));
+                                    helpinfo(sender, "switchends/se", getlang("help1h"));
+                                    helpinfo(sender, "pa <text>", getlang("help1i"));
+                                    helpdesc(sender, getlang("help1g"));
                                     break;
                                 case "2":
-                                    tta2(sender, ChatColor.LIGHT_PURPLE, args[1]);
-                                    tt(sender, getlang("cmdlist"));
-                                    t(sender, "help <page>", getlang("help1a"));
-                                    t(sender, "reload", getlang("help2a"));
-                                    t(sender, "traintype <local/hsr/lrt>", getlang("help2b"));
-                                    t(sender, "freemode <true/false>", getlang("help2c"));
-                                    t(sender, "allowato <true/false>", getlang("help2d"));
-                                    tt(sender, getlang("help1g"));
+                                    helpsectiontitle(sender, ChatColor.LIGHT_PURPLE, args[1]);
+                                    helpdesc(sender, getlang("cmdlist"));
+                                    helpinfo(sender, "help <page>", getlang("help1a"));
+                                    helpinfo(sender, "reload", getlang("help2a"));
+                                    helpinfo(sender, "traintype <local/hsr/lrt>", getlang("help2b"));
+                                    helpinfo(sender, "freemode <true/false>", getlang("help2c"));
+                                    helpinfo(sender, "allowato <true/false>", getlang("help2d"));
+                                    helpdesc(sender, getlang("help1g"));
                                     break;
                                 case "3":
-                                    tta2(sender, ChatColor.GOLD, args[1]);
+                                    helpsectiontitle(sender, ChatColor.GOLD, args[1]);
                                     sender.sendMessage(ChatColor.GREEN + getlang("help3a") + "\n" + ChatColor.YELLOW + getlang("help3b") + "\n" + getlang("help3c") + "\n" + getlang("help3d"));
                                     sender.sendMessage("\n" + ChatColor.RED + getlang("help3e") + "\n" + ChatColor.YELLOW + getlang("help3f") + "\n" + getlang("help3g") + "\n" + getlang("help3h"));
                                     sender.sendMessage(ChatColor.GOLD + "\n" + getlang("help3i") + "\n" + ChatColor.YELLOW + getlang("help3j") + "\n" + getlang("help3k"));
                                     break;
                                 case "4":
-                                    tta2(sender, ChatColor.DARK_AQUA, args[1]);
+                                    helpsectiontitle(sender, ChatColor.DARK_AQUA, args[1]);
                                     sender.sendMessage(ChatColor.GOLD + getlang("help4a") + "\n" + ChatColor.GREEN + getlang("help4b") + ChatColor.YELLOW + getlang("help4c") + "\n" + ChatColor.GREEN + getlang("help4f") + ChatColor.YELLOW + getlang("help4c1"));
                                     sender.sendMessage("\n" + ChatColor.GOLD + getlang("help4d") + "\n" + ChatColor.GREEN + getlang("help4b") + ChatColor.YELLOW + getlang("help4e") + "\n" + ChatColor.GREEN + getlang("help4f") + ChatColor.YELLOW + getlang("help4g"));
-                                    sender.sendMessage("\n" + ChatColor.GOLD + getlang("help4h") + "\n" + ChatColor.GREEN + getlang("help4b") + ChatColor.YELLOW + getlang("help4i") + "\n" + getlang("help4j") + "\n" + getlang("help4k") + "\n" + getlang("help4l") + "\n" + ChatColor.GREEN + getlang("help4f") + ChatColor.YELLOW + getlang("help4m"));
+                                    sender.sendMessage("\n" + ChatColor.GOLD + getlang("help4h") + "\n" + ChatColor.GREEN + getlang("help4b") + ChatColor.YELLOW + getlang("help4i") + "\n" + getlang("help4j") + "\n" + getlang("help4k") + "\n" + getlang("help4l") + "\n" + ChatColor.GREEN + getlang("help4f") + ChatColor.YELLOW + getlang("help4m") + getlang("help4m1"));
                                     sender.sendMessage("\n" + ChatColor.GOLD + getlang("help4n"));
-                                    sender.sendMessage("\n" + ChatColor.RED + "/ atosign: " + ChatColor.UNDERLINE + "Experimental 試驗性 試験的" + ChatColor.RED + " /");
                                     sender.sendMessage("\n" + ChatColor.GOLD + getlang("help4o") + "\n" + ChatColor.GREEN + getlang("help4b") + ChatColor.YELLOW + getlang("help4p") + "\n" + ChatColor.GREEN + getlang("help4f") + ChatColor.YELLOW + getlang("help4q"));
                                     break;
                                 default:
-                                    tta(sender, ChatColor.YELLOW, getlang("pagenotexist"));
+                                    helpwithtitle(sender, ChatColor.YELLOW, getlang("pagenotexist"));
                                     break;
                             }
                         }
@@ -138,11 +128,11 @@ public class cmds implements CommandExecutor, TabCompleter {
                             switch (args[1].toLowerCase()) {
                                 case "true":
                                     if (playing.get(sender)) {
-                                        tta(sender, ChatColor.YELLOW, getlang("activatedalready"));
+                                        helpwithtitle(sender, ChatColor.YELLOW, getlang("activatedalready"));
                                         break label;
                                     }
                                     if (!sender2.isInsideVehicle()) {
-                                        tta(sender, ChatColor.YELLOW, getlang("sitincart"));
+                                        helpwithtitle(sender, ChatColor.YELLOW, getlang("sitincart"));
                                         break label;
                                     }
                                     // Get train
@@ -166,8 +156,8 @@ public class cmds implements CommandExecutor, TabCompleter {
                                         sender2.getInventory().setItem(8, doorButton());
                                         // Train settings
                                         tprop.setSlowingDown(false);
-                                        tprop.setSpeedLimit(0);
                                         tprop.setOwner(sender2.getName(), true);
+                                        tprop.setSpeedLimit(0);
                                         mg.setForwardForce(0);
                                         // Anti collision
                                         tprop.setCollision(tprop.getCollision().cloneAndSetMiscMode(CollisionMode.CANCEL));
@@ -192,7 +182,9 @@ public class cmds implements CommandExecutor, TabCompleter {
                                         lasty.put(sender2, Objects.requireNonNull(sender2.getVehicle()).getLocation().getY());
                                         deductdelay.put(sender2, 49);
                                         signaltype.put(sender2, "ats");
-                                        tta(sender, ChatColor.YELLOW, getlang("trainset"));
+                                        reqstopping.put(sender2, false);
+                                        atsforced.put(sender2, 0);
+                                        helpwithtitle(sender, ChatColor.YELLOW, getlang("trainset"));
                                         // Playing = true
                                         playing.put(sender2, true);
                                         motion.recursion1(sender);
@@ -209,14 +201,14 @@ public class cmds implements CommandExecutor, TabCompleter {
                                         }
                                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("activate") + ChatColor.GREEN + getlang("enable"));
                                     } else {
-                                        tta(sender, ChatColor.RED, getlang("notowner"));
+                                        helpwithtitle(sender, ChatColor.RED, getlang("notowner"));
                                     }
                                     break label;
                                 case "false":
                                     if (playing.get(sender)) {
                                         restoreinit(sender2);
                                     } else {
-                                        tta(sender, ChatColor.YELLOW, getlang("deactivatedalready"));
+                                        helpwithtitle(sender, ChatColor.YELLOW, getlang("deactivatedalready"));
                                     }
                                     break label;
                             }
@@ -228,7 +220,6 @@ public class cmds implements CommandExecutor, TabCompleter {
                         if (!signallimit.get(sender).equals(0) && ((atsing.get(sender) && !atsebing.get(sender)) || (atsebing.get(sender) && speed.get(sender) <= 0))) {
                             atsing.put(sender2, false);
                             atsebing.put(sender2, false);
-                            atsdelay.put(sender2, -1);
                             sender.sendMessage(utshead + ChatColor.GOLD + getlang("acsuccess"));
                         } else if (signallimit.get(sender).equals(0) || (atsebing.get(sender) && speed.get(sender) > 0)) {
                             sender.sendMessage(utshead + ChatColor.RED + getlang("acfailed"));
@@ -238,45 +229,35 @@ public class cmds implements CommandExecutor, TabCompleter {
                         break;
                     case "traintype":
                         if (checkperm(sender2, "uts.traintype")) break;
+                        if (reqdeactivated(sender)) break;
                         if (args.length == 2) {
-                            if (!playing.get(sender)) {
-                                switch (args[1].toLowerCase()) {
-                                    case "local":
-                                    case "hsr":
-                                    case "lrt":
-                                        traintype.put(sender2, args[1].toLowerCase());
-                                        tta(sender, ChatColor.YELLOW, getlang(args[1].toLowerCase() + "trainaccel"));
-                                        break label;
-                                }
-                            } else {
-                                tta(sender, ChatColor.YELLOW, getlang("deactivatefirst"));
-                                break;
+                            switch (args[1].toLowerCase()) {
+                                case "local":
+                                case "hsr":
+                                case "lrt":
+                                    traintype.put(sender2, args[1].toLowerCase());
+                                    helpwithtitle(sender, ChatColor.YELLOW, getlang(args[1].toLowerCase() + "trainaccel"));
+                                    break label;
                             }
                         }
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts traintype <local/hsr/lrt>" + ChatColor.YELLOW + "]\n" + getlang("traintypeinfo1") + "\n" + getlang("traintypeinfo2") + "\n" + getlang("traintypeinfo3"));
                         break;
                     case "freemode":
                         if (checkperm(sender2, "uts.freemode")) break;
+                        if (reqdeactivated(sender)) break;
                         if (args.length == 2 && (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false"))) {
-                            if (!playing.get(sender)) {
-                                freemode.put(sender2, Boolean.valueOf(args[1].toLowerCase()));
-                                sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("freemode") + (freemode.get(sender2) ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
-                            } else {
-                                tta(sender, ChatColor.YELLOW, getlang("deactivatefirst"));
-                            }
+                            freemode.put(sender2, Boolean.valueOf(args[1].toLowerCase()));
+                            sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("freemode") + (freemode.get(sender2) ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
                             break;
                         }
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts freemode <true/false>" + ChatColor.YELLOW + "]\n" + getlang("freemodeinfo1") + "\n" + getlang("freemodeinfo2"));
                         break;
                     case "allowato":
                         if (checkperm(sender2, "uts.allowato")) break;
+                        if (reqdeactivated(sender)) break;
                         if (args.length == 2 && (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false"))) {
-                            if (!playing.get(sender)) {
-                                allowatousage.put(sender2, Boolean.valueOf(args[1].toLowerCase()));
-                                sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("ato") + (allowatousage.get(sender) ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
-                            } else {
-                                tta(sender, ChatColor.YELLOW, getlang("deactivatefirst"));
-                            }
+                            allowatousage.put(sender2, Boolean.valueOf(args[1].toLowerCase()));
+                            sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("ato") + (allowatousage.get(sender) ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
                             break;
                         }
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts allowato <true/false>" + ChatColor.YELLOW + "]\n" + getlang("atoinfo1") + "\n" + getlang("atoinfo2"));
@@ -318,10 +299,10 @@ public class cmds implements CommandExecutor, TabCompleter {
                                 }
                                 sender.sendMessage(pureutstitle + ChatColor.RED + getlang("sefailed"));
                             } else {
-                                tta(sender, ChatColor.YELLOW, getlang("seinmotion"));
+                                helpwithtitle(sender, ChatColor.YELLOW, getlang("seinmotion"));
                             }
                         } else {
-                            tta(sender, ChatColor.YELLOW, getlang("activatefirst"));
+                            helpwithtitle(sender, ChatColor.YELLOW, getlang("activatefirst"));
                         }
                         break;
                     case "pa":
@@ -344,6 +325,7 @@ public class cmds implements CommandExecutor, TabCompleter {
                                             }
                                         }
                                         s = sBuilder.toString();
+                                        // To keep & type \&
                                         s = s.replaceAll("\\\\&", "\\\\and");
                                         s = s.replaceAll("&", "§");
                                         s = s.replaceAll("\\\\and", "&");
@@ -354,7 +336,7 @@ public class cmds implements CommandExecutor, TabCompleter {
                                 }
                             }
                         } else {
-                            tta(sender, ChatColor.YELLOW, getlang("activatefirst"));
+                            helpwithtitle(sender, ChatColor.YELLOW, getlang("activatefirst"));
                         }
                         break;
                     case "reload":
@@ -362,15 +344,16 @@ public class cmds implements CommandExecutor, TabCompleter {
                         plugin.reloadConfig();
                         config = new abstractfile(plugin, "config.yml");
                         traindata = new abstractfile(plugin, "traindata.yml");
+                        signalorder = new abstractfile(plugin, "signalorder.yml");
                         langdata = new abstractfile(plugin, "lang_" + plugin.getConfig().getString("lang") + ".yml");
                         sender.sendMessage(utshead + ChatColor.YELLOW + getlang("reloaded"));
                         break;
                     default:
-                        tta(sender, ChatColor.YELLOW, getlang("cmdnotexist"));
+                        helpwithtitle(sender, ChatColor.YELLOW, getlang("cmdnotexist"));
                         break;
                 }
             } else {
-                ta(sender, getlang("help1a"));
+                helpmsg(sender);
             }
             // Save in config
             getPConfig().set(pDataInfo + ".traintype", traintype.get(sender2));
@@ -385,6 +368,15 @@ public class cmds implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private boolean reqdeactivated(CommandSender sender) {
+        //noinspection SuspiciousMethodCalls
+        if (playing.get(sender)) {
+            helpwithtitle(sender, ChatColor.YELLOW, getlang("deactivatefirst"));
+            return true;
+        }
+        return false;
+    }
+
     private boolean checkperm(Player sender2, String name) {
         if (!sender2.hasPermission(name)) {
             noPerm(sender2);
@@ -397,7 +389,7 @@ public class cmds implements CommandExecutor, TabCompleter {
     static void atodepartcountdown(Player p) {
         if (playing.get(p)) {
             if (atostoptime.containsKey(p)) {
-                if (atostoptime.get(p) > 0) {
+                if (atostoptime.get(p) > 0 && doordiropen.get(p)) {
                     p.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.GOLD + "..." + atostoptime.get(p));
                     atostoptime.put(p, atostoptime.get(p) - 1);
                     Bukkit.getScheduler().runTaskLater(plugin, () -> atodepartcountdown(p), 20);
@@ -424,8 +416,7 @@ public class cmds implements CommandExecutor, TabCompleter {
         }
     }
 
-    // Simplify
-    protected boolean pcontains(String s) {
+    protected boolean pContains(String s) {
         return getPConfig().contains(pDataInfo + s);
     }
 
@@ -433,24 +424,24 @@ public class cmds implements CommandExecutor, TabCompleter {
         sender.sendMessage(utshead + ChatColor.RED + getlang("noperm"));
     }
 
-    protected static void tta2(CommandSender sender, ChatColor color, String arg) {
+    protected static void helpsectiontitle(CommandSender sender, ChatColor color, String arg) {
         sender.sendMessage(pureutstitle + color + " ----- " + getlang("help" + arg + "title") + " -----");
     }
 
-    protected static void tta(CommandSender sender, ChatColor yellow, String s) {
+    protected static void helpwithtitle(CommandSender sender, ChatColor yellow, String s) {
         sender.sendMessage(pureutstitle + yellow + s);
     }
 
-    protected void tt(CommandSender sender, String s) {
+    protected void helpdesc(CommandSender sender, String s) {
         sender.sendMessage(ChatColor.YELLOW + s);
     }
 
-    protected void t(CommandSender sender, String s, String t) {
+    protected void helpinfo(CommandSender sender, String s, String t) {
         sender.sendMessage(helphead + s + helpformat + t);
     }
 
-    protected void ta(CommandSender sender, String t) {
-        sender.sendMessage(pureutstitle + helphead + "help <page>" + helpformat + t);
+    protected void helpmsg(CommandSender sender) {
+        sender.sendMessage(pureutstitle + helphead + "help <page>" + helpformat + getlang("help1a"));
     }
 
     protected FileConfiguration getPConfig() {
