@@ -9,3 +9,8 @@ Must be installed in Minecraft 1.12 or above.
 
 ## ⚙️ Commands
 `/plugman reload Untenshi` can be used unless the plugin is bugged.
+`/uts help <page>` for list of commands.
+
+## ⚠️ Warnings
+Restart is required if Untenshi signs cannot be detected. (The error should contain `zip file closed` in the console)
+Any misuse of the plugin may cause unexpected behaviour.
