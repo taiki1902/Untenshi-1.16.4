@@ -7,6 +7,7 @@ import com.bergerkiller.bukkit.tc.events.SignChangeActionEvent;
 import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import com.bergerkiller.bukkit.tc.signactions.SignActionType;
 import com.bergerkiller.bukkit.tc.utils.SignBuildOptions;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -32,10 +33,6 @@ public class signalsign extends SignAction {
     // Format: line 3: mode, signal, speed; line 4: coord (warn, sign)
     public void execute(SignActionEvent cartevent) {
         try {
-            int signalspeed = 0;
-            if (l1(cartevent).equals("set") || l1(cartevent).equals("sign")) {
-                signalspeed = parseInt(l3(cartevent));
-            }
             Player idk = null;
             //noinspection rawtypes
             for (MinecartMember cart : cartevent.getMembers()) {
@@ -50,6 +47,10 @@ public class signalsign extends SignAction {
                     if (playing.containsKey(p)) {
                         signaltype.putIfAbsent(p, "ats");
                         if (playing.get(p) && cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
+                            int signalspeed = 0;
+                            if (l1(cartevent).equals("set") || l1(cartevent).equals("sign")) {
+                                signalspeed = parseInt(l3(cartevent));
+                            }
                             // Main content starts here
                             if (signalspeed <= 360 && signalspeed >= 0 && Math.floorMod(signalspeed, 5) == 0 && (checktype(cartevent))) {
                                 String signalmsg = "";
@@ -60,16 +61,21 @@ public class signalsign extends SignAction {
                                         lastresetablesign.putIfAbsent(p, new Location[1]);
                                         // Update sign with line 4
                                         if (cartevent.getLine(3).isEmpty()) {
-                                            cartevent.setLine(3, "default " + l2(cartevent) + " " + signalspeed);
+                                            String str = "default";
+                                            if (signalorderptn.containsKey(p)) {
+                                                str = signalorderptn.get(p);
+                                            }
+                                            cartevent.setLine(3, str + " " + l2(cartevent) + " " + signalspeed);
                                         } else {
                                             signalorderptn.put(p, cartevent.getLine(3).split(" ")[0]);
                                         }
                                         // Check if that location exists in any other train, then delete that record
                                         Location currentloc = cartevent.getLocation();
                                         for (Player p2 : plugin.getServer().getOnlinePlayers()) {
-                                            // Prevent plugin shutdown affecting playing status
+                                            playing.putIfAbsent(p2, false);
                                             if (playing.get(p2)) {
-                                                Location[] locs = lastresetablesign.get(p);
+                                                lastresetablesign.putIfAbsent(p2, new Location[1]);
+                                                Location[] locs = lastresetablesign.get(p2);
                                                 for (int i = 0; i < locs.length; i++) {
                                                     if (locs[i] == currentloc) {
                                                         locs[i] = null;
@@ -97,7 +103,7 @@ public class signalsign extends SignAction {
                                         p.sendMessage(utshead + ChatColor.YELLOW + getlang("signalset") + signalmsg + ChatColor.GRAY + " " + temp);
                                         // If red light need to wait signal change, if not then delete variable
                                         if (signalspeed != 0) {
-                                            // Get signal order (testing)
+                                            // Get signal order
                                             List<String> ptn = signalorder.dataconfig.getStringList("signal." + signalorderptn.get(p));
                                             int ptnlen = ptn.size();
                                             int halfptnlen = ptnlen / 2;
@@ -141,8 +147,12 @@ public class signalsign extends SignAction {
                                                     if (ptnsisp[i] > defaultsp) {
                                                         str = ptnsisi[i] + " " + defaultsp;
                                                     }
-                                                    setable.setLine(2, "set " + str);
-                                                    setable.update();
+                                                    Sign finalSetable = setable;
+                                                    String finalStr = str;
+                                                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                                                        finalSetable.setLine(2, "set " + finalStr);
+                                                        finalSetable.update();
+                                                    }, 1);
                                                 }
                                             }
                                             lastresetablesign.put(p, newloc);
