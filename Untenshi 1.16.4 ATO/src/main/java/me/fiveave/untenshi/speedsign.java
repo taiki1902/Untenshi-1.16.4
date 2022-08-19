@@ -17,7 +17,7 @@ import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.signimproper;
 
-public class speedsign extends SignAction {
+class speedsign extends SignAction {
 
     @Override
     public boolean match(SignActionEvent info) {
@@ -38,25 +38,12 @@ public class speedsign extends SignAction {
                     if (playing.containsKey(p)) {
                         signaltype.put(p, "ats");
                         if (playing.get(p)) {
-                            // Old to new converter for warn
-                            if (cartevent.getLine(3).equals("warn")) {
-                                Sign temp = cartevent.getSign();
-                                String oldpos = cartevent.getLine(2);
-                                String oldwarn = cartevent.getLine(3);
-                                temp.setLine(2, oldwarn);
-                                temp.setLine(3, oldpos);
-                                temp.update();
-                            }
                             // Speed limit set
                             if (!cartevent.getLine(2).equals("warn")) {
                                 int intspeed = parseInt(speedsign);
                                 if (intspeed <= 360 && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
                                     speedlimit.put(p, intspeed);
-                                    String temp = speedlimit.get(p) + " km/h";
-                                    if (intspeed >= 360) {
-                                        temp = ChatColor.GREEN + getlang("nolimit");
-                                    }
-                                    p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitset") + temp);
+                                    p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitset") + (intspeed >= 360 ? ChatColor.GREEN + getlang("nolimit") : speedlimit.get(p) + " km/h"));
                                     if (parseInt(speedsign) != 0) {
                                         lastspsign.remove(p);
                                         lastspsp.remove(p);
@@ -68,11 +55,10 @@ public class speedsign extends SignAction {
                             // Speed limit warn
                             else {
                                 try {
-                                    int warnsp;
                                     Sign warn = getSign(cartevent);
                                     if (warn != null) {
                                         lastspsign.put(p, warn.getLocation());
-                                        warnsp = Integer.parseInt(warn.getLine(2));
+                                        int warnsp = parseInt(warn.getLine(2));
                                         lastspsp.put(p, warnsp);
                                         if (warnsp < 360) {
                                             p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitwarn") + warnsp + " km/h");
@@ -123,7 +109,7 @@ public class speedsign extends SignAction {
         return true;
     }
 
-    protected static Sign getSign(SignActionEvent cartevent) {
+    static Sign getSign(SignActionEvent cartevent) {
         if (cartevent.getWorld().getBlockAt(getloc(cartevent, 0), getloc(cartevent, 1), getloc(cartevent, 2)).getState() instanceof Sign) {
             return (Sign) cartevent.getWorld().getBlockAt(getloc(cartevent, 0), getloc(cartevent, 1), getloc(cartevent, 2)).getState();
         } else {
@@ -131,7 +117,7 @@ public class speedsign extends SignAction {
         }
     }
 
-    protected static int getloc(SignActionEvent cartevent, int i) {
+    static int getloc(SignActionEvent cartevent, int i) {
         return parseInt(cartevent.getLine(3).split(" ")[i]);
     }
 }

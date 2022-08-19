@@ -15,7 +15,7 @@ import java.util.List;
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.main.*;
 
-public class stoppos extends SignAction {
+class stoppos extends SignAction {
 
     @Override
     public boolean match(SignActionEvent info) {

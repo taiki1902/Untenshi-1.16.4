@@ -29,10 +29,10 @@ import static me.fiveave.untenshi.main.mascon;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.motion.freemodenoato;
 
-public class events implements Listener {
+class events implements Listener {
 
     @EventHandler
-    public void onPlayerClicks(PlayerInteractEvent event) {
+    void onPlayerClicks(PlayerInteractEvent event) {
         // Init
         Player p = event.getPlayer();
         Action ac = event.getAction();
@@ -52,13 +52,13 @@ public class events implements Listener {
                     event.setCancelled(true);
                 }
                 if (nWand().equals(item)) {
-                    if (!atsping.get(p) && !atsebing.get(p)) {
+                    if (!atsping.get(p) && !atsbraking.get(p)) {
                         mascon.put(p, 0);
                     }
                     event.setCancelled(true);
                 }
                 if (downWand().equals(item)) {
-                    if (!atsping.get(p) && !atsebing.get(p) && (dooropen.get(p) == 0 || (dooropen.get(p) > 0 && masconstat < 0))) {
+                    if (!atsping.get(p) && !atsbraking.get(p) && (dooropen.get(p) == 0 || (dooropen.get(p) > 0 && masconstat < 0))) {
                         if (masconstat < 5) {
                             mascon.put(p, masconstat + 1);
                         }
@@ -78,13 +78,13 @@ public class events implements Listener {
                 event.setCancelled(true);
             }
             if (ebButton().equals(item)) {
-                ebButton(p);
+                toEB(p);
                 event.setCancelled(true);
             }
         }
     }
 
-    private void ebButton(Player p) {
+    static void toEB(Player p) {
         mascon.put(p, -9);
         atsforced.put(p, 1);
     }
@@ -126,7 +126,7 @@ public class events implements Listener {
                 b.getChunk().load();
                 b.setType(Material.REDSTONE_BLOCK);
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    p.getWorld().getBlockAt(stopoutput.get(p)[0], stopoutput.get(p)[1], stopoutput.get(p)[2]).setType(Material.AIR);
+                    b.setType(Material.AIR);
                     stopoutput.remove(p);
                 }, 4);
             }
@@ -157,7 +157,7 @@ public class events implements Listener {
     }
 
     @EventHandler
-    public void collision(VehicleBlockCollisionEvent event) {
+    void collision(VehicleBlockCollisionEvent event) {
         try {
             MinecartGroup mg = MinecartGroupStore.get(event.getVehicle());
             for (String s : mg.getProperties().getOwners()) {
@@ -177,7 +177,7 @@ public class events implements Listener {
     }
 
     @EventHandler
-    public void onDropItem(PlayerDropItemEvent event) {
+    void onDropItem(PlayerDropItemEvent event) {
         ItemStack item = event.getItemDrop().getItemStack();
         if (isItems(item)) {
             event.setCancelled(true);
@@ -185,7 +185,7 @@ public class events implements Listener {
     }
 
     @EventHandler
-    public void onClickItem(InventoryClickEvent event) {
+    void onClickItem(InventoryClickEvent event) {
         playing.putIfAbsent((Player) event.getWhoClicked(), false);
         if (playing.get((Player) event.getWhoClicked())) {
             event.setCancelled(true);
@@ -193,7 +193,7 @@ public class events implements Listener {
     }
 
     @EventHandler
-    public void onMoveItem(InventoryMoveItemEvent event) {
+    void onMoveItem(InventoryMoveItemEvent event) {
         ItemStack item = event.getItem();
         if (isItems(item)) {
             event.setCancelled(true);
@@ -201,7 +201,7 @@ public class events implements Listener {
     }
 
     @EventHandler
-    public void onCreativeMoveItem(InventoryCreativeEvent event) {
+    void onCreativeMoveItem(InventoryCreativeEvent event) {
         ItemStack item = event.getCursor();
         if (isItems(item)) {
             event.setCancelled(true);
@@ -214,12 +214,13 @@ public class events implements Listener {
 
 
     @EventHandler
-    // Prevent player leaving affecting playing status
-    public void onLeave(PlayerQuitEvent event) {
+        // Prevent player leaving affecting playing status
+    void onLeave(PlayerQuitEvent event) {
         Player p = event.getPlayer();
-        playing.putIfAbsent(p, false);
-        if (playing.get(p)) {
-            restoreinit(p);
+        if (playing.containsKey(p)) {
+            if (playing.get(p)) {
+                restoreinit(p);
+            }
         }
     }
 
@@ -233,7 +234,7 @@ public class events implements Listener {
         return wand;
     }
 
-    protected static ItemStack upWand() {
+    static ItemStack upWand() {
         return getItem(Material.STONE_AXE, ChatColor.RED, getlang("upwandname"));
     }
 

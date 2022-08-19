@@ -12,13 +12,13 @@ import java.util.Objects;
 
 import static me.fiveave.untenshi.main.utshead;
 
-public class abstractfile {
+class abstractfile {
     protected final main plugin;
     private File file;
-    public FileConfiguration dataconfig;
-    public FileConfiguration oldconfig;
+    FileConfiguration dataconfig;
+    FileConfiguration oldconfig;
 
-    public abstractfile(main plugin, String fileName) {
+    abstractfile(main plugin, String fileName) {
         this.plugin = plugin;
         file = new File(plugin.getDataFolder(), fileName);
         dataconfig = YamlConfiguration.loadConfiguration(file);
@@ -27,7 +27,7 @@ public class abstractfile {
         reloadConfig();
     }
 
-    public void reloadConfig() {
+    void reloadConfig() {
         InputStream stream = plugin.getResource(file.getName());
         if (stream != null) {
             YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(stream));
@@ -56,7 +56,7 @@ public class abstractfile {
         }
     }
 
-    public void save() {
+    void save() {
         if (dataconfig == null || file == null) {
             return;
         }
@@ -67,7 +67,7 @@ public class abstractfile {
         }
     }
 
-    public void saveDefaultConfig() {
+    void saveDefaultConfig() {
         if (file == null) {
             assert false;
             file = new File(plugin.getDataFolder(), file.getName());

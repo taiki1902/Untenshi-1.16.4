@@ -15,7 +15,7 @@ import java.util.List;
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.main.*;
 
-public class atosign extends SignAction {
+class atosign extends SignAction {
 
     @Override
     public boolean match(SignActionEvent info) {
@@ -49,7 +49,7 @@ public class atosign extends SignAction {
                                     overrun.put(p, false);
                                     double val = Double.parseDouble(cartevent.getLine(2));
                                     // Direct or indirect pattern?
-                                    atopforcedirect.put(p, val < 0);
+                                    atopisdirect.put(p, val < 0);
                                     atospeed.put(p, Math.abs(val));
                                     atodest.put(p, loc);
                                     p.sendMessage(utshead + ChatColor.GOLD + getlang("atodetectpattern"));

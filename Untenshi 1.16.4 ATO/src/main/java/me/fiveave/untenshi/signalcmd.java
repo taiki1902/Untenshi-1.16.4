@@ -20,7 +20,7 @@ import static me.fiveave.untenshi.main.utshead;
 import static me.fiveave.untenshi.signalsign.issignaltype;
 import static me.fiveave.untenshi.signalsign.signalName;
 
-public class signalcmd implements CommandExecutor, TabCompleter {
+class signalcmd implements CommandExecutor, TabCompleter {
 
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
@@ -65,7 +65,7 @@ public class signalcmd implements CommandExecutor, TabCompleter {
                                 String warnsp = warn.getLine(2).split(" ")[2];
                                 signalmsg = signalName(warnsi, signalmsg);
                                 if (signalmsg.equals("")) {
-                                    sender.sendMessage(utshead + ChatColor.RED + getlang("signalarg32"));
+                                    sender.sendMessage(utshead + ChatColor.RED + getlang("signaltypewrong"));
                                 }
                                 String temp2 = warnsp + " km/h";
                                 if (parseInt(warnsp) >= 360) {
@@ -84,7 +84,7 @@ public class signalcmd implements CommandExecutor, TabCompleter {
                                 break;
                             }
                         default:
-                            sender.sendMessage(utshead + getlang("signalarg41"));
+                            sender.sendMessage(utshead + getlang("signalargwrong2"));
                             break;
                     }
                 }
@@ -100,15 +100,15 @@ public class signalcmd implements CommandExecutor, TabCompleter {
     // Simplify
 
     // l[n]: "n"th split text in line 3
-    protected String l1(String e) {
+    String l1(String e) {
         return e.toLowerCase().split(" ")[0];
     }
 
-    protected int getloc(String loctext, int i) {
+    int getloc(String loctext, int i) {
         return parseInt(loctext.split(" ")[i]);
     }
 
-    protected Sign getSign(CommandSender sender, String loctext) {
+    Sign getSign(CommandSender sender, String loctext) {
         World w = sender instanceof Player ? ((Player) sender).getWorld() : (sender instanceof BlockCommandSender ? ((BlockCommandSender) sender).getBlock().getWorld() : null);
         assert w != null;
         BlockState bl = w.getBlockAt(getloc(loctext, 0), getloc(loctext, 1), getloc(loctext, 2)).getState();
@@ -139,7 +139,7 @@ public class signalcmd implements CommandExecutor, TabCompleter {
         if (args.length == 4) {
             ta.addAll(Arrays.asList("warn", "sign"));
         } else if (args.length == 5 && args[3].equals("sign")) {
-            ta.addAll(Arrays.asList("r", "yy", "y", "gy", "yg", "g", "atc"));
+            ta.addAll(Arrays.asList("r", "yy", "y", "yg", "g", "atc"));
         } else {
             ta.add("");
         }

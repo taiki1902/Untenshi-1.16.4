@@ -15,7 +15,7 @@ import java.util.List;
 import static me.fiveave.untenshi.main.noperm;
 import static me.fiveave.untenshi.main.playing;
 
-public class utstrain extends SignAction {
+class utstrain extends SignAction {
 
     @Override
     public boolean match(SignActionEvent info) {
@@ -25,7 +25,6 @@ public class utstrain extends SignAction {
     @Override
     public void execute(SignActionEvent cartevent) {
         if (cartevent.hasRailedMember() && cartevent.isPowered()) {
-            int utsplayers = 0;
             //noinspection rawtypes
             for (MinecartMember cart : cartevent.getMembers()) {
                 // For each passenger on cart
@@ -37,13 +36,10 @@ public class utstrain extends SignAction {
                     Player p = (Player) cartobject;
                     if (playing.containsKey(p)) {
                         if (playing.get(p)) {
-                            utsplayers++;
+                            cartevent.setLevers(true);
                         }
                     }
                 }
-            }
-            if (utsplayers > 0) {
-                cartevent.setLevers(true);
             }
             if (cartevent.isAction(SignActionType.GROUP_LEAVE)) {
                 cartevent.setLevers(false);
@@ -58,7 +54,7 @@ public class utstrain extends SignAction {
         if (noperm(e)) return true;
         try {
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Untenshi Train Detector");
-            opt.setDescription("detect if the train is a UTS train");
+            opt.setDescription("detect if the train is a Untenshi train");
             return opt.handle(e.getPlayer());
         } catch (Exception exception) {
             e.getPlayer().sendMessage(ChatColor.RED + "Numbers are not valid!");

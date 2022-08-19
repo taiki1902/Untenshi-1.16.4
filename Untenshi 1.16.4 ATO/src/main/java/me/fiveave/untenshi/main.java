@@ -22,53 +22,52 @@ import static me.fiveave.untenshi.motion.freemodenoato;
 import static me.fiveave.untenshi.signalsign.resetSignals;
 
 public final class main extends JavaPlugin implements Listener {
-    static HashMap<Player, Integer> mascon = new HashMap<>();
-    static HashMap<Player, Integer> speedlimit = new HashMap<>();
-    static HashMap<Player, Integer> signallimit = new HashMap<>();
-    static HashMap<Player, Integer> points = new HashMap<>();
-    static HashMap<Player, Integer> deductdelay = new HashMap<>();
-    static HashMap<Player, Integer> atsforced = new HashMap<>();
-    static HashMap<Player, Integer> lastsisp = new HashMap<>();
-    static HashMap<Player, Integer> lastspsp = new HashMap<>();
-    static HashMap<Player, Integer> dooropen = new HashMap<>();
-    static HashMap<Player, Integer[]> stopoutput = new HashMap<>();
-    static HashMap<Player, Integer[]> atodest = new HashMap<>();
-    static HashMap<Player, Integer> atostoptime = new HashMap<>();
-    static HashMap<Player, Double> current = new HashMap<>();
-    static HashMap<Player, Double> speed = new HashMap<>();
-    static HashMap<Player, Double> atospeed = new HashMap<>();
-    static HashMap<Player, Double[]> stoppos = new HashMap<>();
-    static HashMap<Player, Double> lasty = new HashMap<>();
-    static HashMap<Player, Location> lastsisign = new HashMap<>();
-    static HashMap<Player, Location> lastspsign = new HashMap<>();
-    static HashMap<Player, Location[]> lastresetablesign = new HashMap<>();
-    static HashMap<Player, String> traintype = new HashMap<>();
-    static HashMap<Player, String> signaltype = new HashMap<>();
-    static HashMap<Player, String> signalorderptn = new HashMap<>();
-    static HashMap<Player, Boolean> playing = new HashMap<>();
-    static HashMap<Player, Boolean> freemode = new HashMap<>();
-    static HashMap<Player, Boolean> reqstopping = new HashMap<>();
-    static HashMap<Player, Boolean> overrun = new HashMap<>();
-    static HashMap<Player, Boolean> fixstoppos = new HashMap<>();
-    static HashMap<Player, Boolean> staaccel = new HashMap<>();
-    static HashMap<Player, Boolean> staeb = new HashMap<>();
-    static HashMap<Player, Boolean> atsing = new HashMap<>();
-    static HashMap<Player, Boolean> atsebing = new HashMap<>();
-    static HashMap<Player, Boolean> atsping = new HashMap<>();
-    static HashMap<Player, Boolean> atspnear = new HashMap<>();
-    static HashMap<Player, Boolean> doordiropen = new HashMap<>();
-    static HashMap<Player, Boolean> doorconfirm = new HashMap<>();
-    static HashMap<Player, Boolean> frozen = new HashMap<>();
-    static HashMap<Player, Boolean> allowatousage = new HashMap<>();
-    static HashMap<Player, Boolean> atopforcedirect = new HashMap<>();
-    static HashMap<Player, MinecartGroup> train = new HashMap<>();
-    static HashMap<Player, ItemStack[]> inv = new HashMap<>();
-    static main plugin;
-    public static abstractfile config;
-    public static abstractfile langdata;
-    public static abstractfile traindata;
-    public static abstractfile playerdata;
-    public static abstractfile signalorder;
+    public static HashMap<Player, Integer> mascon = new HashMap<>();
+    public static HashMap<Player, Integer> speedlimit = new HashMap<>();
+    public static HashMap<Player, Integer> signallimit = new HashMap<>();
+    public static HashMap<Player, Integer> points = new HashMap<>();
+    public static HashMap<Player, Integer> deductdelay = new HashMap<>();
+    public static HashMap<Player, Integer> atsforced = new HashMap<>();
+    public static HashMap<Player, Integer> lastsisp = new HashMap<>();
+    public static HashMap<Player, Integer> lastspsp = new HashMap<>();
+    public static HashMap<Player, Integer> dooropen = new HashMap<>();
+    public static HashMap<Player, Integer[]> stopoutput = new HashMap<>();
+    public static HashMap<Player, Integer[]> atodest = new HashMap<>();
+    public static HashMap<Player, Integer> atostoptime = new HashMap<>();
+    public static HashMap<Player, Double> current = new HashMap<>();
+    public static HashMap<Player, Double> speed = new HashMap<>();
+    public static HashMap<Player, Double> atospeed = new HashMap<>();
+    public static HashMap<Player, Double[]> stoppos = new HashMap<>();
+    public static HashMap<Player, Double> lasty = new HashMap<>();
+    public static HashMap<Player, Location> lastsisign = new HashMap<>();
+    public static HashMap<Player, Location> lastspsign = new HashMap<>();
+    public static HashMap<Player, Location[][]> lastresetablesign = new HashMap<>();
+    public static HashMap<Player, String> traintype = new HashMap<>();
+    public static HashMap<Player, String> signaltype = new HashMap<>();
+    public static HashMap<Player, String> signalorderptn = new HashMap<>();
+    public static HashMap<Player, Boolean> playing = new HashMap<>();
+    public static HashMap<Player, Boolean> freemode = new HashMap<>();
+    public static HashMap<Player, Boolean> reqstopping = new HashMap<>();
+    public static HashMap<Player, Boolean> overrun = new HashMap<>();
+    public static HashMap<Player, Boolean> fixstoppos = new HashMap<>();
+    public static HashMap<Player, Boolean> staaccel = new HashMap<>();
+    public static HashMap<Player, Boolean> staeb = new HashMap<>();
+    public static HashMap<Player, Boolean> atsbraking = new HashMap<>();
+    public static HashMap<Player, Boolean> atsping = new HashMap<>();
+    public static HashMap<Player, Boolean> atspnear = new HashMap<>();
+    public static HashMap<Player, Boolean> doordiropen = new HashMap<>();
+    public static HashMap<Player, Boolean> doorconfirm = new HashMap<>();
+    public static HashMap<Player, Boolean> frozen = new HashMap<>();
+    public static HashMap<Player, Boolean> allowatousage = new HashMap<>();
+    public static HashMap<Player, Boolean> atopisdirect = new HashMap<>();
+    public static HashMap<Player, MinecartGroup> train = new HashMap<>();
+    public static HashMap<Player, ItemStack[]> inv = new HashMap<>();
+    public static main plugin;
+    static abstractfile config;
+    static abstractfile langdata;
+    static abstractfile traindata;
+    static abstractfile playerdata;
+    static abstractfile signalorder;
 
     static FileConfiguration getLConfig() {
         return langdata.dataconfig;
@@ -139,14 +138,8 @@ public final class main extends JavaPlugin implements Listener {
     static String utshead = "[" + ChatColor.GREEN + "Untenshi" + ChatColor.WHITE + "] ";
 
     static void pointCounter(Player p, ChatColor color, String s, int pts, String str) {
-        ChatColor color2 = ChatColor.RED;
-        String ptsstr = String.valueOf(pts);
-        if (freemode.get(p)) {
-            ptsstr = "";
-        }
-        if (pts > 0) {
-            color2 = ChatColor.GREEN;
-        }
+        ChatColor color2 = pts > 0 ? ChatColor.GREEN : ChatColor.RED;
+        String ptsstr = freemode.get(p) ? "" : String.valueOf(pts);
         p.sendMessage(utshead + color + s + color2 + ptsstr + str);
         if (freemodenoato(p)) {
             points.put(p, points.get(p) + pts);
@@ -157,12 +150,12 @@ public final class main extends JavaPlugin implements Listener {
         // Get train group and stop train and open doors
         playing.putIfAbsent(p, false);
         if (playing.get(p)) {
-            MinecartGroup nmg = train.get(p);
-            TrainProperties ntrainprop = nmg.getProperties();
-            ntrainprop.setSpeedLimit(0);
-            nmg.setForwardForce(0);
-            ntrainprop.setPlayersEnter(true);
-            ntrainprop.setPlayersExit(true);
+            MinecartGroup mg = train.get(p);
+            TrainProperties trainprop = mg.getProperties();
+            trainprop.setSpeedLimit(0);
+            mg.setForwardForce(0);
+            trainprop.setPlayersEnter(true);
+            trainprop.setPlayersExit(true);
             speed.put(p, 0.0);
             points.put(p, 30);
             overrun.put(p, false);
@@ -182,7 +175,7 @@ public final class main extends JavaPlugin implements Listener {
             lastsisp.remove(p);
             lastspsp.remove(p);
             // Delete owners
-            ntrainprop.clearOwners();
+            trainprop.clearOwners();
             // Clear Inventory
             for (int i = 0; i < 41; i++) {
                 p.getInventory().setItem(i, new ItemStack(Material.AIR));
@@ -193,9 +186,9 @@ public final class main extends JavaPlugin implements Listener {
             p.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("activate") + ChatColor.RED + getlang("disable"));
             // Reset signals
             try {
-                Location[] locs = lastresetablesign.get(p);
-                for (int i = 0; i < lastresetablesign.get(p).length; i++) {
-                    resetSignals(p.getWorld(), locs[i]);
+                Location[][] locs = lastresetablesign.get(p);
+                for (Location[] locs1 : locs) {
+                    resetSignals(p.getWorld(), locs1);
                 }
             } catch (Exception ignored) {
             }

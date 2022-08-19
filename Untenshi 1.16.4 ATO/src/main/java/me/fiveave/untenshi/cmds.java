@@ -30,10 +30,10 @@ import java.util.Objects;
 import static me.fiveave.untenshi.events.*;
 import static me.fiveave.untenshi.main.*;
 
-public class cmds implements CommandExecutor, TabCompleter {
-    protected String helphead = ChatColor.GOLD + "/uts ";
-    protected String helpformat = " " + ChatColor.WHITE + "-" + ChatColor.GREEN + " ";
-    protected String pDataInfo;
+class cmds implements CommandExecutor, TabCompleter {
+    String helphead = ChatColor.GOLD + "/uts ";
+    String helpformat = " " + ChatColor.WHITE + "-" + ChatColor.GREEN + " ";
+    String pDataInfo;
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -64,8 +64,7 @@ public class cmds implements CommandExecutor, TabCompleter {
             dooropen.putIfAbsent(sender2, 0);
             doordiropen.putIfAbsent(sender2, false);
             frozen.putIfAbsent(sender2, false);
-            atsing.putIfAbsent(sender2, false);
-            atsebing.putIfAbsent(sender2, false);
+            atsbraking.putIfAbsent(sender2, false);
             allowatousage.putIfAbsent(sender2, false);
             // Force freemode false if perm not given
             if (!sender.hasPermission("uts.freemode")) {
@@ -174,8 +173,7 @@ public class cmds implements CommandExecutor, TabCompleter {
                                         mascon.put(sender2, -9);
                                         current.put(sender2, -480.0);
                                         points.put(sender2, 30);
-                                        atsing.put(sender2, false);
-                                        atsebing.put(sender2, false);
+                                        atsbraking.put(sender2, false);
                                         atsping.put(sender2, false);
                                         atspnear.put(sender2, false);
                                         overrun.put(sender2, false);
@@ -217,11 +215,10 @@ public class cmds implements CommandExecutor, TabCompleter {
                         break;
                     case "atsconfirm":
                     case "ac":
-                        if (!signallimit.get(sender).equals(0) && ((atsing.get(sender) && !atsebing.get(sender)) || (atsebing.get(sender) && speed.get(sender) <= 0))) {
-                            atsing.put(sender2, false);
-                            atsebing.put(sender2, false);
+                        if (!signallimit.get(sender).equals(0) && !atsbraking.get(sender) || (atsbraking.get(sender) && speed.get(sender) <= 0)) {
+                            atsbraking.put(sender2, false);
                             sender.sendMessage(utshead + ChatColor.GOLD + getlang("acsuccess"));
-                        } else if (signallimit.get(sender).equals(0) || (atsebing.get(sender) && speed.get(sender) > 0)) {
+                        } else if (signallimit.get(sender).equals(0) || (atsbraking.get(sender) && speed.get(sender) > 0)) {
                             sender.sendMessage(utshead + ChatColor.RED + getlang("acfailed"));
                         } else {
                             sender.sendMessage(utshead + ChatColor.YELLOW + getlang("acnotneeded"));
@@ -369,8 +366,7 @@ public class cmds implements CommandExecutor, TabCompleter {
     }
 
     private boolean reqdeactivated(CommandSender sender) {
-        //noinspection SuspiciousMethodCalls
-        if (playing.get(sender)) {
+        if (playing.get((Player) sender)) {
             helpwithtitle(sender, ChatColor.YELLOW, getlang("deactivatefirst"));
             return true;
         }
@@ -416,35 +412,35 @@ public class cmds implements CommandExecutor, TabCompleter {
         }
     }
 
-    protected boolean pContains(String s) {
+    boolean pContains(String s) {
         return getPConfig().contains(pDataInfo + s);
     }
 
-    protected void noPerm(CommandSender sender) {
+    void noPerm(CommandSender sender) {
         sender.sendMessage(utshead + ChatColor.RED + getlang("noperm"));
     }
 
-    protected static void helpsectiontitle(CommandSender sender, ChatColor color, String arg) {
+    static void helpsectiontitle(CommandSender sender, ChatColor color, String arg) {
         sender.sendMessage(pureutstitle + color + " ----- " + getlang("help" + arg + "title") + " -----");
     }
 
-    protected static void helpwithtitle(CommandSender sender, ChatColor yellow, String s) {
+    static void helpwithtitle(CommandSender sender, ChatColor yellow, String s) {
         sender.sendMessage(pureutstitle + yellow + s);
     }
 
-    protected void helpdesc(CommandSender sender, String s) {
+    void helpdesc(CommandSender sender, String s) {
         sender.sendMessage(ChatColor.YELLOW + s);
     }
 
-    protected void helpinfo(CommandSender sender, String s, String t) {
+    void helpinfo(CommandSender sender, String s, String t) {
         sender.sendMessage(helphead + s + helpformat + t);
     }
 
-    protected void helpmsg(CommandSender sender) {
+    void helpmsg(CommandSender sender) {
         sender.sendMessage(pureutstitle + helphead + "help <page>" + helpformat + getlang("help1a"));
     }
 
-    protected FileConfiguration getPConfig() {
+    FileConfiguration getPConfig() {
         return playerdata.dataconfig;
     }
 
