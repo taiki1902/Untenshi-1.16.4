@@ -1,5 +1,6 @@
 # Untenshi
 Train driving plugin with reference to Japanese railways.
+User manual: https://drive.google.com/drive/folders/1GjEoksu5aTYFMZb9Pt0-qSMqssjjNsKV?usp=sharing
 
 
 ## 🔗 Requirement
