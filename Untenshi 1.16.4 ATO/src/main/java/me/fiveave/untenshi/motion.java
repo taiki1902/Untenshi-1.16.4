@@ -121,9 +121,13 @@ class motion {
         df0.setRoundingMode(RoundingMode.HALF_EVEN);
         // Set real current
         if (ecb < currentnow) {
-            current.put(p, (currentnow - ecb) > 80.0 / 3 ? currentnow - 80 / 3 : ecb);
+            current.put(p, (currentnow - ecb) > 80.0 / 3 ? currentnow - 80.0 / 3 : ecb);
         } else if (ecb > currentnow) {
-            current.put(p, (ecb - currentnow) > 80.0 / 3 ? currentnow + 80 / 3 : ecb);
+            current.put(p, (ecb - currentnow) > 80.0 / 3 ? currentnow + 80.0 / 3 : ecb);
+        }
+        // If brake cancel accel
+        if (currentnow > 0 && ecb < 0) {
+            current.put(p, 0.0);
         }
         int dcurrent = (int) (currentnow * 9 / 480);
         // Accel and decel
@@ -168,7 +172,7 @@ class motion {
             speed.put(p, speed.get(p) - 0.234919);
         }
         // Set speed to 0 when under 0
-        if (speed.get(p) < 0) {
+        if (speed.get(p) < 0 || dooropen.get(p) > 0) {
             speed.put(p, 0.0);
         }
         lasty.put(p, trainy);
@@ -400,7 +404,7 @@ class motion {
     }
 
     static double getreqdist(Player ctrlp, double decel, double lowerSpeed) {
-        return (Math.pow(speed.get(ctrlp), 2) / (7.2 * decel)) - (Math.pow(lowerSpeed, 2) / (7.2 * decel));
+        return (Math.pow(speed.get(ctrlp), 2) - Math.pow(lowerSpeed, 2)) / (7.2 * decel);
     }
 
     static double decelswitch(Player ctrlp, double speeddrop, double decel, double dcurrent, double cspd, int i1, int i2, int i3, int i4, double ebrate) {
