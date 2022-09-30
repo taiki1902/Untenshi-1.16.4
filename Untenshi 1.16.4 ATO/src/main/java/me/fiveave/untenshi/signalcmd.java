@@ -80,7 +80,7 @@ class signalcmd implements CommandExecutor, TabCompleter {
                                 Sign sign = getSign(sender, cartevent);
                                 sign.setLine(2, "set " + args[4] + " " + args[5]);
                                 sign.update();
-                                sender.sendMessage(utshead + getlang("signalsignchange"));
+                                sender.sendMessage(utshead + getlang("signalsignchange") + " (" + args[4] + " " + args[5] + ")");
                                 break;
                             }
                         default:

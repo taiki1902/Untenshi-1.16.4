@@ -215,7 +215,7 @@ class cmds implements CommandExecutor, TabCompleter {
                         break;
                     case "atsconfirm":
                     case "ac":
-                        if (!signallimit.get(sender).equals(0) && !atsbraking.get(sender) || (atsbraking.get(sender) && speed.get(sender) <= 0)) {
+                        if (!signallimit.get(sender).equals(0) && (!atsbraking.get(sender) || (atsbraking.get(sender) && speed.get(sender) <= 0))) {
                             atsbraking.put(sender2, false);
                             sender.sendMessage(utshead + ChatColor.GOLD + getlang("acsuccess"));
                         } else if (signallimit.get(sender).equals(0) || (atsbraking.get(sender) && speed.get(sender) > 0)) {

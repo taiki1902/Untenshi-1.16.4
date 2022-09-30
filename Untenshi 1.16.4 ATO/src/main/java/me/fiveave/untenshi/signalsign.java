@@ -56,90 +56,97 @@ class signalsign extends SignAction {
                                 switch (l1(cartevent)) {
                                     // Set signal speed limit
                                     case "set":
-                                        // [y][x], y for vertical (number of signals passed), x for horizontal (same row needed to be set)
-                                        lastresetablesign.putIfAbsent(p, new Location[1][1]);
-                                        signalorderptn.put(p, cartevent.getLine(3).split(" ")[0]);
-                                        // Check if that location exists in any other train, then delete that record
-                                        Location currentloc = cartevent.getLocation();
-                                        for (Player p2 : plugin.getServer().getOnlinePlayers()) {
-                                            playing.putIfAbsent(p2, false);
-                                            if (playing.get(p2)) {
-                                                lastresetablesign.putIfAbsent(p2, new Location[1][1]);
-                                                Location[][] locs = lastresetablesign.get(p2);
-                                                for (int i1 = 0; i1 < locs.length; i1++) {
-                                                    for (int i2 = 0; i2 < locs[i1].length; i2++) {
-                                                        if (locs[i1][i2] == currentloc) {
-                                                            locs[i1][i2] = null;
-                                                            lastresetablesign.put(p, locs);
-                                                            resetSignals(cartevent.getWorld(), locs[i1]);
+                                        // Prevent stepping on same signal causing ATS run
+                                        if (lastresetablesign.get(p)[0][0] == null || !lastresetablesign.get(p)[0][0].equals(cartevent.getLocation())) {
+                                            // Prevent non-resettable ATS Run caused by red light but without receiving warning
+                                            lastsisign.putIfAbsent(p, cartevent.getLocation());
+                                            lastsisp.putIfAbsent(p, signalspeed);
+                                            // [y][x], y for vertical (number of signals passed), x for horizontal (same row needed to be set)
+                                            lastresetablesign.putIfAbsent(p, new Location[1][1]);
+                                            signalorderptn.put(p, cartevent.getLine(3).split(" ")[0]);
+                                            // Check if that location exists in any other train, then delete that record
+                                            Location currentloc = cartevent.getLocation();
+                                            for (Player p2 : plugin.getServer().getOnlinePlayers()) {
+                                                playing.putIfAbsent(p2, false);
+                                                if (playing.get(p2)) {
+                                                    lastresetablesign.putIfAbsent(p2, new Location[1][1]);
+                                                    Location[][] locs = lastresetablesign.get(p2);
+                                                    for (int i1 = 0; i1 < locs.length; i1++) {
+                                                        for (int i2 = 0; i2 < locs[i1].length; i2++) {
+                                                            if (locs[i1][i2] == currentloc) {
+                                                                locs[i1][i2] = null;
+                                                                lastresetablesign.put(p, locs);
+                                                                resetSignals(cartevent.getWorld(), locs[i1]);
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
-                                        signallimit.put(p, signalspeed);
-                                        signaltype.put(p, l2(cartevent).equals("atc") ? "atc" : "ats");
-                                        signalmsg = signalName(l2(cartevent), signalmsg);
-                                        if (signalmsg.equals("")) {
-                                            signimproper(cartevent, p);
-                                            break;
-                                        }
-                                        String temp = signalspeed >= 360 ? getlang("nolimit") : signalspeed + " km/h";
-                                        p.sendMessage(utshead + ChatColor.YELLOW + getlang("signalset") + signalmsg + ChatColor.GRAY + " " + temp);
-                                        // If red light need to wait signal change, if not then delete variable
-                                        if (signalspeed != 0) {
-                                            // Get signal order
-                                            List<String> ptn = signalorder.dataconfig.getStringList("signal." + signalorderptn.get(p));
-                                            int ptnlen = ptn.size();
-                                            int halfptnlen = ptnlen / 2;
-                                            String[] ptnsisi = new String[ptnlen];
-                                            int[] ptnsisp = new int[ptnlen];
-                                            for (int i = 0; i < ptnlen; i++) {
-                                                if (Math.floorMod(i, 2) == 0) {
-                                                    ptnsisi[i / 2] = ptn.get(i);
-                                                } else {
-                                                    ptnsisp[(i - 1) / 2] = Integer.parseInt(ptn.get(i));
-                                                }
+                                            signallimit.put(p, signalspeed);
+                                            signaltype.put(p, l2(cartevent).equals("atc") ? "atc" : "ats");
+                                            signalmsg = signalName(l2(cartevent), signalmsg);
+                                            if (signalmsg.equals("")) {
+                                                signimproper(cartevent, p);
+                                                break;
                                             }
-                                            Location[][] newloc = new Location[halfptnlen][lastresetablesign.get(p)[0].length];
-                                            Location[][] oldloc = lastresetablesign.get(p);
+                                            String temp = signalspeed >= 360 ? getlang("nolimit") : signalspeed + " km/h";
+                                            p.sendMessage(utshead + ChatColor.YELLOW + getlang("signalset") + signalmsg + ChatColor.GRAY + " " + temp);
+                                            // If red light need to wait signal change, if not then delete variable
+                                            if (signalspeed != 0) {
+                                                // Get signal order
+                                                List<String> ptn = signalorder.dataconfig.getStringList("signal." + signalorderptn.get(p));
+                                                int ptnlen = ptn.size();
+                                                int halfptnlen = ptnlen / 2;
+                                                String[] ptnsisi = new String[ptnlen];
+                                                int[] ptnsisp = new int[ptnlen];
+                                                for (int i = 0; i < ptnlen; i++) {
+                                                    if (Math.floorMod(i, 2) == 0) {
+                                                        ptnsisi[i / 2] = ptn.get(i);
+                                                    } else {
+                                                        ptnsisp[(i - 1) / 2] = Integer.parseInt(ptn.get(i));
+                                                    }
+                                                }
+                                                Location[][] newloc = new Location[halfptnlen][lastresetablesign.get(p)[0].length];
+                                                Location[][] oldloc = lastresetablesign.get(p);
 
-                                            for (int i1 = 0; i1 < oldloc.length; i1++) {
-                                                if (i1 + 1 < newloc.length) {
-                                                    newloc[i1 + 1] = oldloc[i1];
-                                                }
-                                            }
-                                            newloc[0][0] = cartevent.getLocation();
-                                            // Remove variables
-                                            lastsisign.remove(p);
-                                            lastsisp.remove(p);
-                                            // Reset signals if too much (oldloc.length > newloc.length)
-                                            if (oldloc.length > newloc.length) {
-                                                for (int i1 = newloc.length + 1; i1 < oldloc.length; i1++) {
-                                                    // Get resetable signs
-                                                    resetSignals(cartevent.getWorld(), oldloc[i1]);
-                                                }
-                                            }
-                                            // Set signs with new signal and speed
-                                            for (int i1 = 0; i1 < halfptnlen; i1++) {
-                                                for (int i2 = 0; i2 < lastresetablesign.get(p)[lastresetablesign.get(p).length - 1].length; i2++) {
-                                                    Sign setable = null;
-                                                    try {
-                                                        setable = (Sign) cartevent.getWorld().getBlockAt(newloc[i1][i2]).getState();
-                                                    } catch (Exception ignored) {
-                                                    }
-                                                    if (setable != null) {
-                                                        int defaultsp = Integer.parseInt(setable.getLine(3).split(" ")[2]);
-                                                        String str = ptnsisp[i1] > defaultsp ? ptnsisi[i1] + " " + defaultsp : ptnsisi[i1] + " " + ptnsisp[i1];
-                                                        Sign finalSetable = setable;
-                                                        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                                            finalSetable.setLine(2, "set " + str);
-                                                            finalSetable.update();
-                                                        }, 1);
+                                                for (int i1 = 0; i1 < oldloc.length; i1++) {
+                                                    if (i1 + 1 < newloc.length) {
+                                                        newloc[i1 + 1] = oldloc[i1];
                                                     }
                                                 }
+                                                newloc[0][0] = cartevent.getLocation();
+                                                // Remove variables
+                                                lastsisign.remove(p);
+                                                lastsisp.remove(p);
+                                                // Reset signals if too much (oldloc.length > newloc.length)
+                                                if (oldloc.length > newloc.length) {
+                                                    for (int i1 = newloc.length + 1; i1 < oldloc.length; i1++) {
+                                                        // Get resetable signs
+                                                        resetSignals(cartevent.getWorld(), oldloc[i1]);
+                                                    }
+                                                }
+                                                // Set signs with new signal and speed
+                                                for (int i1 = 0; i1 < halfptnlen; i1++) {
+                                                    for (int i2 = 0; i2 < lastresetablesign.get(p)[lastresetablesign.get(p).length - 1].length; i2++) {
+                                                        Sign setable = null;
+                                                        try {
+                                                            setable = (Sign) cartevent.getWorld().getBlockAt(newloc[i1][i2]).getState();
+                                                        } catch (Exception ignored) {
+                                                        }
+                                                        if (setable != null) {
+                                                            int defaultsp = Integer.parseInt(setable.getLine(3).split(" ")[2]);
+                                                            String str = ptnsisp[i1] > defaultsp ? ptnsisi[i1] + " " + defaultsp : ptnsisi[i1] + " " + ptnsisp[i1];
+                                                            Sign finalSetable = setable;
+                                                            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                                                                finalSetable.setLine(2, "set " + str);
+                                                                finalSetable.update();
+                                                            }, 1);
+
+                                                        }
+                                                    }
+                                                }
+                                                lastresetablesign.put(p, newloc);
                                             }
-                                            lastresetablesign.put(p, newloc);
                                         }
                                         break;
                                     // Signal speed limit warn
