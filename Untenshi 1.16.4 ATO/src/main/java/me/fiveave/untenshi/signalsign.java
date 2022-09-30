@@ -56,14 +56,16 @@ class signalsign extends SignAction {
                                 switch (l1(cartevent)) {
                                     // Set signal speed limit
                                     case "set":
+                                        // [y][x], y for vertical (number of signals passed), x for horizontal (same row needed to be set)
+                                        lastresetablesign.putIfAbsent(p, new Location[1][1]);
+                                        signalorderptn.put(p, cartevent.getLine(3).split(" ")[0]);
                                         // Prevent stepping on same signal causing ATS run
                                         if (lastresetablesign.get(p)[0][0] == null || !lastresetablesign.get(p)[0][0].equals(cartevent.getLocation())) {
                                             // Prevent non-resettable ATS Run caused by red light but without receiving warning
-                                            lastsisign.putIfAbsent(p, cartevent.getLocation());
-                                            lastsisp.putIfAbsent(p, signalspeed);
-                                            // [y][x], y for vertical (number of signals passed), x for horizontal (same row needed to be set)
-                                            lastresetablesign.putIfAbsent(p, new Location[1][1]);
-                                            signalorderptn.put(p, cartevent.getLine(3).split(" ")[0]);
+                                            if (signalspeed == 0) {
+                                                lastsisign.putIfAbsent(p, cartevent.getLocation());
+                                                lastsisp.putIfAbsent(p, signalspeed);
+                                            }
                                             // Check if that location exists in any other train, then delete that record
                                             Location currentloc = cartevent.getLocation();
                                             for (Player p2 : plugin.getServer().getOnlinePlayers()) {
