@@ -46,11 +46,11 @@ class signalsign extends SignAction {
                         signaltype.putIfAbsent(p, "ats");
                         if (playing.get(p) && cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
                             int signalspeed = 0;
-                            if (l1(cartevent).equals("set") || l1(cartevent).equals("relate")) {
+                            if (l1(cartevent).equals("set") || (l1(cartevent).equals("relate") && !l2(cartevent).equals("del"))) {
                                 signalspeed = parseInt(l3(cartevent));
                             }
                             // Main content starts here
-                            if (signalspeed <= 360 && signalspeed >= 0 && Math.floorMod(signalspeed, 5) == 0 && (checktype(cartevent))) {
+                            if ((!l1(cartevent).equals("warn") && l2(cartevent).equals("del")) || (signalspeed <= 360 && signalspeed >= 0 && Math.floorMod(signalspeed, 5) == 0 && (checktype(cartevent)))) {
                                 String signalmsg = "";
                                 // Put signal speed limit
                                 switch (l1(cartevent)) {
@@ -105,12 +105,19 @@ class signalsign extends SignAction {
                                                     if (Math.floorMod(i, 2) == 0) {
                                                         ptnsisi[i / 2] = ptn.get(i);
                                                     } else {
-                                                        ptnsisp[(i - 1) / 2] = Integer.parseInt(ptn.get(i));
+                                                        ptnsisp[(i - 1) / 2] = parseInt(ptn.get(i));
                                                     }
                                                 }
-                                                Location[][] newloc = new Location[halfptnlen][lastresetablesign.get(p)[0].length];
+                                                // Get maximum value of y in each x
                                                 Location[][] oldloc = lastresetablesign.get(p);
-
+                                                int maxvaly = 0;
+                                                for (Location[] locations : oldloc) {
+                                                    if (locations.length > maxvaly) {
+                                                        maxvaly = locations.length;
+                                                    }
+                                                }
+                                                // Array copy
+                                                Location[][] newloc = new Location[halfptnlen][maxvaly];
                                                 for (int i1 = 0; i1 < oldloc.length; i1++) {
                                                     if (i1 + 1 < newloc.length) {
                                                         newloc[i1 + 1] = oldloc[i1];
@@ -136,13 +143,10 @@ class signalsign extends SignAction {
                                                         } catch (Exception ignored) {
                                                         }
                                                         if (setable != null) {
-                                                            int defaultsp = Integer.parseInt(setable.getLine(3).split(" ")[2]);
+                                                            int defaultsp = parseInt(setable.getLine(3).split(" ")[2]);
                                                             String str = ptnsisp[i1] > defaultsp ? ptnsisi[i1] + " " + defaultsp : ptnsisi[i1] + " " + ptnsisp[i1];
                                                             Sign finalSetable = setable;
-                                                            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                                                finalSetable.setLine(2, "set " + str);
-                                                                finalSetable.update();
-                                                            }, 1);
+                                                            Bukkit.getScheduler().runTaskLater(plugin, () -> updateSignals(finalSetable, "set " + str), 1);
 
                                                         }
                                                     }
@@ -178,16 +182,43 @@ class signalsign extends SignAction {
                                         Sign sign = getSign(cartevent);
                                         if (sign != null && sign.getLine(2).split(" ")[0].equals("set")) {
                                             int reqlen = lastresetablesign.get(p)[0].length;
-                                            Location[][] newloc = new Location[lastresetablesign.get(p).length][reqlen + 1];
                                             Location[][] oldloc = lastresetablesign.get(p);
-                                            if (signalspeed < Integer.parseInt(sign.getLine(2).split(" ")[2])) {
-                                                sign.setLine(2, "set " + l2(cartevent) + " " + l3(cartevent));
-                                                sign.update();
+                                            int maxvaly = 0;
+                                            for (Location[] locations : oldloc) {
+                                                if (locations.length > maxvaly) {
+                                                    maxvaly = locations.length;
+                                                }
                                             }
-                                            for (int i1 = 0; i1 < oldloc.length; i1++) {
-                                                System.arraycopy(oldloc[i1], 0, newloc[i1], 0, oldloc[i1].length);
+                                            Location[][] newloc = oldloc;
+                                            // Get record that contains coordinate then delete all records including and before that
+                                            int delfrom = -1;
+                                            // If delete relations
+                                            if (l2(cartevent).equals("del")) {
+                                                for (int i1 = 0; i1 < oldloc.length; i1++) {
+                                                    if (oldloc[i1][0] != null && (oldloc[i1][0].getBlockX() + " " + oldloc[i1][0].getBlockY() + " " + oldloc[i1][0].getBlockZ()).equals(cartevent.getLine(3))) {
+                                                        delfrom = i1;
+                                                    }
+                                                }
+                                                if (delfrom >= 0) {
+                                                    for (int i1 = delfrom; i1 < oldloc.length; i1++) {
+                                                        resetSignals(cartevent.getWorld(), oldloc[i1]);
+                                                    }
+                                                    newloc = new Location[delfrom][maxvaly];
+                                                    for (int i1 = 0; i1 < oldloc.length; i1++) {
+                                                        System.arraycopy(oldloc[i1], 0, newloc[i1], 0, delfrom);
+                                                    }
+                                                }
+                                            } // Else add relations
+                                            else {
+                                                newloc = new Location[oldloc.length][maxvaly + 1];
+                                                if (signalspeed < parseInt(sign.getLine(2).split(" ")[2])) {
+                                                    updateSignals(sign, "set " + l2(cartevent) + " " + l3(cartevent));
+                                                }
+                                                for (int i1 = 0; i1 < oldloc.length; i1++) {
+                                                    System.arraycopy(oldloc[i1], 0, newloc[i1], 0, oldloc[i1].length);
+                                                }
+                                                newloc[0][reqlen] = sign.getLocation();
                                             }
-                                            newloc[0][reqlen] = sign.getLocation();
                                             lastresetablesign.put(p, newloc);
                                         } else {
                                             signimproper(cartevent, p);
@@ -207,14 +238,18 @@ class signalsign extends SignAction {
         }
     }
 
+    static void updateSignals(Sign sign, String cartevent) {
+        sign.setLine(2, cartevent);
+        sign.update();
+    }
+
     static void resetSignals(World world, Location[] locs) {
         try {
             // Get resetable signs
             for (Location loc : locs) {
                 Sign resetable = (Sign) world.getBlockAt(loc).getState();
                 // Copy signal and speed from line 4 to line 3
-                resetable.setLine(2, "set " + resetable.getLine(3).split(" ")[1] + " " + resetable.getLine(3).split(" ")[2]);
-                resetable.update();
+                updateSignals(resetable, "set " + resetable.getLine(3).split(" ")[1] + " " + resetable.getLine(3).split(" ")[2]);
             }
         } catch (Exception ignored) {
         }
@@ -252,13 +287,13 @@ class signalsign extends SignAction {
         try {
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Signal sign");
             // Check signal name
-            if (!checktype(e)) {
+            if (!checktype(e) && !l2(e).equals("del")) {
                 e.getPlayer().sendMessage(ChatColor.RED + getlang("signaltypewrong"));
                 e.getPlayer().sendMessage(ChatColor.RED + getlang("signalargwrong1"));
                 e.setCancelled(true);
             }
             // Check if speed can mod 5
-            if (l1(e).equals("set") || l1(e).equals("relate")) {
+            if (l1(e).equals("set") || (l1(e).equals("relate") && !l2(e).equals("del"))) {
                 if (parseInt(l3(e)) > 360) {
                     e.getPlayer().sendMessage(ChatColor.RED + getlang("signalmax360"));
                     e.setCancelled(true);
@@ -286,7 +321,11 @@ class signalsign extends SignAction {
                     for (String i : e.getLine(3).split(" ")) {
                         parseInt(i);
                     }
-                    opt.setDescription("add signal relations to train");
+                    if (l2(e).equals("del")) {
+                        opt.setDescription("delete signal relations to train");
+                    } else {
+                        opt.setDescription("add signal relations to train");
+                    }
                     break;
                 case "set":
                     String[] line4 = e.getLine(3).split(" ");

@@ -17,8 +17,7 @@ import java.util.List;
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.main.getlang;
 import static me.fiveave.untenshi.main.utshead;
-import static me.fiveave.untenshi.signalsign.issignaltype;
-import static me.fiveave.untenshi.signalsign.signalName;
+import static me.fiveave.untenshi.signalsign.*;
 
 class signalcmd implements CommandExecutor, TabCompleter {
 
@@ -78,8 +77,7 @@ class signalcmd implements CommandExecutor, TabCompleter {
                         case "sign":
                             if (issignaltype(args[4])) {
                                 Sign sign = getSign(sender, cartevent);
-                                sign.setLine(2, "set " + args[4] + " " + args[5]);
-                                sign.update();
+                                updateSignals(sign, "set " + args[4] + " " + args[5]);
                                 sender.sendMessage(utshead + getlang("signalsignchange") + " (" + args[4] + " " + args[5] + ")");
                                 break;
                             }
