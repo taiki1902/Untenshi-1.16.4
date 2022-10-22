@@ -194,7 +194,7 @@ class cmds implements CommandExecutor, TabCompleter {
                                                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                                                     CartProperties.setEditing((Player) selcart.getPassengers().get(0), mem.getProperties());
                                                     train.put(sender2, mem.getGroup());
-                                                }, 1);
+                                                }, interval);
                                             }
                                         }
                                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("activate") + ChatColor.GREEN + getlang("enable"));
@@ -289,8 +289,8 @@ class cmds implements CommandExecutor, TabCompleter {
                                                 finalMm.addPassengerForced(sender2);
                                                 sender2.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("sesuccess"));
                                                 frozen.put(sender2, false);
-                                            }, 2);
-                                        }, 2);
+                                            }, interval);
+                                        }, interval);
                                         break;
                                     }
                                 }
@@ -407,7 +407,7 @@ class cmds implements CommandExecutor, TabCompleter {
             if (dooropen.get(p).equals(0) && doorconfirm.get(p)) {
                 mascon.put(p, 1);
             } else {
-                Bukkit.getScheduler().runTaskLater(plugin, () -> atodoorcloseddepart(p), 2);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> atodoorcloseddepart(p), interval);
             }
         }
     }

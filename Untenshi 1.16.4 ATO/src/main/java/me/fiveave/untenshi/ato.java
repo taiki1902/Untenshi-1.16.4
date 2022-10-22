@@ -12,11 +12,7 @@ class ato {
         if (atodest.containsKey(p) && atospeed.containsKey(p) && !atsbraking.get(p) && !atsping.get(p) && atsforced.get(p).equals(0) && allowatousage.get(p)) {
             // Get distances (distnow: smaller value of atodist and signaldist)
             // rqatodist decelfr must be higher than others to prevent ATS-P or ATC run
-            int i1 = speedsteps[0];
-            int i2 = speedsteps[1];
-            int i3 = speedsteps[2];
-            int i4 = speedsteps[3];
-            double reqatodist = getreqdist(p, 10 * globaldecel(decel, speed.get(p), 7, i1, i2, i3, i4), atospeed.get(p));
+            double reqatodist = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), 7, speedsteps), atospeed.get(p));
             double reqsidist;
             double reqspdist;
             double signaldist;
@@ -27,11 +23,11 @@ class ato {
             double atodistdiff = atodist - reqatodist;
             double lowerSpeed = atospeed.get(p);
             double distnow = atodist;
-            double accellimit = accelswitch(accel, dcurrent, speed.get(p), speedsteps) * 10;
+            double accellimit = accelswitch(accel, dcurrent, speed.get(p), speedsteps) * ticksin1s;
             int currentlimit = Math.min(speedlimit.get(p), signallimit.get(p));
             // Find either ATO, signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
             if (lastsisign.containsKey(p) && lastsisp.containsKey(p)) {
-                reqsidist = getreqdist(p, 10 * globaldecel(decel, speed.get(p), 6, i1, i2, i3, i4), lastsisp.get(p));
+                reqsidist = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), 6, speedsteps), lastsisp.get(p));
                 signaldist = distFormula(lastsisign.get(p).getX() + 0.5, p.getLocation().getX(), lastsisign.get(p).getZ() + 0.5, p.getLocation().getZ());
                 signaldistdiff = signaldist - reqsidist;
             } else {
@@ -39,7 +35,7 @@ class ato {
                 signaldistdiff = Double.MAX_VALUE;
             }
             if (lastspsign.containsKey(p) && lastspsp.containsKey(p)) {
-                reqspdist = getreqdist(p, 10 * globaldecel(decel, speed.get(p), 6, i1, i2, i3, i4), lastspsp.get(p));
+                reqspdist = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), 6, speedsteps), lastspsp.get(p));
                 speeddist = distFormula(lastspsign.get(p).getX() + 0.5, p.getLocation().getX(), lastspsign.get(p).getZ() + 0.5, p.getLocation().getZ());
                 speeddistdiff = speeddist - reqspdist;
             } else {
@@ -57,11 +53,11 @@ class ato {
             }
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
-            reqdist[9] = getreqdist(p, 10 * globaldecel(decel, speed.get(p), ebdecel, i1, i2, i3, i4), lowerSpeed);
+            reqdist[9] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), ebdecel, speedsteps), lowerSpeed);
             // Get speed drop distance
             reqdist[0] = getreqdist(p, speeddrop, lowerSpeed);
             for (int a = 1; a <= 8; a++) {
-                reqdist[a] = getreqdist(p, 10 * globaldecel(decel, speed.get(p), a + 1, i1, i2, i3, i4), lowerSpeed);
+                reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed);
             }
             // If no signal give it one
             lastsisp.putIfAbsent(p, 360);
@@ -125,7 +121,7 @@ class ato {
             // Slightly speeding auto braking (not for ATS-P or ATC)
             if (speed.get(p) > currentlimit) {
                 for (int a = 8; a >= 1; a--) {
-                    reqdist[a] = getreqdist(p, 10 * globaldecel(decel, speed.get(p), a + 1, i1, i2, i3, i4), currentlimit);
+                    reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), currentlimit);
                     // If braking distance is greater than distance in 1 s and if the brake is greater, then use the value
                     if (reqdist[a] <= speed.get(p) / 3.6 && mascon.get(p) > -a) {
                         mascon.put(p, -a);

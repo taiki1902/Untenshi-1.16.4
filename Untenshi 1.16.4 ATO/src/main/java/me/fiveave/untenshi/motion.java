@@ -28,11 +28,11 @@ class motion {
         Player ctrlp = (Player) sender;
         if (playing.containsKey(ctrlp) && playing.get(ctrlp) && ctrlp.isInsideVehicle()) {
             recursion2(ctrlp);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> recursion1(sender), 2);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> recursion1(sender), interval);
         } else if (!ctrlp.isInsideVehicle() && !frozen.get(ctrlp)) {
             Bukkit.dispatchCommand(ctrlp, "uts activate false");
         } else if (frozen.get(ctrlp)) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> recursion1(sender), 2);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> recursion1(sender), interval);
         } else {
             mascon.put(ctrlp, -9);
             speed.put(ctrlp, 0.0);
@@ -71,7 +71,7 @@ class motion {
                 break;
         }
         double oldspeed = speed.get(p);
-        double speeddrop = plugin.getConfig().getDouble("speeddroprate") / 10;
+        double speeddrop = plugin.getConfig().getDouble("speeddroprate") / ticksin1s;
         boolean stationstop = plugin.getConfig().getBoolean("stationsignstop");
         // Init train
         MinecartGroup mg = MinecartGroupStore.get(p.getVehicle());
@@ -103,8 +103,8 @@ class motion {
             }
         }
         // Initialize
-        accel /= 10;
-        decel /= 10;
+        accel /= ticksin1s;
+        decel /= ticksin1s;
         lasty.putIfAbsent(p, Objects.requireNonNull(p.getVehicle()).getLocation().getY());
         // Electric current brake
         double ecb = 0;
@@ -131,17 +131,11 @@ class motion {
         }
         int dcurrent = (int) (currentnow * 9 / 480);
         // Accel and decel
-        // i1-4: Ref decelswitch
-        int i1 = speedsteps[0];
-        int i2 = speedsteps[1];
-        int i3 = speedsteps[2];
-        int i4 = speedsteps[3];
-        double stopdecel = decelswitch(p, speeddrop, decel, dcurrent, speed.get(p), i1, i2, i3, i4, ebdecel);
+        double stopdecel = decelswitch(p, speeddrop, decel, dcurrent, speed.get(p), speedsteps, ebdecel);
         if (dooropen.get(p) == 0) {
             speed.put(p, speed.get(p)
                     + accelswitch(accel, dcurrent, speed.get(p), speedsteps) // Acceleration
-                    - stopdecel // Deceleration
-                    - speeddrop * 2 // Friction speed drop
+                    - stopdecel // Deceleration (speed drop included)
             );
         }
         // Have speed drop even if no accel
@@ -177,12 +171,12 @@ class motion {
         }
         lasty.put(p, trainy);
         df3.setRoundingMode(RoundingMode.CEILING);
-        // Set speed (Anti VictorXcraft beikeiyaroe)
+        // Cancel TC motion-related sign actions
         if (!stationstop) mg.getActions().clear();
         // ATO (Automatic train operation)
         atosys(p, accel, decel, ebdecel, speeddrop, dcurrent, speedsteps);
         // Shock when stopping
-        String shock = speed.get(p) == 0 && speed.get(p) < oldspeed ? " " + ChatColor.GRAY + df2.format(stopdecel * 10) + " km/h/s" : "";
+        String shock = speed.get(p) == 0 && speed.get(p) < oldspeed ? " " + ChatColor.GRAY + df2.format(stopdecel * ticksin1s) + " km/h/s" : "";
         // Combine properties and action bar
         double blockpertick = Double.parseDouble(df3.format(speed.get(p) / 72));
         tprop.setSpeedLimit(blockpertick);
@@ -235,9 +229,9 @@ class motion {
             lowerSpeed = shortestDist == signaldist ? Math.min((lastsisp.containsKey(p) ? Math.min(signallimit.get(p), lastsisp.get(p)) : signallimit.get(p)), speedlimit.get(p)) : Math.min((lastspsp.containsKey(p) ? Math.min(signallimit.get(p), lastspsp.get(p)) : signallimit.get(p)), speedlimit.get(p));
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
-            reqdist[9] = getreqdist(p, 10 * globaldecel(decel, speed.get(p), ebdecel, i1, i2, i3, i4), lowerSpeed);
+            reqdist[9] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), ebdecel, speedsteps), lowerSpeed);
             for (int a = 5; a <= 8; a += 3) {
-                reqdist[a] = getreqdist(p, 10 * globaldecel(decel, speed.get(p), a + 1, i1, i2, i3, i4), lowerSpeed);
+                reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed);
             }
             // Pattern run
             if (((shortestDist < reqdist[8] && speed.get(p) > lowerSpeed + 3) || isoverspeed3) && !atsping.get(p)) {
@@ -407,17 +401,17 @@ class motion {
         return (Math.pow(speed.get(ctrlp), 2) - Math.pow(lowerSpeed, 2)) / (7.2 * decel);
     }
 
-    static double decelswitch(Player ctrlp, double speeddrop, double decel, double dcurrent, double cspd, int i1, int i2, int i3, int i4, double ebrate) {
+    static double decelswitch(Player ctrlp, double speeddrop, double decel, int dcurrent, double cspd, int[] speedsteps, double ebrate) {
         double decelvalue = 0;
         if (dcurrent == 0) {
             if (speed.containsKey(ctrlp)) {
                 decelvalue = speeddrop;
             }
         } else if (dcurrent < 0 && dcurrent > -9) {
-            decelvalue = globaldecel(decel, cspd, Math.abs(dcurrent) + 1, i1, i2, i3, i4);
+            decelvalue = globaldecel(decel, cspd, Math.abs(dcurrent) + 1, speedsteps);
         } else if (dcurrent == -9) {
             if (!atsbraking.get(ctrlp) && signallimit.get(ctrlp) != 0) {
-                decelvalue = globaldecel(decel, cspd, ebrate, i1, i2, i3, i4);
+                decelvalue = globaldecel(decel, cspd, ebrate, speedsteps);
             } else {
                 // SPAD ATS EB (-35 km/h/s)
                 atsforced.put(ctrlp, 2);
@@ -426,20 +420,14 @@ class motion {
         return decelvalue;
     }
 
-    static double globaldecel(double decel, double cspd, double decelfr, int i, int i2, int i3, int i4) {
-        double added = 0;
-        if (cspd < i) {
-            added = -0.5;
-        } else if (cspd < i2) {
-            added = 0;
-        } else if (cspd < i3) {
-            added = 0.5;
-        } else if (cspd < i4) {
-            added = 1;
-        } else if (cspd >= i4) {
-            added = 1.5;
+    static double globaldecel(double decel, double cspd, double decelfr, int[] speedsteps) {
+        double reduction = 1.5; // 21 41 61 81
+        int i = 4;
+        while (cspd < speedsteps[i]) {
+            reduction = (i - 1) * 0.5;
+            i--;
         }
-        return decel * (decelfr - added) / 7;
+        return decel * (decelfr - reduction) / 7;
     }
 
     static double accelswitch(double accel, double dcurrent, double cspd, int[] sec) {

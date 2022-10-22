@@ -68,6 +68,8 @@ public final class main extends JavaPlugin implements Listener {
     static abstractfile traindata;
     static abstractfile playerdata;
     static abstractfile signalorder;
+    static final int ticksin1s = 10;
+    static final int interval = 20 / ticksin1s;
 
     static FileConfiguration getLConfig() {
         return langdata.dataconfig;
