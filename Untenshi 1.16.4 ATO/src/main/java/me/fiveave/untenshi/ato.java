@@ -107,10 +107,6 @@ class ato {
                         if (tempdist >= reqdist[b] && tempdist - reqdist[7] < midpt / 2) {
                             mascon.put(p, -b);
                         }
-                        // Zan-atsu-teisha in last 1 m
-                        if (tempdist < 1 && tempdist > reqdist[0]) {
-                            mascon.put(p, 0);
-                        }
                     }
                 }
             }

@@ -405,7 +405,7 @@ class cmds implements CommandExecutor, TabCompleter {
         if (playing.get(p)) {
             // Wait doors fully closed then depart
             if (dooropen.get(p).equals(0) && doorconfirm.get(p)) {
-                mascon.put(p, 1);
+                mascon.put(p, 5);
             } else {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> atodoorcloseddepart(p), interval);
             }

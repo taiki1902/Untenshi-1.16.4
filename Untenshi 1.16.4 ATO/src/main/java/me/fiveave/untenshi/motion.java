@@ -131,7 +131,7 @@ class motion {
         }
         int dcurrent = (int) (currentnow * 9 / 480);
         // Accel and decel
-        double stopdecel = decelswitch(p, speeddrop, decel, dcurrent, speed.get(p), speedsteps, ebdecel);
+        double stopdecel = decelswitch(p, speed.get(p), speeddrop, decel, ebdecel, dcurrent, speedsteps);
         if (dooropen.get(p) == 0) {
             speed.put(p, speed.get(p)
                     + accelswitch(accel, dcurrent, speed.get(p), speedsteps) // Acceleration
@@ -401,57 +401,44 @@ class motion {
         return (Math.pow(speed.get(ctrlp), 2) - Math.pow(lowerSpeed, 2)) / (7.2 * decel);
     }
 
-    static double decelswitch(Player ctrlp, double speeddrop, double decel, int dcurrent, double cspd, int[] speedsteps, double ebrate) {
-        double decelvalue = 0;
+    static double decelswitch(Player ctrlp, double cspd, double speeddrop, double decel, double ebrate, int dcurrent, int[] speedsteps) {
+        double retdecel = 0;
         if (dcurrent == 0) {
             if (speed.containsKey(ctrlp)) {
-                decelvalue = speeddrop;
+                retdecel = speeddrop;
             }
         } else if (dcurrent < 0 && dcurrent > -9) {
-            decelvalue = globaldecel(decel, cspd, Math.abs(dcurrent) + 1, speedsteps);
+            retdecel = globaldecel(decel, cspd, Math.abs(dcurrent) + 1, speedsteps);
         } else if (dcurrent == -9) {
             if (!atsbraking.get(ctrlp) && signallimit.get(ctrlp) != 0) {
-                decelvalue = globaldecel(decel, cspd, ebrate, speedsteps);
+                retdecel = globaldecel(decel, cspd, ebrate, speedsteps);
             } else {
                 // SPAD ATS EB (-35 km/h/s)
                 atsforced.put(ctrlp, 2);
             }
         }
-        return decelvalue;
+        return retdecel;
     }
 
     static double globaldecel(double decel, double cspd, double decelfr, int[] speedsteps) {
-        double reduction = 1.5; // 21 41 61 81
+        double reduction = 1.5;
         int i = 4;
-        while (cspd < speedsteps[i]) {
+        while (i >= 0 && cspd < speedsteps[i]) {
             reduction = (i - 1) * 0.5;
             i--;
         }
         return decel * (decelfr - reduction) / 7;
     }
 
-    static double accelswitch(double accel, double dcurrent, double cspd, int[] sec) {
+    static double accelswitch(double accel, int dcurrent, double cspd, int[] sec) {
         double retaccel = 0;
-        if (dcurrent > 0) {
-            if (cspd < sec[0]) {
-                retaccel = accelpower(accel, 7);
-            } else if (cspd < sec[1]) {
-                retaccel = accelpower(accel, dcurrent > 1 ? 6 : 3);
-            } else if (cspd < sec[2]) {
-                retaccel = accelpower(accel, dcurrent > 2 ? 5 : dcurrent > 1 ? 3 : 0);
-            } else if (cspd < sec[3]) {
-                retaccel = accelpower(accel, dcurrent > 3 ? 4 : dcurrent > 2 ? 3 : 0);
-            } else if (cspd < sec[4]) {
-                retaccel = accelpower(accel, dcurrent > 4 ? 3 : dcurrent > 3 ? 3 : 0);
-            } else if (cspd < sec[5]) {
-                retaccel = accelpower(accel, dcurrent > 4 ? 3 : 0);
+        if (dcurrent - 1 >= 0) {
+            retaccel = accel * sec[dcurrent] / sec[5] * (1 - 0.5 * cspd / sec[5]);
+            if (cspd > sec[dcurrent - 1]) {
+                retaccel *= 1 - (cspd - sec[dcurrent - 1]) / (sec[dcurrent] - sec[dcurrent - 1]);
             }
         }
         return retaccel;
-    }
-
-    static double accelpower(double accel, int i) {
-        return accel * i / 7;
     }
 
     static boolean tcontains(String s, String tDataInfo) {
