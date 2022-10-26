@@ -1,4 +1,46 @@
 name: Untenshi
-version: ${project.version}
-main: me.fiveave.untenshi
-api-version: 1.16
+version: 1.8.5-ATO
+main: me.fiveave.untenshi.main
+api-version: 1.15
+description: Untenshi Plugin
+author: 5_AvenueLocal
+depend: [ Train_Carts ]
+commands:
+  uts:
+    description: Untenshi Main Commands
+    usage: /uts <mode> <value>
+  utssignal:
+    description: Untenshi Signal Commands (for Command Block)
+    usage: /utssignal <x> <y> <z> <mode> <signal> <speed>
+permissions:
+  uts.*:
+    description: All Untenshi Perms
+    children:
+      uts.main: true
+      uts.traintype: true
+      uts.freemode: true
+      uts.reload: true
+      uts.sign: true
+      uts.pa: true
+    default: op
+  uts.main:
+    description: Allow Untenshi usage (basic perm)
+    default: op
+  uts.traintype:
+    description: Allow train type change
+    default: op
+  uts.freemode:
+    description: Allow freemode change
+    default: op
+  uts.reload:
+    description: Allow config reload
+    default: op
+  uts.sign:
+    description: Allow set sign
+    default: op
+  uts.pa:
+    description: Allow use PA
+    default: op
+  uts.ato:
+    description: Allow usage of ATO
+    default: op

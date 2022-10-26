@@ -404,9 +404,7 @@ class motion {
     static double decelswitch(Player ctrlp, double cspd, double speeddrop, double decel, double ebrate, int dcurrent, int[] speedsteps) {
         double retdecel = 0;
         if (dcurrent == 0) {
-            if (speed.containsKey(ctrlp)) {
-                retdecel = speeddrop;
-            }
+            retdecel = speeddrop;
         } else if (dcurrent < 0 && dcurrent > -9) {
             retdecel = globaldecel(decel, cspd, Math.abs(dcurrent) + 1, speedsteps);
         } else if (dcurrent == -9) {
@@ -422,7 +420,7 @@ class motion {
 
     static double globaldecel(double decel, double cspd, double decelfr, int[] speedsteps) {
         double reduction = 1.5;
-        int i = 4;
+        int i = 3;
         while (i >= 0 && cspd < speedsteps[i]) {
             reduction = (i - 1) * 0.5;
             i--;
@@ -437,6 +435,9 @@ class motion {
             if (cspd > sec[dcurrent - 1]) {
                 retaccel *= 1 - (cspd - sec[dcurrent - 1]) / (sec[dcurrent] - sec[dcurrent - 1]);
             }
+        }
+        if (retaccel < 0) {
+            retaccel = 0;
         }
         return retaccel;
     }

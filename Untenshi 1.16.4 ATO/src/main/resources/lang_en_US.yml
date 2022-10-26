@@ -1,0 +1,149 @@
+help1title: Basic Commands Page 1/4
+help2title: Train Settings Page 2/4
+help3title: Driving Instructions Page 3/4
+help4title: Signs Page 4/4
+cmdlist: 'List of commands:'
+help1a: Show help
+help1b: Toggle drive mode
+help1c: Door control
+help1d: Emergency stop
+help1e: ATS Confirm
+help1f: Switchback
+help1g: Type commands to show details.
+help1h: Switch seats
+help1i: In car announcements
+help2a: Reload config
+help2b: Set train acceleration
+help2c: Set freemode
+help2d: Allow usage of ATO
+help3a: 'Start:'
+help3b: 1. Sit in a minecart
+help3c: 2. Face the direction your train will go and type /uts activate true
+help3d: '* Your items will be saved *'
+help3e: 'End:'
+help3f: 1. Type /uts activate false
+help3g: 2. Your control handles will be cleared
+help3h: '* Your inventory will be restored *'
+help3i: 'Warnings:'
+help3j: traintype/freemode/allowato must be executed before /uts activate true.
+help3k: After you pass through a 0 km/h signal, you must confirm using /uts ac after the signals have been changed.
+help4a: 'speedsign: Set speed limit'
+help4b: '3rd line: '
+help4c: 'Speed (Must be divisible by 5) / warn (warning)'
+help4c1: 'x, y, z of a sign (for warn)'
+help4d: 'stoppos: Set stop position'
+help4e: 'x, y, z of stop positon (e.g.: 10 64 20)'
+help4f: '4th line: '
+help4g: 'x, y, z of redstone output position (e.g.: 10 64 20, if applicable)'
+help4h: 'signalsign: Set signals'
+help4i: 'Mode: set, Signal, Speed (Set signals) / relate, Signal, Speed (Relate signals to train)'
+help4j: 'Signal: R / YY / Y / YG / G / ATC'
+help4k: 'Speed: km/h, must be divisible by 5'
+help4l: 'Mode: warn (Give signal warning) / relate del (Delete signal relations from train)'
+help4m: 'x, y, z of a sign (e.g.: 10 64 20, applicable to warn / relate (del)) / Signal Order, Signal, Speed (e.g.: default g 360, applicable to set)'
+help4n: 'utstrain: Untenshi Train Detector'
+help4o: 'atosign: Set ATO Pattern'
+help4p: 'Target speed (e.g.: 130) / stoptime (Stopping time)'
+help4q: 'x, y, z of Target speed (e.g.: 10 64 20, for target speed) / Stopping time (e.g.: 30, for stoptime)'
+pagenotexist: This page does not exist. Please enter a valid page number.
+upwandname: Up
+nwandname: Neutral
+downwandname: Down
+doorbuttonname: Door Control
+sblevername: Switchback
+ebbuttonname: Emergency Stop
+trainset: Your train has been set.
+activate: 'Drive mode: '
+enable: enabled
+disable: disabled
+notowner: You are not the owner of this train!
+sitincart: Please sit in a minecart!
+activatedalready: You have enabled the drive mode already!
+deactivatedalready: You have disabled the drive mode already!
+usage: 'Usage: '
+activateinfo1: '[true: Enable]'
+activateinfo2: '[false: Disable and reset]'
+door: 'Door: '
+opening: Opening
+closing: Closing
+opened: Opened
+closed: Closed
+ebstop: 'Stopping using EB '
+reaccel: 'Re-accelerating in station '
+dooropeninmotion: Do not open the doors in motion!
+openedalready: The doors has been opened already!
+closedalready: The doors has been closed already!
+fixstoppos: Please fix your stop position!
+activatefirst: Please enable your drive mode first!
+deactivatefirst: Please disable your drive mode first!
+doorinfo1: '[true: Open doors]'
+doorinfo2: '[false: Close doors]'
+acsuccess: ATS Confirm Successful
+acfailed: ATS Confirm Failed
+acnotneeded: ATS Confirm is not needed
+localtrainaccel: 'Train Acceleration: Now using local train acceleration.'
+hsrtrainaccel: 'Train Acceleration: Now using high speed rail train acceleration.'
+lrttrainaccel: 'Train Acceleration: Now using light rail train acceleration.'
+traintypeinfo1: '[local: Local train speeds]'
+traintypeinfo2: '[hsr: HSR train speeds]'
+traintypeinfo3: '[lrt: LRT train speeds]'
+freemode: 'Free mode: '
+freemodeinfo1: '[true: Enable]'
+freemodeinfo2: '[false: Disable]'
+ato: 'Usage of ATO: '
+atoinfo1: '[true: Enable usage of ATO]'
+atoinfo2: '[false: Disable usage of ATO]'
+atodetectpattern: ATO Driving Pattern Detected.
+atodetectstoptime: ATO Stopping Time Set.
+atopatterncancel: ATO Pattern Cancelled.
+panoempty: The text cannot be empty!
+sbsuccess: Switchback successful.
+sbinmotion: Do not switchback in motion!
+sesuccess: Seat switching successful.
+sefailed: Seat switching failed.
+seinmotion: Do not switch seats in motion!
+reloaded: Config reloaded.
+cmdnotexist: This command does not exist. Please type a valid command.
+playeronlycmd: Only players can type this command!
+cmdblkonlycmd: Only command blocks can type this command!
+error: An error occurred.
+noperm: You do not have permission!
+speed: 'Speed: '
+points: 'Points: '
+speeding: 'Speeding '
+signalspeeding: 'Signal Speeding '
+atspb8: ATS-P Service Brake Run
+atspeb: ATS-P Emergency Brake Run
+atspnear: ATS-P Pattern Approaching
+atcrun: ATC Run
+misuseeb: 'Misuse of EB '
+stopposperfect: 'Stop position: Excellent!'
+stopposgreat: 'Stop position: Great!'
+stopposgood: 'Stop position: Good!'
+stopposover: 'Overrun '
+stopposseriousover: Due to a serious overrun, your drive mode will be disabled soon.
+nopoints: Having not enough points, your drive mode has been disabled.
+signalset: 'Signal: '
+signalwarn: 'Signal warning: '
+signalchange: 'Signal change: '
+nolimit: No Limit
+signalsignchange: Sign change successful.
+signaltypewrong: Incorrect signal type. (R / YY / Y / YG / G / ATC)
+signalargwrong1: Incorrect arguments. (set / warn / relate)
+signalargwrong2: Incorrect arguments. (warn / sign)
+signalmax360: The speed should be equal or less than 360 km/h.
+signalmin0: The speed should not be a negative number.
+signaldiv5: The speed should be divisible by 5.
+signalg: Clear
+signalyg: Reduced
+signaly: Caution
+signalyy: Restricted
+signalr: Stop
+signalatc: ATC
+speedlimitset: 'Speed limit: '
+speedlimitwarn: 'Speed limit warning: '
+speedlimitwarnover: The sign is set incorrectly. The speed should be less than 360 km/h.
+speedlimitdiv5: The sign is set incorrectly. The speed should be less than 360 km/h and divisible by 5.
+nextstop: Stopping at next station!
+collidebuffer: 'Collided with buffer '
+signimproper: This sign is set incorrectly.

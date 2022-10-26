@@ -43,7 +43,7 @@ class speedsign extends SignAction {
                                 int intspeed = parseInt(speedsign);
                                 if (intspeed <= 360 && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
                                     speedlimit.put(p, intspeed);
-                                    p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitset") + (intspeed >= 360 ? ChatColor.GREEN + getlang("nolimit") : speedlimit.get(p) + " km/h"));
+                                    p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitset") + (intspeed == 360 ? ChatColor.GREEN + getlang("nolimit") : speedlimit.get(p) + " km/h"));
                                     if (parseInt(speedsign) != 0) {
                                         lastspsign.remove(p);
                                         lastspsp.remove(p);

@@ -1,0 +1,149 @@
+help1title: 基本的なコマンド 1/4 ページ
+help2title: 列車の設定 2/4 ページ
+help3title: 運転說明 3/4 ページ
+help4title: サイン 4/4 ページ
+cmdlist: 'コマンド列表:'
+help1a: ヘルプを表示する
+help1b: 運転モードを切替する
+help1c: ドアコントロール
+help1d: 緊急停車
+help1e: ATS 確認
+help1f: 方向切替
+help1g: コマンドを入力して、詳細情報を取得します。
+help1h: 運転席切替
+help1i: 車内放送
+help2a: コンフィグをリロードする
+help2b: 電車の変速を設定する
+help2c: フリーモードを設定する
+help2d: ATO の使用を許可する
+help3a: '開始:'
+help3b: 1. 電車に乗る
+help3c: 2. 運転方向に /uts activate true と入力する
+help3d: '* 持ち物は保管される *'
+help3e: '終了:'
+help3f: 1. /uts activate false と入力する
+help3g: 2. コントロールハンドルが削除される
+help3h: '* 持ち物は復元される *'
+help3i: '注意事項について:'
+help3j: traintype/freemode/allowato は、/uts activate true の前に実行する必要があります。
+help3k: 0 km/h の信号を通過した後、信号が変更された後、/uts ac を使用して確認する必要があります。
+help4a: 'speedsign: 速度制限を設定する'
+help4b: '3行目: '
+help4c: '速度 (5で割り切れる必要があります) / warn (予告)'
+help4c1: 'サインの x, y, z (warn に適用可能)'
+help4d: 'stoppos: 停止位置を設定する'
+help4e: '停止位置の x, y, z (例: 10 64 20)'
+help4f: '4行目: '
+help4g: 'レッドストーン出力位置の x, y, z (例: 10 64 20、 該当する場合)'
+help4h: 'signalsign: 信号/閉塞を設定する'
+help4i: 'モード: set (信号を設定する) / relate (信号を電車にリンクする), 信号, 速度'
+help4j: '信号: R / YY / Y / YG / G / ATC'
+help4k: '速度: km/h、 5で割り切れる必要があります'
+help4l: 'モード: warn (信号予告) / relate del (信号と電車のリンクを解除する)'
+help4m: 'サインの x, y, z (例: 10 64 20、 warn / relate (del) に適用可能) / 信号順番, 信号, 速度 (例: default g 360、 set に適用可能)'
+help4n: 'utstrain: Untenshi 列車ディテクター'
+help4o: 'atosign: ATO パターンを設定する'
+help4p: '目標速度 (例: 130) / stoptime (停車時間)'
+help4q: '目標位置の x, y, z (例: 10 64 20、 目標速度に適用可能) / 停車時間 (例: 30、 stoptime に適用可能)'
+pagenotexist: このページは存在していません。正確なページ数を入力してください。
+upwandname: 上
+nwandname: 切
+downwandname: 下
+doorbuttonname: ドアスイッチ
+sblevername: 方向切替
+ebbuttonname: 緊急停車
+trainset: 電車が設定しました。
+activate: '運転モード: '
+enable: オン
+disable: オフ
+notowner: 電車の所有者ではありません!
+sitincart: まず電車に座ってください!
+activatedalready: 運転モードがオンにしました!
+deactivatedalready: 運転モードがオフにしました!
+usage: '使い方: '
+activateinfo1: '[true: オン]'
+activateinfo2: '[false: オフとリセット]'
+door: 'ドア: '
+opening: 開きます
+closing: 閉まります
+opened: 開いています
+closed: 閉まっています
+ebstop: '非常制動停車 '
+reaccel: '駅構内再加速 '
+dooropeninmotion: 運転中にドアを開けられないでください!
+openedalready: ドアが開いています!
+closedalready: ドアが閉まっています!
+fixstoppos: 停止位置を修正してください!
+activatefirst: まず運転モードをオンにしてください!
+deactivatefirst: まず運転モードをオフにしてください!
+doorinfo1: '[true: ドアを開く]'
+doorinfo2: '[false: ドアを閉まる]'
+acsuccess: ATS 確認が成功しました。
+acfailed: ATS 確認が失敗しました。
+acnotneeded: ATS 確認する必要がありません。
+localtrainaccel: '列車変速: 普通鉄道列車の變速が使っています。'
+hsrtrainaccel: '列車変速: 新幹線列車の變速が使っています。'
+lrttrainaccel: '列車変速: ライトレール列車の變速が使っています。'
+traintypeinfo1: '[local: 普通鉄道列車の速度]'
+traintypeinfo2: '[hsr: 新幹線列車の速度]'
+traintypeinfo3: '[lrt: ライトレール列車の速度]'
+freemode: 'フリーモード: '
+freemodeinfo1: '[true: オン]'
+freemodeinfo2: '[false: オフ]'
+ato: 'ATO 使用許可: '
+atoinfo1: '[true: ATO 使用許可オン]'
+atoinfo2: '[false: ATO 使用許可オフ]'
+atodetectpattern: ATO 運転パターン 発見しました。
+atodetectstoptime: ATO 停車時間 設定しました。
+atopatterncancel: ATO パターン 取り消しました。
+panoempty: テキストを空にすることはできません!
+sbsuccess: 方向切替成功。
+sbinmotion: 運転中に方向を切り替えないでください!
+sesuccess: 運転席切替成功。
+sefailed: 運転席切替失敗。
+seinmotion: 運転中に運転席を切り替えないでください!
+reloaded: コンフィグはリロードしました。
+cmdnotexist: コマンドが存在していません。正確なコマンドを入力してください。
+playeronlycmd: このコマンドを入力できるのはプレイヤーだけです!
+cmdblkonlycmd: このコマンドを入力できるのはコマンドブロックだけです!
+error: エラーが発生しました。
+noperm: 権限不足!
+speed: '速度: '
+points: '点数: '
+speeding: '速度超過 '
+signalspeeding: '信号速度超過 '
+atspb8: ATS-P 常用ブレーキ動作
+atspeb: ATS-P 非常ブレーキ動作
+atspnear: ATS-P パターン接近
+atcrun: ATC 作動
+misuseeb: '非常ブレーキ濫用 '
+stopposperfect: '停止位置: Excellent!'
+stopposgreat: '停止位置: Great!'
+stopposgood: '停止位置: Good!'
+stopposover: 'オーバーラン '
+stopposseriousover: 停止範囲を大幅に超えると運転を終了します。
+nopoints: 点数不足、運転終了。
+signalset: '閉塞: '
+signalwarn: '閉塞予告: '
+signalchange: '閉塞変更: '
+nolimit: 解除
+signalsignchange: サインの変更に成功しました。
+signaltypewrong: 信号の種類は正確ではありません。(R / YY / Y / YG / G / ATC)
+signalargwrong1: 引数が正しくありません。(set / warn / relate)
+signalargwrong2: 引数が正しくありません。(warn / sign)
+signalmax360: 速度は 360 km/h 以下である必要があります。
+signalmin0: 速度は負であってはなりません。
+signaldiv5: 速度は5で割り切れる必要があります。
+signalg: 進行
+signalyg: 減速
+signaly: 注意
+signalyy: 警戒
+signalr: 停止
+signalatc: ATC
+speedlimitset: '速度制限: '
+speedlimitwarn: '速度制限予告: '
+speedlimitwarnover: サインが正しく設定されていません。速度は 360 km/h 未満である必要があります。
+speedlimitdiv5: サインが正しく設定されていません。速度は 360 km/h 以下で、5で割り切れる必要があります。
+nextstop: 次は、停車!
+collidebuffer: '車止め激突 '
+signimproper: このサインが正しく設定されていません。

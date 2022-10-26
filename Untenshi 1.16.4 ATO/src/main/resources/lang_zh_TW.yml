@@ -1,0 +1,149 @@
+help1title: 基本指令 1/4 頁
+help2title: 列車設定 2/4 頁
+help3title: 駕駛說明 3/4 頁
+help4title: 指示牌 4/4 頁
+cmdlist: '指令列表:'
+help1a: 顯示幫助
+help1b: 駕駛模式切換
+help1c: 車門控制
+help1d: 緊急停車
+help1e: ATS 確認
+help1f: 列車轉向
+help1g: 輸入指令以獲得更多資訊。
+help1h: 轉換駕駛座位
+help1i: 車内廣播
+help2a: 重新載入設定檔
+help2b: 設定列車變速
+help2c: 設定自由模式
+help2d: 允許使用 ATO
+help3a: '開始:'
+help3b: 1. 坐在列車裡
+help3c: 2. 向著開車的方向，輸入 /uts activate true
+help3d: '* 你身上的物品會被儲存 *'
+help3e: '終止:'
+help3f: 1. 輸入 /uts activate false
+help3g: 2. 你身上的操控桿會被清除
+help3h: '* 你身上的物品會被還原 *'
+help3i: '注意:'
+help3j: traintype/freemode/allowato 必須在 /uts activate true 前執行。
+help3k: 超越 0 km/h 的信號之後，必須在信號改變後使用 /uts ac 確認。
+help4a: 'speedsign: 設定速度限制'
+help4b: '第3行: '
+help4c: '速度 (必須可以被5整除) / warn (預告)'
+help4c1: '告示牌的 x, y, z (warn 適用)'
+help4d: 'stoppos: 設定停車位置'
+help4e: '停車位置的 x, y, z (例: 10 64 20)'
+help4f: '第4行: '
+help4g: '紅石輸出位置的 x, y, z (例: 10 64 20, 如適用)'
+help4h: 'signalsign: 設定信號/閉塞'
+help4i: '模式: set (設定信號) / relate (連結信號與列車), 燈號, 速度'
+help4j: '燈號: R / YY / Y / YG / G / ATC'
+help4k: '速度: km/h, 必須可以被5整除'
+help4l: '模式: warn (信號預告) / relate del (解除信號與列車的連結)'
+help4m: '告示牌的 x, y, z (例: 10 64 20, warn / relate (del) 適用) / 信號順序, 燈號, 速度 (例: default g 360, set 適用)'
+help4n: 'utstrain: Untenshi 列車偵測器'
+help4o: 'atosign: 設定 ATO Pattern'
+help4p: '目標速度 (例: 130) / stoptime (停車時間)'
+help4q: '目標位置的 x, y, z (例: 10 64 20, 目標速度適用) / 停車時間 (例: 30, stoptime 適用)'
+pagenotexist: 該頁面不存在。請輸入正確的頁數。
+upwandname: 上
+nwandname: 切
+downwandname: 下
+doorbuttonname: 車門控制
+sblevername: 轉向
+ebbuttonname: 緊急停車
+trainset: 列車設定完畢。
+activate: '駕駛模式: '
+enable: 啟動
+disable: 關閉
+notowner: 你不是該列車的擁有人!
+sitincart: 請先坐在礦車裡!
+activatedalready: 你已經啟動駕駛模式!
+deactivatedalready: 你已經關閉駕駛模式!
+usage: '用法: '
+activateinfo1: '[true: 啟用]'
+activateinfo2: '[false: 停用並重設]'
+door: '車門: '
+opening: 開啟中
+closing: 關閉中
+opened: 已開啟
+closed: 已關閉
+ebstop: '緊急煞車停車 '
+reaccel: '車站內再加速 '
+dooropeninmotion: 行車時不能開門!
+openedalready: 車門已經開啟!
+closedalready: 車門已經關閉!
+fixstoppos: 請修正你的停車位置!
+activatefirst: 請先啟動駕駛模式!
+deactivatefirst: 請先停用駕駛模式!
+doorinfo1: '[true: 開門]'
+doorinfo2: '[false: 關門]'
+acsuccess: ATS 確認成功。
+acfailed: ATS 確認失敗。
+acnotneeded: ATS 不需確認。
+localtrainaccel: '列車變速: 現正使用普通列車變速。'
+hsrtrainaccel: '列車變速: 現正使用高鐵列車變速。'
+lrttrainaccel: '列車變速: 現正使用輕軌列車變速。'
+traintypeinfo1: '[local: 普通列車速度]'
+traintypeinfo2: '[hsr: 高鐵列車速度]'
+traintypeinfo3: '[lrt: 輕軌列車速度]'
+freemode: '自由模式: '
+freemodeinfo1: '[true: 啟用]'
+freemodeinfo2: '[false: 停用]'
+ato: '允許使用 ATO: '
+atoinfo1: '[true: 啟用允許使用 ATO]'
+atoinfo2: '[false: 停用允許使用 ATO]'
+atodetectpattern: 發現了 ATO 駕駛 Pattern
+atodetectstoptime: 已設定 ATO 停車時間
+atopatterncancel: 已取消 ATO Pattern
+panoempty: 文字不可以是空白的!
+sbsuccess: 轉向成功。
+sbinmotion: 行車時不能轉向!
+sesuccess: 換位成功。
+sefailed: 換位失敗。
+seinmotion: 行車時不能換位!
+reloaded: 重新載入設定檔完成。
+cmdnotexist: 該指令不存在。請輸入正確的指令。
+playeronlycmd: 玩家才能輸入該指令!
+cmdblkonlycmd: 命令方塊才能輸入該指令!
+error: 發生錯誤。
+noperm: 你沒有權限!
+speed: '速度: '
+points: '分數: '
+speeding: '超速 '
+signalspeeding: '信號超速 '
+atspb8: ATS-P 常用煞車動作
+atspeb: ATS-P 非常煞車動作
+atspnear: ATS-P Pattern 接近
+atcrun: ATC 作動
+misuseeb: '誤用緊急煞車 '
+stopposperfect: '停止位置: 完美!'
+stopposgreat: '停止位置: 很好!'
+stopposgood: '停止位置: 不錯!'
+stopposover: '超過停止範圍 '
+stopposseriousover: 嚴重超過停止範圍，駕駛將會終止。
+nopoints: 分數不足，駕駛結束。
+signalset: '閉塞: '
+signalwarn: '閉塞預告: '
+signalchange: '閉塞變更: '
+nolimit: 解除
+signalsignchange: 改變告示牌成功。
+signaltypewrong: 信號種類不正確。(R / YY / Y / YG / G / ATC)
+signalargwrong1: 參數不正確。(set / warn / relate)
+signalargwrong2: 參數不正確。(warn / sign)
+signalmax360: 速度應該等於或小於 360 km/h。
+signalmin0: 速度不應該是負數。
+signaldiv5: 速度應該可以被 5 整除。
+signalg: 進行
+signalyg: 減速
+signaly: 注意
+signalyy: 警戒
+signalr: 停止
+signalatc: ATC
+speedlimitset: '速度限制: '
+speedlimitwarn: '速度限制預告: '
+speedlimitwarnover: 告示牌設定錯誤。速度應在 360 km/h 以下。
+speedlimitdiv5: 告示牌設定錯誤。速度應在 360 km/h 或以下，及可以被5整除。
+nextstop: 下一站，停車!
+collidebuffer: '撞上止衝擋 '
+signimproper: 本告示牌設定錯誤。
