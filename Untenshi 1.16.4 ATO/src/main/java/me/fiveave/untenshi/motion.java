@@ -419,13 +419,7 @@ class motion {
     }
 
     static double globaldecel(double decel, double cspd, double decelfr, int[] speedsteps) {
-        double reduction = 1.5;
-        int i = 3;
-        while (i >= 0 && cspd < speedsteps[i]) {
-            reduction = (i - 1) * 0.5;
-            i--;
-        }
-        return decel * (decelfr - reduction) / 7;
+        return (cspd >= speedsteps[0]) ? (decel * decelfr * (15 - 4 * (cspd - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * decelfr * 15 / 98);
     }
 
     static double accelswitch(double accel, int dcurrent, double cspd, int[] sec) {

@@ -57,7 +57,8 @@ class ato {
             // Get speed drop distance
             reqdist[0] = getreqdist(p, speeddrop, lowerSpeed);
             for (int a = 1; a <= 8; a++) {
-                reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed);
+                // Minus speeddrop * 2 to make braking softer when reach 0 km/h
+                reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel - speeddrop * 2, speed.get(p), a + 1, speedsteps), lowerSpeed);
             }
             // If no signal give it one
             lastsisp.putIfAbsent(p, 360);
