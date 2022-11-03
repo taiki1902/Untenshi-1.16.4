@@ -140,19 +140,6 @@ class cmds implements CommandExecutor, TabCompleter {
                                     TrainProperties tprop = mg.getProperties();
                                     // Detect owner
                                     if ((tprop.getOwners().size() == 1 && tprop.getOwners().contains(sender2.getName().toLowerCase()) || tprop.getOwners().isEmpty())) {
-                                        // Save inventory
-                                        inv.put(sender2, sender2.getInventory().getContents());
-                                        // Clear other slots
-                                        for (int i = 0; i < 41; i++) {
-                                            sender2.getInventory().setItem(i, new ItemStack(Material.AIR));
-                                        }
-                                        // Set wands in place
-                                        sender2.getInventory().setItem(0, upWand());
-                                        sender2.getInventory().setItem(1, nWand());
-                                        sender2.getInventory().setItem(2, downWand());
-                                        sender2.getInventory().setItem(6, ebButton());
-                                        sender2.getInventory().setItem(7, sbLever());
-                                        sender2.getInventory().setItem(8, doorButton());
                                         // Train settings
                                         tprop.setSlowingDown(false);
                                         tprop.setOwner(sender2.getName(), true);
@@ -197,6 +184,19 @@ class cmds implements CommandExecutor, TabCompleter {
                                                 }, interval);
                                             }
                                         }
+                                        // Save inventory
+                                        inv.put(sender2, sender2.getInventory().getContents());
+                                        // Clear other slots
+                                        for (int i = 0; i < 41; i++) {
+                                            sender2.getInventory().setItem(i, new ItemStack(Material.AIR));
+                                        }
+                                        // Set wands in place
+                                        sender2.getInventory().setItem(0, upWand());
+                                        sender2.getInventory().setItem(1, nWand());
+                                        sender2.getInventory().setItem(2, downWand());
+                                        sender2.getInventory().setItem(6, ebButton());
+                                        sender2.getInventory().setItem(7, sbLever());
+                                        sender2.getInventory().setItem(8, doorButton());
                                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("activate") + ChatColor.GREEN + getlang("enable"));
                                     } else {
                                         helpwithtitle(sender, ChatColor.RED, getlang("notowner"));
@@ -225,24 +225,17 @@ class cmds implements CommandExecutor, TabCompleter {
                         }
                         break;
                     case "traintype":
-                        if (checkperm(sender2, "uts.traintype")) break;
-                        if (reqdeactivated(sender)) break;
-                        if (args.length == 2) {
-                            switch (args[1].toLowerCase()) {
-                                case "local":
-                                case "hsr":
-                                case "lrt":
-                                    traintype.put(sender2, args[1].toLowerCase());
-                                    helpwithtitle(sender, ChatColor.YELLOW, getlang(args[1].toLowerCase() + "trainaccel"));
-                                    break label;
-                            }
+                        if (cannotsettrain(args, sender2)) break;
+                        if ("local".equalsIgnoreCase(args[1]) || "hsr".equalsIgnoreCase(args[1]) || "lrt".equalsIgnoreCase(args[1])) {
+                            traintype.put(sender2, args[1].toLowerCase());
+                            helpwithtitle(sender, ChatColor.YELLOW, getlang(args[1].toLowerCase() + "trainaccel"));
+                            break;
                         }
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts traintype <local/hsr/lrt>" + ChatColor.YELLOW + "]\n" + getlang("traintypeinfo1") + "\n" + getlang("traintypeinfo2") + "\n" + getlang("traintypeinfo3"));
                         break;
                     case "freemode":
-                        if (checkperm(sender2, "uts.freemode")) break;
-                        if (reqdeactivated(sender)) break;
-                        if (args.length == 2 && (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false"))) {
+                        if (cannotsettrain(args, sender2)) break;
+                        if (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
                             freemode.put(sender2, Boolean.valueOf(args[1].toLowerCase()));
                             sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("freemode") + (freemode.get(sender2) ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
                             break;
@@ -250,9 +243,8 @@ class cmds implements CommandExecutor, TabCompleter {
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts freemode <true/false>" + ChatColor.YELLOW + "]\n" + getlang("freemodeinfo1") + "\n" + getlang("freemodeinfo2"));
                         break;
                     case "allowato":
-                        if (checkperm(sender2, "uts.allowato")) break;
-                        if (reqdeactivated(sender)) break;
-                        if (args.length == 2 && (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false"))) {
+                        if (cannotsettrain(args, sender2)) break;
+                        if (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
                             allowatousage.put(sender2, Boolean.valueOf(args[1].toLowerCase()));
                             sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("ato") + (allowatousage.get(sender) ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
                             break;
@@ -363,6 +355,10 @@ class cmds implements CommandExecutor, TabCompleter {
             e.printStackTrace();
         }
         return true;
+    }
+
+    private boolean cannotsettrain(String[] args, Player sender2) {
+        return checkperm(sender2, "uts." + args[0].toLowerCase()) || reqdeactivated(sender2) || args.length != 2;
     }
 
     private boolean reqdeactivated(CommandSender sender) {

@@ -7,7 +7,6 @@ import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
@@ -71,13 +70,9 @@ public final class main extends JavaPlugin implements Listener {
     static final int ticksin1s = 10;
     static final int interval = 20 / ticksin1s;
 
-    static FileConfiguration getLConfig() {
-        return langdata.dataconfig;
-    }
-
     static String getlang(String path) {
         langdata.reloadConfig();
-        return Objects.requireNonNull(getLConfig().getString(path));
+        return Objects.requireNonNull(langdata.dataconfig.getString(path));
     }
 
     stoppos v1 = new stoppos();
