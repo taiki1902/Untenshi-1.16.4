@@ -144,7 +144,7 @@ class signalsign extends SignAction {
                                                         } catch (Exception ignored) {
                                                         }
                                                         if (setable != null) {
-                                                            int defaultsi = parseInt(setable.getLine(3).split(" ")[1]);
+                                                            String defaultsi = setable.getLine(3).split(" ")[1];
                                                             int defaultsp = parseInt(setable.getLine(3).split(" ")[2]);
                                                             // Check if new speed to be set is larger than default, if yes choose default instead
                                                             String str = ptnsisp[i1] > defaultsp ? defaultsi + " " + defaultsp : ptnsisi[i1] + " " + ptnsisp[i1];
