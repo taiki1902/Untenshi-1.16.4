@@ -137,14 +137,17 @@ class signalsign extends SignAction {
                                                 // Set signs with new signal and speed
                                                 for (int i1 = 0; i1 < halfptnlen; i1++) {
                                                     for (int i2 = 0; i2 < lastresetablesign.get(p)[lastresetablesign.get(p).length - 1].length; i2++) {
+                                                        // setable: Sign to be set
                                                         Sign setable = null;
                                                         try {
                                                             setable = (Sign) cartevent.getWorld().getBlockAt(newloc[i1][i2]).getState();
                                                         } catch (Exception ignored) {
                                                         }
                                                         if (setable != null) {
+                                                            int defaultsi = parseInt(setable.getLine(3).split(" ")[1]);
                                                             int defaultsp = parseInt(setable.getLine(3).split(" ")[2]);
-                                                            String str = ptnsisp[i1] > defaultsp ? ptnsisi[i1] + " " + defaultsp : ptnsisi[i1] + " " + ptnsisp[i1];
+                                                            // Check if new speed to be set is larger than default, if yes choose default instead
+                                                            String str = ptnsisp[i1] > defaultsp ? defaultsi + " " + defaultsp : ptnsisi[i1] + " " + ptnsisp[i1];
                                                             Sign finalSetable = setable;
                                                             Bukkit.getScheduler().runTaskLater(plugin, () -> updateSignals(finalSetable, "set " + str), 1);
 

@@ -315,8 +315,8 @@ class motion {
                 staaccel.put(p, true);
             }
             // Stop positions
-            // <= 2 m
-            if (stopdist <= 2.00 && speed.get(p) == 0) {
+            // <= 1 m
+            if (stopdist <= 1.00 && speed.get(p) == 0) {
                 // 25 cm
                 if (stopdist <= 0.25) {
                     // Need to fix stop pos? If no then add points
@@ -327,7 +327,7 @@ class motion {
                     showstoppos(p, "stopposgreat", stopdistcm, shock, 5);
                 }
                 // 1 m
-                else if (stopdist <= 1.00) {
+                else {
                     showstoppos(p, "stopposgood", stopdistcm, shock, 3);
                 }
                 opendoorprocedure(p);
