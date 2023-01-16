@@ -166,7 +166,7 @@ class events implements Listener {
                     DecimalFormat df0 = new DecimalFormat("#");
                     double spd = speed.get(p);
                     String sp = df0.format(spd);
-                    mascon.put(p, -9);
+                    toEB(p);
                     current.put(p, -480.0);
                     speed.put(p, 0.0);
                     pointCounter(p, ChatColor.YELLOW, getlang("collidebuffer"), -10, " " + sp + " km/h");

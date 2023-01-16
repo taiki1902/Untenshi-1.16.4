@@ -136,7 +136,7 @@ public final class main extends JavaPlugin implements Listener {
 
     static void pointCounter(Player p, ChatColor color, String s, int pts, String str) {
         ChatColor color2 = pts > 0 ? ChatColor.GREEN : ChatColor.RED;
-        String ptsstr = freemode.get(p) ? "" : String.valueOf(pts);
+        String ptsstr = !freemodenoato(p) ? "" : String.valueOf(pts);
         p.sendMessage(utshead + color + s + color2 + ptsstr + str);
         if (freemodenoato(p)) {
             points.put(p, points.get(p) + pts);

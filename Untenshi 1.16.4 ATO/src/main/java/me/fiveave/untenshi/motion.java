@@ -174,7 +174,7 @@ class motion {
         // Cancel TC motion-related sign actions
         if (!stationstop) mg.getActions().clear();
         // ATO (Automatic train operation)
-        atosys(p, accel, decel, ebdecel, speeddrop, dcurrent, speedsteps);
+        atosys(p, accel, decel, ebdecel, speeddrop, speedsteps);
         // Shock when stopping
         String shock = speed.get(p) == 0 && speed.get(p) < oldspeed ? " " + ChatColor.GRAY + df2.format(stopdecel * ticksin1s) + " km/h/s" : "";
         // Combine properties and action bar
@@ -302,7 +302,7 @@ class motion {
             double stopdist = distFormula(p.getLocation().getX(), stoppos.get(p)[0], p.getLocation().getZ(), stoppos.get(p)[2]);
             int stopdistcm = (int) (stopdist * 100);
             // Start Overrun
-            if (stopdist < 2 && !overrun.get(p)) {
+            if (stopdist < 1 && !overrun.get(p)) {
                 overrun.put(p, true);
             }
             // Rewards and penalties
