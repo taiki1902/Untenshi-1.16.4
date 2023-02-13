@@ -127,7 +127,7 @@ class ato {
         reqdist[0] = getreqdist(p, speeddrop, lowerSpeed);
         for (int a = 1; a <= 8; a++) {
             // Minus speeddrop * 2 to make braking softer when reach 0 km/h
-            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel - speeddrop * 2 * (1 - speed.get(p) / speedsteps[5]), speed.get(p), a + 1, speedsteps), lowerSpeed);
+            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel - speeddrop * ((double) (a - mascon.get(p)) / a), speed.get(p), a + 1, speedsteps), lowerSpeed);
         }
     }
 }
