@@ -56,22 +56,30 @@ class ato {
             }
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
-            reqdist[9] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), ebdecel, speedsteps), lowerSpeed);
-            // Get speed drop distance
-            reqdist[0] = getreqdist(p, speeddrop, lowerSpeed);
-            for (int a = 1; a <= 8; a++) {
-                // Minus speeddrop * 2 to make braking softer when reach 0 km/h
-                reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel - speeddrop * 2 * (1 - speed.get(p) / speedsteps[5]), speed.get(p), a + 1, speedsteps), lowerSpeed);
-            }
+            getallreqdist(p, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist);
             // If no signal give it one
             lastsisp.putIfAbsent(p, 360);
             // Actual controlling part (midpt is arbitrary)
             double midpt = speed.get(p) * 1.8 / 3.6;
             atopisdirect.putIfAbsent(p, false);
-            // Direct pattern?
-            if (atopisdirect.get(p)) {
+            // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
+            double tempdist = lastsisp.get(p).equals(0) ? (distnow < 0 ? 0 : distnow - 5) : distnow;
+            // Require accel? distnow - reqdist[5] > midpt: accel end not yet reached (no need to prepare for braking yet)
+            if (distnow - reqdist[5] > midpt && suitableaccel) {
+                finalmascon = 5;
+            }
+            // Require braking?
+            if (tempdist < reqdist[6] + midpt) {
+                atoforcebrake.put(p, true);
+            }
+            // Cancel braking?
+            if (tempdist > reqdist[1] + midpt) {
+                atoforcebrake.put(p, false);
+            }
+            // Direct pattern or forced?
+            if (atoforcebrake.get(p) || atopisdirect.get(p)) {
                 if (speed.get(p) > lowerSpeed) {
-                    double tempdist = lastsisp.get(p).equals(0) ? (distnow < 0 ? 0 : distnow - 5) : distnow;
+                    // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
                     for (int b = 9; b >= 0; b--) {
                         if (tempdist >= reqdist[b]) {
                             finalmascon = -b;
@@ -84,39 +92,15 @@ class ato {
                 } else if (suitableaccel) {
                     finalmascon = 5;
                 }
-            } else {
-                // distnow - reqdist[5] > midpt: accel end not yet reached (no need to prepare for braking yet)
-                if (distnow - reqdist[5] > midpt && suitableaccel && (!lastsisign.containsKey(p) || lastsisign.get(p).distance(p.getLocation()) > 5)) {
-                    finalmascon = 5;
-                }
-                for (int b = 9; b >= 0; b--) {
-                    // For braking not to 0 km/h
-                    if (lowerSpeed > 0) {
-                        // If cannot coast and distance is greater than braking distance (with default brake 5)
-                        if (distnow >= reqdist[b] && distnow - reqdist[5] < midpt / 2) {
-                            finalmascon = -b;
-                        }
-                        // If even emergency brake cannot brake in time
-                        else if (distnow < reqdist[9]) {
-                            finalmascon = -9;
-                        }
-                    } // For braking to 0 km/h
-                    else {
-                        // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
-                        double tempdist = lastsisp.get(p).equals(0) ? (distnow < 0 ? 0 : distnow - 5) : distnow;
-                        // If cannot coast and distance is greater than braking distance (with default brake 7) (midpt / 2 is arbitrary value)
-                        if (tempdist >= reqdist[b] && tempdist - reqdist[7] < midpt / 2) {
-                            finalmascon = -b;
-                        }
-                    }
-                }
             }
-            // Speeding prevention for all (accelswitch * 2 to prevent accel then decel)
+            // Speeding prevention for all (accelswitch to prevent accel then decel)
             if (speed.get(p) + accelswitch(accel, 5, speed.get(p), speedsteps) * ticksin1s > currentlimit && finalmascon > 0) {
                 finalmascon = 0;
             }
             // Slightly speeding auto braking (not for ATS-P or ATC)
             if (speed.get(p) > currentlimit) {
+                // Redefine reqdist (here for braking distance to speed limit)
+                getallreqdist(p, decel, ebdecel, speeddrop, speedsteps, currentlimit, reqdist);
                 int finalbrake = -8;
                 for (int a = 8; a >= 1; a--) {
                     // If braking distance is greater than distance in 1 s and if the brake is greater, then use the value
@@ -134,6 +118,16 @@ class ato {
             if (overrun.get(p) && atodist > 1) {
                 toEB(p);
             }
+        }
+    }
+
+    private static void getallreqdist(Player p, double decel, double ebdecel, double speeddrop, int[] speedsteps, double lowerSpeed, double[] reqdist) {
+        reqdist[9] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), ebdecel, speedsteps), lowerSpeed);
+        // Get speed drop distance
+        reqdist[0] = getreqdist(p, speeddrop, lowerSpeed);
+        for (int a = 1; a <= 8; a++) {
+            // Minus speeddrop * 2 to make braking softer when reach 0 km/h
+            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel - speeddrop * 2 * (1 - speed.get(p) / speedsteps[5]), speed.get(p), a + 1, speedsteps), lowerSpeed);
         }
     }
 }

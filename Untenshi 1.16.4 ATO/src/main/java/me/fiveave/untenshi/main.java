@@ -59,6 +59,7 @@ public final class main extends JavaPlugin implements Listener {
     public static HashMap<Player, Boolean> frozen = new HashMap<>();
     public static HashMap<Player, Boolean> allowatousage = new HashMap<>();
     public static HashMap<Player, Boolean> atopisdirect = new HashMap<>();
+    public static HashMap<Player, Boolean> atoforcebrake = new HashMap<>();
     public static HashMap<Player, MinecartGroup> train = new HashMap<>();
     public static HashMap<Player, ItemStack[]> inv = new HashMap<>();
     public static main plugin;
@@ -167,6 +168,8 @@ public final class main extends JavaPlugin implements Listener {
             atospeed.remove(p);
             atodest.remove(p);
             atostoptime.remove(p);
+            atopisdirect.remove(p);
+            atoforcebrake.remove(p);
             lastsisign.remove(p);
             lastspsign.remove(p);
             lastsisp.remove(p);

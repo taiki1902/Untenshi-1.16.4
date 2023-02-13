@@ -165,7 +165,7 @@ class motion {
         } else if (lasty.get(p) - trainy < 0) {
             speed.put(p, speed.get(p) - 0.234919);
         }
-        // Set speed to 0 when under 0
+        // Anti-negative speed and force stop when door is open
         if (speed.get(p) < 0 || dooropen.get(p) > 0) {
             speed.put(p, 0.0);
         }

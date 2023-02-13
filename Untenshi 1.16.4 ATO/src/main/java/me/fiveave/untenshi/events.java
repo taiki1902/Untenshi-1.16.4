@@ -145,14 +145,12 @@ class events implements Listener {
             }
             // ATO Stop Time Countdown, cancelled if door is closed
             atodepartcountdown(p);
-        } else {
-            if (doordiropen.get(p)) {
-                doordiropen.put(p, false);
-                reqstopping.put(p, false);
-                overrun.put(p, false);
-                doorconfirm.put(p, false);
-                p.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.RED + getlang("closing"));
-            }
+        } else if (doordiropen.get(p)) {
+            doordiropen.put(p, false);
+            reqstopping.put(p, false);
+            overrun.put(p, false);
+            doorconfirm.put(p, false);
+            p.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.RED + getlang("closing"));
         }
     }
 
