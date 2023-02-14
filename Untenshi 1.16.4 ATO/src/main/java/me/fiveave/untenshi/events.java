@@ -23,8 +23,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.text.DecimalFormat;
 import java.util.Objects;
 
-import static me.fiveave.untenshi.cmds.atodepartcountdown;
-import static me.fiveave.untenshi.cmds.helpwithtitle;
+import static me.fiveave.untenshi.cmds.*;
 import static me.fiveave.untenshi.main.mascon;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.motion.freemodenoato;
@@ -98,9 +97,9 @@ class events implements Listener {
                     atospeed.remove(p);
                     p.sendMessage(utshead + ChatColor.GOLD + getlang("atopatterncancel"));
                 }
-                helpwithtitle(p, ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(MinecartMemberStore.getFromEntity(p.getVehicle())).getDirection() + ")");
+                helpnotitle(p, ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(MinecartMemberStore.getFromEntity(p.getVehicle())).getDirection() + ")");
             } else {
-                helpwithtitle(p, ChatColor.YELLOW, getlang("sbinmotion"));
+                helpnotitle(p, ChatColor.YELLOW, getlang("sbinmotion"));
             }
         }
     }
@@ -109,17 +108,16 @@ class events implements Listener {
         doordiropen.putIfAbsent(p, false);
         if (open) {
             if (speed.get(p) > 0.0) {
-                helpwithtitle(p, ChatColor.YELLOW, getlang("dooropeninmotion"));
+                helpnotitle(p, ChatColor.YELLOW, getlang("dooropeninmotion"));
                 return;
             }
             if (fixstoppos.get(p) || reqstopping.get(p)) {
-                helpwithtitle(p, ChatColor.YELLOW, getlang("fixstoppos"));
+                helpnotitle(p, ChatColor.YELLOW, getlang("fixstoppos"));
                 return;
             }
             doordiropen.put(p, true);
             fixstoppos.put(p, false);
             doorconfirm.put(p, false);
-            p.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.GREEN + getlang("opening"));
             // Provide output when open door
             if (stopoutput.containsKey(p)) {
                 Block b = p.getWorld().getBlockAt(stopoutput.get(p)[0], stopoutput.get(p)[1], stopoutput.get(p)[2]);
@@ -150,7 +148,6 @@ class events implements Listener {
             reqstopping.put(p, false);
             overrun.put(p, false);
             doorconfirm.put(p, false);
-            p.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.RED + getlang("closing"));
         }
     }
 

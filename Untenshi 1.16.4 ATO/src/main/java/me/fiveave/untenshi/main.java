@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
 
+import static me.fiveave.untenshi.cmds.helpnotitle;
 import static me.fiveave.untenshi.motion.freemodenoato;
 import static me.fiveave.untenshi.signalsign.resetSignals;
 
@@ -183,7 +184,7 @@ public final class main extends JavaPlugin implements Listener {
             // Reset inventory
             p.getInventory().setContents(inv.get(p));
             p.updateInventory();
-            p.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("activate") + ChatColor.RED + getlang("disable"));
+            helpnotitle(p, ChatColor.YELLOW, getlang("activate") + ChatColor.RED + getlang("disable"));
             // Reset signals
             try {
                 Location[][] locs = lastresetablesign.get(p);

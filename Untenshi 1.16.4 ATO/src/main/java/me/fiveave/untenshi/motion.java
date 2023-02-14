@@ -182,7 +182,28 @@ class motion {
         tprop.setSpeedLimit(blockpertick);
         mg.setForwardForce(blockpertick);
         mg.setProperties(tprop);
-        String actionbarmsg = "" + ctrltext + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + ChatColor.WHITE + df0.format(speed.get(p)) + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + points.get(p);
+        // Door (enter and exit train)
+        if (doordiropen.get(p) && dooropen.get(p) < 30) {
+            dooropen.put(p, dooropen.get(p) + 1);
+        } else if (!doordiropen.get(p) && dooropen.get(p) > 0) {
+            dooropen.put(p, dooropen.get(p) - 1);
+        }
+        if (!doorconfirm.get(p)) {
+            if (dooropen.get(p) == 0) {
+                tprop.setPlayersEnter(false);
+                tprop.setPlayersExit(false);
+                doorconfirm.put(p, true);
+            } else if (dooropen.get(p) == 30) {
+                tprop.setPlayersEnter(true);
+                tprop.setPlayersExit(true);
+                doorconfirm.put(p, true);
+            }
+        }
+        // Door text
+        String tolangtxt = doorconfirm.get(p) ? "ed" : "ing";
+        String doortxt = doordiropen.get(p) ? (atostoptime.containsKey(p) ? ChatColor.GOLD + "..." + atostoptime.get(p) : ChatColor.GREEN + getlang("open" + tolangtxt)) : ChatColor.RED + getlang("clos" + tolangtxt);
+        // Action bar
+        String actionbarmsg = "" + ctrltext + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + ChatColor.WHITE + df0.format(speed.get(p)) + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + points.get(p) + " | " + ChatColor.YELLOW + getlang("door") + doortxt;
         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbarmsg));
         // Count points
         if (freemodenoato(p) && getmascon(p) == -9 && speed.get(p) > 20 && !atsbraking.get(p)) {
@@ -276,25 +297,6 @@ class motion {
             atsbraking.put(p, true);
             mascon.put(p, -9);
             current.put(p, -480.0);
-        }
-        // Door (enter and exit train)
-        if (doordiropen.get(p) && dooropen.get(p) < 30) {
-            dooropen.put(p, dooropen.get(p) + 1);
-        } else if (!doordiropen.get(p) && dooropen.get(p) > 0) {
-            dooropen.put(p, dooropen.get(p) - 1);
-        }
-        if (!doorconfirm.get(p)) {
-            if (dooropen.get(p) == 0) {
-                tprop.setPlayersEnter(false);
-                tprop.setPlayersExit(false);
-                doorconfirm.put(p, true);
-                p.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.RED + getlang("closed"));
-            } else if (dooropen.get(p) == 30) {
-                tprop.setPlayersEnter(true);
-                tprop.setPlayersExit(true);
-                doorconfirm.put(p, true);
-                p.sendMessage(utshead + ChatColor.YELLOW + getlang("door") + ChatColor.GREEN + getlang("opened"));
-            }
         }
         // Stop position
         if (reqstopping.get(p)) {

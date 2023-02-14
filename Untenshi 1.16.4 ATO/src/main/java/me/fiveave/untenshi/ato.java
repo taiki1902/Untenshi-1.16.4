@@ -60,7 +60,7 @@ class ato {
             // If no signal give it one
             lastsisp.putIfAbsent(p, 360);
             // Actual controlling part (midpt is arbitrary)
-            double midpt = speed.get(p) * 1.8 / 3.6;
+            double midpt = speed.get(p) / 3.6;
             atopisdirect.putIfAbsent(p, false);
             // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
             double tempdist = lastsisp.get(p).equals(0) ? (distnow < 0 ? 0 : distnow - 5) : distnow;
