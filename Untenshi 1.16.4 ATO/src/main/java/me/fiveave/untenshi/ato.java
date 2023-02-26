@@ -25,7 +25,7 @@ class ato {
             double atodistdiff = atodist - reqatodist;
             double lowerSpeed = atospeed.get(p);
             double distnow = atodist;
-            int currentlimit = Math.min(speedlimit.get(p), signallimit.get(p));
+            int currentlimit = minSpeedLimit(p);
             int finalmascon = 0;
             boolean suitableaccel = (currentlimit - speed.get(p) > 5 && mascon.get(p) == 0) || mascon.get(p) > 0;
             // Find either ATO, signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
@@ -60,20 +60,20 @@ class ato {
             // If no signal give it one
             lastsisp.putIfAbsent(p, 360);
             // Actual controlling part (midpt is arbitrary)
-            double midpt = speed.get(p) / 3.6;
+
             atopisdirect.putIfAbsent(p, false);
             // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
             double tempdist = lastsisp.get(p).equals(0) ? (distnow < 0 ? 0 : distnow - 5) : distnow;
             // Require accel? distnow - reqdist[5] > midpt: accel end not yet reached (no need to prepare for braking yet)
-            if (distnow - reqdist[5] > midpt && suitableaccel) {
+            if (distnow - reqdist[5] > midpt(p) && suitableaccel) {
                 finalmascon = 5;
             }
             // Require braking?
-            if (tempdist < reqdist[6] + midpt) {
+            if (tempdist < reqdist[6]) {
                 atoforcebrake.put(p, true);
             }
             // Cancel braking?
-            if (tempdist > reqdist[1] + midpt) {
+            if (tempdist > reqdist[1]) {
                 atoforcebrake.put(p, false);
             }
             // Direct pattern or forced?
@@ -127,7 +127,11 @@ class ato {
         reqdist[0] = getreqdist(p, speeddrop, lowerSpeed);
         for (int a = 1; a <= 8; a++) {
             // Minus speeddrop * 2 to make braking softer when reach 0 km/h
-            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel - speeddrop * ((double) (a - mascon.get(p)) / a), speed.get(p), a + 1, speedsteps), lowerSpeed);
+            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed) + midpt(p) * Math.max(0, 0.2 * Math.min(a, a + mascon.get(p)));
         }
+    }
+
+    private static double midpt(Player p) {
+        return speed.get(p) / 3.6;
     }
 }

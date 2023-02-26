@@ -92,12 +92,8 @@ class motion {
                 if (tcontains(".ebdecel", tDataInfo))
                     ebdecel = traindata.dataconfig.getDouble(tDataInfo + ".ebdecel") * 2;
                 if (tcontains(".speeds", tDataInfo) && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
-                    try {
-                        for (int i = 0; i < 6; i++) {
-                            speedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    for (int i = 0; i < 6; i++) {
+                        speedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
                     }
                 }
             }
@@ -106,18 +102,15 @@ class motion {
         accel /= ticksin1s;
         decel /= ticksin1s;
         lasty.putIfAbsent(p, Objects.requireNonNull(p.getVehicle()).getLocation().getY());
-        // Electric current brake
-        double ecb = 0;
-        double currentnow = current.get(p);
         // Rounding
         DecimalFormat df3 = new DecimalFormat("#.###");
         DecimalFormat df2 = new DecimalFormat("#.##");
         DecimalFormat df0 = new DecimalFormat("#");
         df0.setRoundingMode(RoundingMode.UP);
+        // Electric current brake
+        double currentnow = current.get(p);
         // Set current for current mascon
-        if (getmascon(p) >= -9 && getmascon(p) <= 5) {
-            ecb = Integer.parseInt(df0.format(480.0 / 9 * getmascon(p)));
-        }
+        double ecb = Integer.parseInt(df0.format(480.0 / 9 * getmascon(p)));
         df0.setRoundingMode(RoundingMode.HALF_EVEN);
         // Set real current
         if (ecb < currentnow) {
@@ -188,16 +181,11 @@ class motion {
         } else if (!doordiropen.get(p) && dooropen.get(p) > 0) {
             dooropen.put(p, dooropen.get(p) - 1);
         }
-        if (!doorconfirm.get(p)) {
-            if (dooropen.get(p) == 0) {
-                tprop.setPlayersEnter(false);
-                tprop.setPlayersExit(false);
-                doorconfirm.put(p, true);
-            } else if (dooropen.get(p) == 30) {
-                tprop.setPlayersEnter(true);
-                tprop.setPlayersExit(true);
-                doorconfirm.put(p, true);
-            }
+        boolean do30 = dooropen.get(p) == 30;
+        if (!doorconfirm.get(p) && (dooropen.get(p) == 0 || do30)) {
+            tprop.setPlayersEnter(do30);
+            tprop.setPlayersExit(do30);
+            doorconfirm.put(p, true);
         }
         // Door text
         String tolangtxt = doorconfirm.get(p) ? "ed" : "ing";
@@ -237,8 +225,8 @@ class motion {
             }
         }
         // ATS-P
-        boolean isoverspeed0 = speed.get(p) > signallimit.get(p) || speed.get(p) > speedlimit.get(p);
-        boolean isoverspeed3 = speed.get(p) > signallimit.get(p) + 3 || speed.get(p) > speedlimit.get(p) + 3;
+        boolean isoverspeed0 = speed.get(p) > minSpeedLimit(p);
+        boolean isoverspeed3 = speed.get(p) > minSpeedLimit(p) + 3;
         if (signaltype.get(p).equals("ats")) {
             double signaldist;
             double speeddist;
@@ -282,14 +270,12 @@ class motion {
             p.sendMessage(utshead + ChatColor.RED + getlang("atcrun"));
         }
         // ATC Auto Control
-        if (signaltype.get(p).equals("atc")) {
-            if (signallimit.get(p) > 0) {
-                if (!atsbraking.get(p) && isoverspeed3) {
-                    atsbraking.put(p, true);
-                    mascon.put(p, -8);
-                } else if (!isoverspeed3) {
-                    atsbraking.put(p, false);
-                }
+        if (signaltype.get(p).equals("atc") && signallimit.get(p) > 0) {
+            if (!atsbraking.get(p) && isoverspeed3) {
+                atsbraking.put(p, true);
+                mascon.put(p, -8);
+            } else if (!isoverspeed3) {
+                atsbraking.put(p, false);
             }
         }
         // Instant ATS / ATC if red light
@@ -436,6 +422,10 @@ class motion {
             retaccel = 0;
         }
         return retaccel;
+    }
+
+    static int minSpeedLimit(Player p) {
+        return Math.min(speedlimit.get(p), signallimit.get(p));
     }
 
     static boolean tcontains(String s, String tDataInfo) {
