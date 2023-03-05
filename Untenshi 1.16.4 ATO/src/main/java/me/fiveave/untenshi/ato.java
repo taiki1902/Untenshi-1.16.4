@@ -59,13 +59,13 @@ class ato {
             getallreqdist(p, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist);
             // If no signal give it one
             lastsisp.putIfAbsent(p, 360);
-            // Actual controlling part (midpt is arbitrary)
+            // Actual controlling part (speed1s is arbitrary)
 
             atopisdirect.putIfAbsent(p, false);
             // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
             double tempdist = lastsisp.get(p).equals(0) ? (distnow < 0 ? 0 : distnow - 5) : distnow;
-            // Require accel? distnow - reqdist[5] > midpt: accel end not yet reached (no need to prepare for braking yet)
-            if (distnow - reqdist[5] > midpt(p) && suitableaccel) {
+            // Require accel? distnow - reqdist[5] > speed1s: accel end not yet reached (no need to prepare for braking yet)
+            if (distnow - reqdist[5] > speed1s(p) && suitableaccel) {
                 finalmascon = 5;
             }
             // Require braking?
@@ -127,11 +127,11 @@ class ato {
         reqdist[0] = getreqdist(p, speeddrop, lowerSpeed);
         for (int a = 1; a <= 8; a++) {
             // Minus speeddrop * 2 to make braking softer when reach 0 km/h
-            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed) + midpt(p) * Math.max(0, 0.2 * Math.min(a, a + mascon.get(p)));
+            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed) + speed1s(p) * Math.max(0, 0.2 * Math.min(a, a + mascon.get(p)));
         }
     }
 
-    private static double midpt(Player p) {
+    static double speed1s(Player p) {
         return speed.get(p) / 3.6;
     }
 }

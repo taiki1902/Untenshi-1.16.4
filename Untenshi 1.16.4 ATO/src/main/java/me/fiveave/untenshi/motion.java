@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static me.fiveave.untenshi.ato.atosys;
+import static me.fiveave.untenshi.ato.speed1s;
 import static me.fiveave.untenshi.events.doorControls;
 import static me.fiveave.untenshi.main.stoppos;
 import static me.fiveave.untenshi.main.*;
@@ -122,12 +123,11 @@ class motion {
         if (currentnow > 0 && ecb < 0) {
             current.put(p, 0.0);
         }
-        int dcurrent = (int) (currentnow * 9 / 480);
         // Accel and decel
-        double stopdecel = decelswitch(p, speed.get(p), speeddrop, decel, ebdecel, dcurrent, speedsteps);
+        double stopdecel = decelswitch(p, speed.get(p), speeddrop, decel, ebdecel, currentnow, speedsteps);
         if (dooropen.get(p) == 0) {
             speed.put(p, speed.get(p)
-                    + accelswitch(accel, dcurrent, speed.get(p), speedsteps) // Acceleration
+                    + accelswitch(accel, (int) (currentnow * 9 / 480), speed.get(p), speedsteps) // Acceleration
                     - stopdecel // Deceleration (speed drop included)
             );
         }
@@ -194,7 +194,7 @@ class motion {
         String actionbarmsg = "" + ctrltext + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + ChatColor.WHITE + df0.format(speed.get(p)) + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + points.get(p) + " | " + ChatColor.YELLOW + getlang("door") + doortxt;
         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbarmsg));
         // Count points
-        if (freemodenoato(p) && getmascon(p) == -9 && speed.get(p) > 20 && !atsbraking.get(p)) {
+        if (freemodenoato(p) && getmascon(p) == -9 && speed.get(p) > 20 && !atsbraking.get(p) && !atsping.get(p)) {
             // Misuse EB
             if (deductdelay.get(p) >= 50) {
                 deductdelay.put(p, 0);
@@ -239,13 +239,11 @@ class motion {
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
             reqdist[9] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), ebdecel, speedsteps), lowerSpeed);
-            for (int a = 5; a <= 8; a += 3) {
-                reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed);
-            }
+            reqdist[8] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), 9, speedsteps), lowerSpeed);
             // Pattern run
             if (((shortestDist < reqdist[8] && speed.get(p) > lowerSpeed + 3) || isoverspeed3) && !atsping.get(p)) {
                 atsping.put(p, true);
-                if ((lowerSpeed == 0 && shortestDist - reqdist[5] < 1 && shortestDist < 5) || signallimit.get(p) == 0) {
+                if ((lowerSpeed == 0 && shortestDist < 5) || signallimit.get(p) == 0) {
                     mascon.put(p, -9);
                     pointCounter(p, ChatColor.RED, getlang("atspeb") + " ", -5, "");
                 } else {
@@ -256,7 +254,7 @@ class motion {
                 atsping.put(p, false);
             }
             // Pattern near
-            boolean pnear = shortestDist < reqdist[5] || isoverspeed0;
+            boolean pnear = (shortestDist < reqdist[8] + speed1s(p) * 5 && speed.get(p) > lowerSpeed) || isoverspeed0;
             if (!atspnear.get(p) && pnear) {
                 p.sendMessage(utshead + ChatColor.GOLD + getlang("atspnear"));
             }
@@ -389,13 +387,13 @@ class motion {
         return (Math.pow(speed.get(ctrlp), 2) - Math.pow(lowerSpeed, 2)) / (7.2 * decel);
     }
 
-    static double decelswitch(Player ctrlp, double cspd, double speeddrop, double decel, double ebrate, int dcurrent, int[] speedsteps) {
+    static double decelswitch(Player ctrlp, double cspd, double speeddrop, double decel, double ebrate, double current, int[] speedsteps) {
         double retdecel = 0;
-        if (dcurrent == 0) {
+        if (current == 0) {
             retdecel = speeddrop;
-        } else if (dcurrent < 0 && dcurrent > -9) {
-            retdecel = globaldecel(decel, cspd, Math.abs(dcurrent) + 1, speedsteps);
-        } else if (dcurrent == -9) {
+        } else if (current < 0 && current > -480) {
+            retdecel = globaldecel(decel, cspd, Math.abs(current * 9 / 480) + 1, speedsteps);
+        } else if (current == -480) {
             if (!atsbraking.get(ctrlp) && signallimit.get(ctrlp) != 0) {
                 retdecel = globaldecel(decel, cspd, ebrate, speedsteps);
             } else {
@@ -407,6 +405,7 @@ class motion {
     }
 
     static double globaldecel(double decel, double cspd, double decelfr, int[] speedsteps) {
+        // (1 / 98) = (1 / 7 / 14)
         return (cspd >= speedsteps[0]) ? (decel * decelfr * (15 - 4 * (cspd - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * decelfr * 15 / 98);
     }
 
