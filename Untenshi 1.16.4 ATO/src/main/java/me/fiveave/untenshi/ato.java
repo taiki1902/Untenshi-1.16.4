@@ -126,8 +126,8 @@ class ato {
         // Get speed drop distance
         reqdist[0] = getreqdist(p, speeddrop, lowerSpeed);
         for (int a = 1; a <= 8; a++) {
-            // Minus speeddrop * 2 to make braking softer when reach 0 km/h
-            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed) + speed1s(p) * Math.max(0, 0.2 * Math.min(a, a + mascon.get(p)));
+            // Plus reaction time (0.1s is basic time)
+            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed) + speed1s(p) * Math.max(1.0 / ticksin1s, 0.1 * Math.min(a, a + (current.get(p) * 9 / 480)));
         }
     }
 

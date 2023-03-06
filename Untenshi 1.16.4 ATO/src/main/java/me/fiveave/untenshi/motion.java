@@ -166,8 +166,6 @@ class motion {
         df3.setRoundingMode(RoundingMode.CEILING);
         // Cancel TC motion-related sign actions
         if (!stationstop) mg.getActions().clear();
-        // ATO (Automatic train operation)
-        atosys(p, accel, decel, ebdecel, speeddrop, speedsteps);
         // Shock when stopping
         String shock = speed.get(p) == 0 && speed.get(p) < oldspeed ? " " + ChatColor.GRAY + df2.format(stopdecel * ticksin1s) + " km/h/s" : "";
         // Combine properties and action bar
@@ -282,6 +280,8 @@ class motion {
             mascon.put(p, -9);
             current.put(p, -480.0);
         }
+        // ATO (Must be placed after actions)
+        atosys(p, accel, decel, ebdecel, speeddrop, speedsteps);
         // Stop position
         if (reqstopping.get(p)) {
             // Get stop location
@@ -387,15 +387,15 @@ class motion {
         return (Math.pow(speed.get(ctrlp), 2) - Math.pow(lowerSpeed, 2)) / (7.2 * decel);
     }
 
-    static double decelswitch(Player ctrlp, double cspd, double speeddrop, double decel, double ebrate, double current, int[] speedsteps) {
+    static double decelswitch(Player ctrlp, double speednow, double speeddrop, double decel, double ebrate, double current, int[] speedsteps) {
         double retdecel = 0;
         if (current == 0) {
             retdecel = speeddrop;
         } else if (current < 0 && current > -480) {
-            retdecel = globaldecel(decel, cspd, Math.abs(current * 9 / 480) + 1, speedsteps);
+            retdecel = globaldecel(decel, speednow, Math.abs(current * 9 / 480) + 1, speedsteps);
         } else if (current == -480) {
             if (!atsbraking.get(ctrlp) && signallimit.get(ctrlp) != 0) {
-                retdecel = globaldecel(decel, cspd, ebrate, speedsteps);
+                retdecel = globaldecel(decel, speednow, ebrate, speedsteps);
             } else {
                 // SPAD ATS EB (-35 km/h/s)
                 atsforced.put(ctrlp, 2);
@@ -404,9 +404,9 @@ class motion {
         return retdecel;
     }
 
-    static double globaldecel(double decel, double cspd, double decelfr, int[] speedsteps) {
+    static double globaldecel(double decel, double speednow, double decelfr, int[] speedsteps) {
         // (1 / 98) = (1 / 7 / 14)
-        return (cspd >= speedsteps[0]) ? (decel * decelfr * (15 - 4 * (cspd - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * decelfr * 15 / 98);
+        return (speednow >= speedsteps[0]) ? (decel * decelfr * (15 - 4 * (speednow - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * decelfr * 15 / 98);
     }
 
     static double accelswitch(double accel, int dcurrent, double cspd, int[] sec) {
