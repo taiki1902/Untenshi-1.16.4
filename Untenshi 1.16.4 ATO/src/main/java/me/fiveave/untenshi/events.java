@@ -69,8 +69,8 @@ class events implements Listener {
             }
             if (doorButton().equals(item)) {
                 event.setCancelled(true);
-                Boolean bl = doordiropen.get(p);
-                doorControls(p, !bl);
+                Boolean rev = doordiropen.get(p);
+                doorControls(p, !rev);
             }
             if (sbLever().equals(item)) {
                 switchback(p);
@@ -143,7 +143,7 @@ class events implements Listener {
             }
             // ATO Stop Time Countdown, cancelled if door is closed
             atodepartcountdown(p);
-        } else if (doordiropen.get(p)) {
+        } else {
             doordiropen.put(p, false);
             reqstopping.put(p, false);
             overrun.put(p, false);

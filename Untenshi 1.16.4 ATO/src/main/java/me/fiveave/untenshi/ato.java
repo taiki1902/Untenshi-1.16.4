@@ -27,7 +27,7 @@ class ato {
             double distnow = atodist;
             int currentlimit = minSpeedLimit(p);
             int finalmascon = 0;
-            boolean suitableaccel = (currentlimit - speed.get(p) > 5 && mascon.get(p) == 0) || mascon.get(p) > 0;
+            boolean suitableaccel = ((currentlimit - speed.get(p) > 5 && mascon.get(p) == 0) || mascon.get(p) > 0) && !overrun.get(p);
             // Find either ATO, signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
             if (lastsisign.containsKey(p) && lastsisp.containsKey(p)) {
                 reqsidist = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), 6, speedsteps), lastsisp.get(p));
@@ -68,8 +68,8 @@ class ato {
             if (distnow - reqdist[5] > speed1s(p) && suitableaccel) {
                 finalmascon = 5;
             }
-            // Require braking?
-            if (tempdist < reqdist[6]) {
+            // Require braking? (additional thinking time to prevent braking too hard)
+            if (tempdist < reqdist[6] + speed1s(p) * getThinkingTime(p, 6)) {
                 atoforcebrake.put(p, true);
             }
             // Cancel braking?
@@ -127,8 +127,12 @@ class ato {
         reqdist[0] = getreqdist(p, speeddrop, lowerSpeed);
         for (int a = 1; a <= 8; a++) {
             // Plus reaction time (0.1s is basic time)
-            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed) + speed1s(p) * Math.max(1.0 / ticksin1s, 0.1 * Math.min(a, a + (current.get(p) * 9 / 480)));
+            reqdist[a] = getreqdist(p, ticksin1s * globaldecel(decel, speed.get(p), a + 1, speedsteps), lowerSpeed) + speed1s(p) * getThinkingTime(p, a);
         }
+    }
+
+    private static double getThinkingTime(Player p, int a) {
+        return Math.max(1.0 / ticksin1s, 0.1 * Math.min(a, a + (current.get(p) * 9 / 480)));
     }
 
     static double speed1s(Player p) {
