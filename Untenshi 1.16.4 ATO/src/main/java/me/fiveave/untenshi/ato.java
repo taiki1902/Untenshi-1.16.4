@@ -60,7 +60,6 @@ class ato {
             // If no signal give it one
             lastsisp.putIfAbsent(p, 360);
             // Actual controlling part (speed1s is arbitrary)
-
             atopisdirect.putIfAbsent(p, false);
             // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
             double tempdist = lastsisp.get(p).equals(0) ? (distnow < 0 ? 0 : distnow - 5) : distnow;
@@ -73,7 +72,7 @@ class ato {
                 atoforcebrake.put(p, true);
             }
             // Cancel braking?
-            if (tempdist > reqdist[1]) {
+            if (tempdist > reqdist[1] + speed1s(p) * getThinkingTime(p, 1)) {
                 atoforcebrake.put(p, false);
             }
             // Direct pattern or forced?
