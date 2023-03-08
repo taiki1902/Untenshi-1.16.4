@@ -158,6 +158,18 @@ class motion {
         } else if (lasty.get(p) - trainy < 0) {
             speed.put(p, speed.get(p) - 0.234919);
         }
+        // Slope calculation (in construction)
+//        TrackWalkingPoint twp = new TrackWalkingPoint(mg.head().getRailTracker().getState());
+//        int toslanted = 0;
+//        for (int i = 0; i < 100; i++) {
+//            twp.moveFull();
+//            if (twp.state.railBlock().getBlockData() instanceof Rail) {
+//                Rail rail = (Rail) twp.state.railBlock().getBlockData();
+//                if (rail.getShape().equals(Rail.Shape.ASCENDING_EAST) || rail.getShape().equals(Rail.Shape.ASCENDING_WEST) || rail.getShape().equals(Rail.Shape.ASCENDING_SOUTH) || rail.getShape().equals(Rail.Shape.ASCENDING_NORTH)) {
+//                    toslanted = i;
+//                }
+//            }
+//        }
         // Anti-negative speed and force stop when door is open
         if (speed.get(p) < 0 || dooropen.get(p) > 0) {
             speed.put(p, 0.0);
