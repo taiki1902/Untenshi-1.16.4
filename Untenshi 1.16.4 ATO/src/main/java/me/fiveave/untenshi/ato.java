@@ -72,7 +72,7 @@ class ato {
                 atoforcebrake.put(p, true);
             }
             // Cancel braking?
-            if (tempdist > reqdist[1] + speed1s(p) * getThinkingTime(p, 1)) {
+            if (tempdist > reqdist[1] + 2 * speed1s(p) * getThinkingTime(p, 1)) {
                 atoforcebrake.put(p, false);
             }
             // Direct pattern or forced?
