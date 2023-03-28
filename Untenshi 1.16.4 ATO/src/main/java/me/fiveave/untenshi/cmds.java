@@ -64,7 +64,7 @@ class cmds implements CommandExecutor, TabCompleter {
             dooropen.putIfAbsent(sender2, 0);
             doordiropen.putIfAbsent(sender2, false);
             frozen.putIfAbsent(sender2, false);
-            atsbraking.putIfAbsent(sender2, false);
+            atsbrakingforced.putIfAbsent(sender2, false);
             allowatousage.putIfAbsent(sender2, false);
             // Force freemode false if perm not given
             if (!sender.hasPermission("uts.freemode")) {
@@ -160,7 +160,7 @@ class cmds implements CommandExecutor, TabCompleter {
                                         mascon.put(sender2, -9);
                                         current.put(sender2, -480.0);
                                         points.put(sender2, 30);
-                                        atsbraking.put(sender2, false);
+                                        atsbrakingforced.put(sender2, false);
                                         atsping.put(sender2, false);
                                         atspnear.put(sender2, false);
                                         overrun.put(sender2, false);
@@ -215,10 +215,10 @@ class cmds implements CommandExecutor, TabCompleter {
                         break;
                     case "atsconfirm":
                     case "ac":
-                        if (!signallimit.get(sender).equals(0) && (!atsbraking.get(sender) || (atsbraking.get(sender) && speed.get(sender) <= 0))) {
-                            atsbraking.put(sender2, false);
+                        if (!signallimit.get(sender).equals(0) && (!atsbrakingforced.get(sender) || (atsbrakingforced.get(sender) && speed.get(sender) <= 0))) {
+                            atsbrakingforced.put(sender2, false);
                             sender.sendMessage(utshead + ChatColor.GOLD + getlang("acsuccess"));
-                        } else if (signallimit.get(sender).equals(0) || (atsbraking.get(sender) && speed.get(sender) > 0)) {
+                        } else if (signallimit.get(sender).equals(0) || (atsbrakingforced.get(sender) && speed.get(sender) > 0)) {
                             sender.sendMessage(utshead + ChatColor.RED + getlang("acfailed"));
                         } else {
                             sender.sendMessage(utshead + ChatColor.YELLOW + getlang("acnotneeded"));

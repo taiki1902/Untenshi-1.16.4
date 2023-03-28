@@ -5,8 +5,6 @@ help4title: 指示牌 4/4 頁
 cmdlist: '指令列表:'
 help1a: 顯示幫助
 help1b: 駕駛模式切換
-help1c: 車門控制
-help1d: 緊急停車
 help1e: ATS 確認
 help1f: 列車轉向
 help1g: 輸入指令以獲得更多資訊。
@@ -71,8 +69,6 @@ closed: 已關閉
 ebstop: '緊急煞車停車 '
 reaccel: '車站內再加速 '
 dooropeninmotion: 行車時不能開門!
-openedalready: 車門已經開啟!
-closedalready: 車門已經關閉!
 fixstoppos: 請修正你的停車位置!
 activatefirst: 請先啟動駕駛模式!
 deactivatefirst: 請先停用駕駛模式!

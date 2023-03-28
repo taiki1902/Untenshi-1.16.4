@@ -46,31 +46,10 @@ class motion {
 
     static void recursion2(Player p) {
         // From Config
-        double accel;
-        double decel;
-        double ebdecel;
-        int[] speedsteps;
-        switch (traintype.get(p)) {
-            default:
-            case "local":
-                ebdecel = 10.4;
-                speedsteps = new int[]{21, 41, 61, 81, 111, 130};
-                accel = plugin.getConfig().getDouble(traintype.get(p) + "accelrate");
-                decel = plugin.getConfig().getDouble(traintype.get(p) + "decelrate");
-                break;
-            case "hsr":
-                ebdecel = 10.4;
-                speedsteps = new int[]{41, 101, 161, 221, 261, 280};
-                accel = plugin.getConfig().getDouble(traintype.get(p) + "accelrate");
-                decel = plugin.getConfig().getDouble(traintype.get(p) + "decelrate");
-                break;
-            case "lrt":
-                ebdecel = 19;
-                speedsteps = new int[]{16, 31, 46, 61, 71, 80};
-                accel = plugin.getConfig().getDouble("localaccelrate") * 4.68 / 3.5;
-                decel = plugin.getConfig().getDouble("localdecelrate") * 3.6 / 3.5;
-                break;
-        }
+        double accel = 0;
+        double decel = 0;
+        double ebdecel = 0;
+        int[] speedsteps = new int[6];
         double oldspeed = speed.get(p);
         double speeddrop = plugin.getConfig().getDouble("speeddroprate") / ticksin1s;
         boolean stationstop = plugin.getConfig().getBoolean("stationsignstop");
@@ -78,25 +57,54 @@ class motion {
         MinecartGroup mg = MinecartGroupStore.get(p.getVehicle());
         TrainProperties tprop = mg.getProperties();
         // From traindata (if available)
+        String seltrainname = "";
         Set<String> allTrains = Objects.requireNonNull(traindata.dataconfig.getConfigurationSection("trains")).getKeys(false);
-        for (Object tname : allTrains) {
-            String tname2 = tname.toString();
+        // Choose most suitable type
+        for (String tname : allTrains) {
             // Override config accels
-            if (mg.getProperties().getDisplayName().contains(tname2)) {
-                String tDataInfo = "trains." + tname2;
-                if (traindata.dataconfig.contains(tDataInfo + ".accel"))
-                    accel = traindata.dataconfig.getDouble(tDataInfo + ".accel");
-                if (tcontains(".decel", tDataInfo))
-                    decel = traindata.dataconfig.getDouble(tDataInfo + ".decel");
-                if (tcontains(".traintype", tDataInfo))
-                    traintype.put(p, traindata.dataconfig.getString(tDataInfo + ".traintype"));
-                if (tcontains(".ebdecel", tDataInfo))
-                    ebdecel = traindata.dataconfig.getDouble(tDataInfo + ".ebdecel") * 2;
-                if (tcontains(".speeds", tDataInfo) && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
-                    for (int i = 0; i < 6; i++) {
-                        speedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
-                    }
+            if (mg.getProperties().getDisplayName().contains(tname) && tname.length() > seltrainname.length()) {
+                seltrainname = tname;
+            }
+        }
+        // Set data accordingly
+        if (seltrainname.length() > 0) {
+            String tDataInfo = "trains." + seltrainname;
+            if (traindata.dataconfig.contains(tDataInfo + ".accel"))
+                accel = traindata.dataconfig.getDouble(tDataInfo + ".accel");
+            if (tcontains(".decel", tDataInfo))
+                decel = traindata.dataconfig.getDouble(tDataInfo + ".decel");
+            if (tcontains(".traintype", tDataInfo))
+                traintype.put(p, traindata.dataconfig.getString(tDataInfo + ".traintype"));
+            if (tcontains(".ebdecel", tDataInfo))
+                ebdecel = traindata.dataconfig.getDouble(tDataInfo + ".ebdecel") * 2;
+            if (tcontains(".speeds", tDataInfo) && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
+                for (int i = 0; i < 6; i++) {
+                    speedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
                 }
+            }
+        }
+        // If cannot find most suitable type
+        else {
+            switch (traintype.get(p)) {
+                default:
+                case "local":
+                    ebdecel = 10.4;
+                    speedsteps = new int[]{21, 41, 61, 81, 111, 130};
+                    accel = plugin.getConfig().getDouble(traintype.get(p) + "accelrate");
+                    decel = plugin.getConfig().getDouble(traintype.get(p) + "decelrate");
+                    break;
+                case "hsr":
+                    ebdecel = 10.4;
+                    speedsteps = new int[]{41, 101, 161, 221, 261, 280};
+                    accel = plugin.getConfig().getDouble(traintype.get(p) + "accelrate");
+                    decel = plugin.getConfig().getDouble(traintype.get(p) + "decelrate");
+                    break;
+                case "lrt":
+                    ebdecel = 19;
+                    speedsteps = new int[]{16, 31, 46, 61, 71, 80};
+                    accel = plugin.getConfig().getDouble("localaccelrate") * 4.68 / 3.5;
+                    decel = plugin.getConfig().getDouble("localdecelrate") * 3.6 / 3.5;
+                    break;
             }
         }
         // Initialize
@@ -158,18 +166,6 @@ class motion {
         } else if (lasty.get(p) - trainy < 0) {
             speed.put(p, speed.get(p) - 0.234919);
         }
-        // Slope calculation (in construction)
-//        TrackWalkingPoint twp = new TrackWalkingPoint(mg.head().getRailTracker().getState());
-//        int toslanted = 0;
-//        for (int i = 0; i < 100; i++) {
-//            twp.moveFull();
-//            if (twp.state.railBlock().getBlockData() instanceof Rail) {
-//                Rail rail = (Rail) twp.state.railBlock().getBlockData();
-//                if (rail.getShape().equals(Rail.Shape.ASCENDING_EAST) || rail.getShape().equals(Rail.Shape.ASCENDING_WEST) || rail.getShape().equals(Rail.Shape.ASCENDING_SOUTH) || rail.getShape().equals(Rail.Shape.ASCENDING_NORTH)) {
-//                    toslanted = i;
-//                }
-//            }
-//        }
         // Anti-negative speed and force stop when door is open
         if (speed.get(p) < 0 || dooropen.get(p) > 0) {
             speed.put(p, 0.0);
@@ -204,7 +200,7 @@ class motion {
         String actionbarmsg = "" + ctrltext + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + ChatColor.WHITE + df0.format(speed.get(p)) + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + points.get(p) + " | " + ChatColor.YELLOW + getlang("door") + doortxt;
         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbarmsg));
         // Count points
-        if (freemodenoato(p) && getmascon(p) == -9 && speed.get(p) > 20 && !atsbraking.get(p) && !atsping.get(p)) {
+        if (freemodenoato(p) && getmascon(p) == -9 && speed.get(p) > 20 && !atsbrakingforced.get(p) && !atsping.get(p)) {
             // Misuse EB
             if (deductdelay.get(p) >= 50) {
                 deductdelay.put(p, 0);
@@ -224,7 +220,7 @@ class motion {
                 String signalmsg = "";
                 signalmsg = signalName(warnsi, signalmsg);
                 // If red light
-                if (atsbraking.get(p) && signallimit.get(p) == 0) {
+                if (atsbrakingforced.get(p) && signallimit.get(p) == 0) {
                     // Remove lastsisign and lastsisp as need to detect further signal warnings
                     signallimit.put(p, warnsp);
                     lastsisign.remove(p);
@@ -271,7 +267,7 @@ class motion {
             atspnear.put(p, pnear);
         }
         // ATC Signal Speeding (not atsebing, speed limit is 0 or other +3 km/h), Speed limit speeding (+3 km/h)
-        if (!atsbraking.get(p) && isoverspeed3 && signaltype.get(p).equals("atc")) {
+        if (!atsbrakingforced.get(p) && isoverspeed3 && signaltype.get(p).equals("atc")) {
             if (freemodenoato(p)) {
                 pointCounter(p, ChatColor.YELLOW, getlang("signalspeeding"), -5, "");
             }
@@ -279,16 +275,16 @@ class motion {
         }
         // ATC Auto Control
         if (signaltype.get(p).equals("atc") && signallimit.get(p) > 0) {
-            if (!atsbraking.get(p) && isoverspeed3) {
-                atsbraking.put(p, true);
+            if (!atsbrakingforced.get(p) && isoverspeed3) {
+                atsbrakingforced.put(p, true);
                 mascon.put(p, -8);
             } else if (!isoverspeed3) {
-                atsbraking.put(p, false);
+                atsbrakingforced.put(p, false);
             }
         }
         // Instant ATS / ATC if red light
         if (signallimit.get(p) == 0) {
-            atsbraking.put(p, true);
+            atsbrakingforced.put(p, true);
             mascon.put(p, -9);
             current.put(p, -480.0);
         }
@@ -406,7 +402,7 @@ class motion {
         } else if (current < 0 && current > -480) {
             retdecel = globaldecel(decel, speednow, Math.abs(current * 9 / 480) + 1, speedsteps);
         } else if (current == -480) {
-            if (!atsbraking.get(ctrlp) && signallimit.get(ctrlp) != 0) {
+            if (!atsbrakingforced.get(ctrlp) && signallimit.get(ctrlp) != 0) {
                 retdecel = globaldecel(decel, speednow, ebrate, speedsteps);
             } else {
                 // SPAD ATS EB (-35 km/h/s)

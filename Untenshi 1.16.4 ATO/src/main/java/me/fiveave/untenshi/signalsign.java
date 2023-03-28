@@ -160,7 +160,7 @@ class signalsign extends SignAction {
                                         break;
                                     // Signal speed limit warn
                                     case "warn":
-                                        if ((!atsbraking.get(p) && signaltype.get(p).equals("ats")) || signaltype.get(p).equals("atc")) {
+                                        if ((!atsbrakingforced.get(p) && signaltype.get(p).equals("ats")) || signaltype.get(p).equals("atc")) {
                                             Sign warn = getSign(cartevent);
                                             if (warn != null && warn.getLine(1).equals("signalsign")) {
                                                 // lastsisign and lastsisp are for detecting signal change

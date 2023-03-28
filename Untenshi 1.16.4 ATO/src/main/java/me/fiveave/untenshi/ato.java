@@ -10,7 +10,7 @@ import static me.fiveave.untenshi.motion.*;
 class ato {
 
     static void atosys(Player p, double accel, double decel, double ebdecel, double speeddrop, int[] speedsteps) {
-        if (atodest.containsKey(p) && atospeed.containsKey(p) && !atsbraking.get(p) && !atsping.get(p) && atsforced.get(p).equals(0) && allowatousage.get(p)) {
+        if (atodest.containsKey(p) && atospeed.containsKey(p) && !atsbrakingforced.get(p) && !atsping.get(p) && atsforced.get(p).equals(0) && allowatousage.get(p)) {
             // Get distances (distnow: smaller value of atodist and signaldist)
             // reqatodist decelfr must be higher than others to prevent ATS-P or ATC run
             // suitableaccel is for N to accel when difference is at least 5, or already accelerating

@@ -52,7 +52,7 @@ public final class main extends JavaPlugin implements Listener {
     public static HashMap<Player, Boolean> fixstoppos = new HashMap<>();
     public static HashMap<Player, Boolean> staaccel = new HashMap<>();
     public static HashMap<Player, Boolean> staeb = new HashMap<>();
-    public static HashMap<Player, Boolean> atsbraking = new HashMap<>();
+    public static HashMap<Player, Boolean> atsbrakingforced = new HashMap<>();
     public static HashMap<Player, Boolean> atsping = new HashMap<>();
     public static HashMap<Player, Boolean> atspnear = new HashMap<>();
     public static HashMap<Player, Boolean> doordiropen = new HashMap<>();
