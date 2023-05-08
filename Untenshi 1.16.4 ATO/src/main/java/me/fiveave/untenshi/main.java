@@ -38,7 +38,6 @@ public final class main extends JavaPlugin implements Listener {
     public static HashMap<Player, Double> speed = new HashMap<>();
     public static HashMap<Player, Double> atospeed = new HashMap<>();
     public static HashMap<Player, Double[]> stoppos = new HashMap<>();
-    public static HashMap<Player, Double> lasty = new HashMap<>();
     public static HashMap<Player, Location> lastsisign = new HashMap<>();
     public static HashMap<Player, Location> lastspsign = new HashMap<>();
     public static HashMap<Player, Location[][]> lastresetablesign = new HashMap<>();
@@ -52,7 +51,7 @@ public final class main extends JavaPlugin implements Listener {
     public static HashMap<Player, Boolean> fixstoppos = new HashMap<>();
     public static HashMap<Player, Boolean> staaccel = new HashMap<>();
     public static HashMap<Player, Boolean> staeb = new HashMap<>();
-    public static HashMap<Player, Boolean> atsbrakingforced = new HashMap<>();
+    public static HashMap<Player, Boolean> atsbraking = new HashMap<>();
     public static HashMap<Player, Boolean> atsping = new HashMap<>();
     public static HashMap<Player, Boolean> atspnear = new HashMap<>();
     public static HashMap<Player, Boolean> doordiropen = new HashMap<>();
@@ -162,7 +161,6 @@ public final class main extends JavaPlugin implements Listener {
             fixstoppos.put(p, false);
             playing.put(p, false);
             train.remove(p);
-            lasty.remove(p);
             stoppos.remove(p);
             speedlimit.remove(p);
             signallimit.remove(p);

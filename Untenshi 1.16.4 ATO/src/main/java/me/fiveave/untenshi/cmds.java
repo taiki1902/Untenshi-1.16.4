@@ -25,7 +25,6 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import static me.fiveave.untenshi.events.*;
 import static me.fiveave.untenshi.main.*;
@@ -64,7 +63,7 @@ class cmds implements CommandExecutor, TabCompleter {
             dooropen.putIfAbsent(sender2, 0);
             doordiropen.putIfAbsent(sender2, false);
             frozen.putIfAbsent(sender2, false);
-            atsbrakingforced.putIfAbsent(sender2, false);
+            atsbraking.putIfAbsent(sender2, false);
             allowatousage.putIfAbsent(sender2, false);
             // Force freemode false if perm not given
             if (!sender.hasPermission("uts.freemode")) {
@@ -138,6 +137,10 @@ class cmds implements CommandExecutor, TabCompleter {
                                     Entity selcart = sender2.getVehicle();
                                     MinecartGroup mg = MinecartGroupStore.get(selcart);
                                     TrainProperties tprop = mg.getProperties();
+                                    if (mg.size() == 1) {
+                                        helpnotitle(sender, ChatColor.YELLOW, getlang("sitincart"));
+                                        break label;
+                                    }
                                     // Detect owner
                                     if ((tprop.getOwners().size() == 1 && tprop.getOwners().contains(sender2.getName().toLowerCase()) || tprop.getOwners().isEmpty())) {
                                         // Train settings
@@ -160,15 +163,16 @@ class cmds implements CommandExecutor, TabCompleter {
                                         mascon.put(sender2, -9);
                                         current.put(sender2, -480.0);
                                         points.put(sender2, 30);
-                                        atsbrakingforced.put(sender2, false);
+                                        atsbraking.put(sender2, false);
                                         atsping.put(sender2, false);
                                         atspnear.put(sender2, false);
                                         overrun.put(sender2, false);
-                                        lasty.put(sender2, Objects.requireNonNull(sender2.getVehicle()).getLocation().getY());
                                         deductdelay.put(sender2, 49);
                                         signaltype.put(sender2, "ats");
                                         reqstopping.put(sender2, false);
                                         atsforced.put(sender2, 0);
+                                        atopisdirect.putIfAbsent(sender2, false);
+                                        atoforcebrake.putIfAbsent(sender2, false);
                                         // Playing = true
                                         playing.put(sender2, true);
                                         motion.recursion1(sender);
@@ -215,10 +219,10 @@ class cmds implements CommandExecutor, TabCompleter {
                         break;
                     case "atsconfirm":
                     case "ac":
-                        if (!signallimit.get(sender).equals(0) && (!atsbrakingforced.get(sender) || (atsbrakingforced.get(sender) && speed.get(sender) <= 0))) {
-                            atsbrakingforced.put(sender2, false);
+                        if (!signallimit.get(sender).equals(0) && (!atsbraking.get(sender) || (atsbraking.get(sender) && speed.get(sender) <= 0))) {
+                            atsbraking.put(sender2, false);
                             sender.sendMessage(utshead + ChatColor.GOLD + getlang("acsuccess"));
-                        } else if (signallimit.get(sender).equals(0) || (atsbrakingforced.get(sender) && speed.get(sender) > 0)) {
+                        } else if (signallimit.get(sender).equals(0) || (atsbraking.get(sender) && speed.get(sender) > 0)) {
                             sender.sendMessage(utshead + ChatColor.RED + getlang("acfailed"));
                         } else {
                             sender.sendMessage(utshead + ChatColor.YELLOW + getlang("acnotneeded"));

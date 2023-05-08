@@ -51,13 +51,13 @@ class events implements Listener {
                     event.setCancelled(true);
                 }
                 if (nWand().equals(item)) {
-                    if (!atsping.get(p) && !atsbrakingforced.get(p)) {
+                    if (!atsping.get(p) && !atsbraking.get(p)) {
                         mascon.put(p, 0);
                     }
                     event.setCancelled(true);
                 }
                 if (downWand().equals(item)) {
-                    if (!atsping.get(p) && !atsbrakingforced.get(p) && (dooropen.get(p) == 0 || (dooropen.get(p) > 0 && masconstat < 0))) {
+                    if (!atsping.get(p) && !atsbraking.get(p) && (dooropen.get(p) == 0 || (dooropen.get(p) > 0 && masconstat < 0))) {
                         if (masconstat < 5) {
                             mascon.put(p, masconstat + 1);
                         }

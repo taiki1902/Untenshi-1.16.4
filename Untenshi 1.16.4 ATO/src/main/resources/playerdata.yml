@@ -1,5 +1,9 @@
 players:
   54d5f632-93ef-4bb3-9970-3321a026e492:
-    traintype: local
+    traintype: hsr
     freemode: true
     allowatousage: true
+  4cbe2c3f-a1d5-485d-8777-2b7466cfae05:
+    traintype: local
+    freemode: true
+    allowatousage: false

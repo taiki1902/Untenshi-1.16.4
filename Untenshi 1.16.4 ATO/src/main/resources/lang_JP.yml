@@ -5,6 +5,8 @@ help4title: サイン 4/4 ページ
 cmdlist: 'コマンド列表:'
 help1a: ヘルプを表示する
 help1b: 運転モードを切替する
+help1c: ドアコントロール
+help1d: 緊急停車
 help1e: ATS 確認
 help1f: 方向切替
 help1g: コマンドを入力して、詳細情報を取得します。
@@ -68,7 +70,9 @@ opened: 開いています
 closed: 閉まっています
 ebstop: '非常制動停車 '
 reaccel: '駅構内再加速 '
-dooropeninmotion: 運転中にドアを開けないでください!
+dooropeninmotion: 運転中にドアを開けられないでください!
+openedalready: ドアが開いています!
+closedalready: ドアが閉まっています!
 fixstoppos: 停止位置を修正してください!
 activatefirst: まず運転モードをオンにしてください!
 deactivatefirst: まず運転モードをオフにしてください!

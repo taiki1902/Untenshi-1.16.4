@@ -35,43 +35,40 @@ class speedsign extends SignAction {
                 List cartpassengers = cart2.getPassengers();
                 for (Object cartobj : cartpassengers) {
                     Player p = (Player) cartobj;
-                    if (playing.containsKey(p)) {
-                        signaltype.put(p, "ats");
-                        if (playing.get(p)) {
-                            // Speed limit set
-                            if (!cartevent.getLine(2).equals("warn")) {
-                                int intspeed = parseInt(speedsign);
-                                if (intspeed <= 360 && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
-                                    speedlimit.put(p, intspeed);
-                                    p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitset") + (intspeed == 360 ? ChatColor.GREEN + getlang("nolimit") : speedlimit.get(p) + " km/h"));
-                                    if (parseInt(speedsign) != 0) {
-                                        lastspsign.remove(p);
-                                        lastspsp.remove(p);
+                    if (playing.containsKey(p) && playing.get(p)) {
+                        // Speed limit set
+                        if (!cartevent.getLine(2).equals("warn")) {
+                            int intspeed = parseInt(speedsign);
+                            if (intspeed <= 360 && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
+                                speedlimit.put(p, intspeed);
+                                p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitset") + (intspeed == 360 ? ChatColor.GREEN + getlang("nolimit") : speedlimit.get(p) + " km/h"));
+                                if (parseInt(speedsign) != 0) {
+                                    lastspsign.remove(p);
+                                    lastspsp.remove(p);
+                                }
+                            } else {
+                                signimproper(cartevent, p);
+                            }
+                        }
+                        // Speed limit warn
+                        else {
+                            try {
+                                Sign warn = getSign(cartevent);
+                                if (warn != null) {
+                                    lastspsign.put(p, warn.getLocation());
+                                    int warnsp = parseInt(warn.getLine(2));
+                                    lastspsp.put(p, warnsp);
+                                    if (warnsp < 360) {
+                                        p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitwarn") + warnsp + " km/h");
+                                    } else {
+                                        signimproper(cartevent, p);
                                     }
                                 } else {
                                     signimproper(cartevent, p);
                                 }
-                            }
-                            // Speed limit warn
-                            else {
-                                try {
-                                    Sign warn = getSign(cartevent);
-                                    if (warn != null) {
-                                        lastspsign.put(p, warn.getLocation());
-                                        int warnsp = parseInt(warn.getLine(2));
-                                        lastspsp.put(p, warnsp);
-                                        if (warnsp < 360) {
-                                            p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitwarn") + warnsp + " km/h");
-                                        } else {
-                                            signimproper(cartevent, p);
-                                        }
-                                    } else {
-                                        signimproper(cartevent, p);
-                                    }
-                                } catch (NumberFormatException | IndexOutOfBoundsException e) {
-                                    signimproper(cartevent, p);
-                                    e.printStackTrace();
-                                }
+                            } catch (NumberFormatException | IndexOutOfBoundsException e) {
+                                signimproper(cartevent, p);
+                                e.printStackTrace();
                             }
                         }
                     }

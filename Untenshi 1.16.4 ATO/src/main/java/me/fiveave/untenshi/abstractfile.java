@@ -1,6 +1,5 @@
 package me.fiveave.untenshi;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -52,7 +51,7 @@ class abstractfile {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Bukkit.getConsoleSender().sendMessage(utshead + ChatColor.YELLOW + file.getName() + " has been updated due to missing content");
+                System.out.println(utshead + ChatColor.YELLOW + file.getName() + " has been updated due to missing content");
             }
         }
     }

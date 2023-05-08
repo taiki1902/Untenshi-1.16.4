@@ -5,6 +5,8 @@ help4title: Signs Page 4/4
 cmdlist: 'List of commands:'
 help1a: Show help
 help1b: Toggle drive mode
+help1c: Door control
+help1d: Emergency stop
 help1e: ATS Confirm
 help1f: Switchback
 help1g: Type commands to show details.
@@ -69,6 +71,8 @@ closed: Closed
 ebstop: 'Stopping using EB '
 reaccel: 'Re-accelerating in station '
 dooropeninmotion: Do not open the doors in motion!
+openedalready: The doors has been opened already!
+closedalready: The doors has been closed already!
 fixstoppos: Please fix your stop position!
 activatefirst: Please enable your drive mode first!
 deactivatefirst: Please disable your drive mode first!
