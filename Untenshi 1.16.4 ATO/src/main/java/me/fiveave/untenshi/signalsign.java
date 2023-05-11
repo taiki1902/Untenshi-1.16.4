@@ -61,29 +61,26 @@ class signalsign extends SignAction {
                                         signalorderptn.put(p, cartevent.getLine(3).split(" ")[0]);
                                         // Prevent stepping on same signal causing ATS run
                                         if (lastresetablesign.get(p)[0][0] == null || !lastresetablesign.get(p)[0][0].equals(cartevent.getLocation())) {
-                                            // Prevent non-resettable ATS Run caused by red light but without receiving warning
-                                            if (signalspeed == 0) {
-                                                lastsisign.putIfAbsent(p, cartevent.getLocation());
-                                                lastsisp.putIfAbsent(p, signalspeed);
-                                            }
-                                            // Check if that location exists in any other train, then delete that record
-                                            Location currentloc = cartevent.getLocation();
-                                            for (Player p2 : plugin.getServer().getOnlinePlayers()) {
-                                                playing.putIfAbsent(p2, false);
-                                                if (playing.get(p2)) {
-                                                    lastresetablesign.putIfAbsent(p2, new Location[1][1]);
-                                                    Location[][] locs = lastresetablesign.get(p2);
-                                                    for (int i1 = 0; i1 < locs.length; i1++) {
-                                                        for (int i2 = 0; i2 < locs[i1].length; i2++) {
-                                                            if (locs[i1][i2] == currentloc) {
-                                                                locs[i1][i2] = null;
-                                                                lastresetablesign.put(p, locs);
-                                                                resetSignals(cartevent.getWorld(), locs[i1]);
+                                            // Check if that location exists in any other train, then delete that record (except red light, signal must get reset first)
+                                            if (signalspeed != 0) {
+                                                Location currentloc = cartevent.getLocation();
+                                                for (Player p2 : playing.keySet()) {
+                                                    if (lastresetablesign.containsKey(p2) && playing.containsKey(p2)) {
+                                                        if (playing.get(p2)) {
+                                                            Location[][] locs = lastresetablesign.get(p2);
+                                                            for (int i1 = 0; i1 < locs.length; i1++) {
+                                                                for (int i2 = 0; i2 < locs[i1].length; i2++) {
+                                                                    if (locs[i1][i2] != null && currentloc.equals(locs[i1][i2])) {
+                                                                        locs[i1][i2] = null;
+                                                                    }
+                                                                }
                                                             }
+                                                            lastresetablesign.put(p2, locs);
                                                         }
                                                     }
                                                 }
                                             }
+                                            // Set values and signal name
                                             signallimit.put(p, signalspeed);
                                             signaltype.put(p, l2(cartevent).equals("atc") ? "atc" : "ats");
                                             signalmsg = signalName(l2(cartevent), signalmsg);
@@ -108,16 +105,16 @@ class signalsign extends SignAction {
                                                         ptnsisp[(i - 1) / 2] = parseInt(ptn.get(i));
                                                     }
                                                 }
-                                                // Get maximum value of y in each x
+                                                // Get maximum value of x in each y
                                                 Location[][] oldloc = lastresetablesign.get(p);
-                                                int maxvaly = 0;
+                                                int maxvalx = 0;
                                                 for (Location[] locations : oldloc) {
-                                                    if (locations.length > maxvaly) {
-                                                        maxvaly = locations.length;
+                                                    if (locations.length > maxvalx) {
+                                                        maxvalx = locations.length;
                                                     }
                                                 }
                                                 // Array copy
-                                                Location[][] newloc = new Location[halfptnlen][maxvaly];
+                                                Location[][] newloc = new Location[halfptnlen][maxvalx];
                                                 for (int i1 = 0; i1 < oldloc.length; i1++) {
                                                     if (i1 + 1 < newloc.length) {
                                                         newloc[i1 + 1] = oldloc[i1];
@@ -150,11 +147,15 @@ class signalsign extends SignAction {
                                                             String str = ptnsisp[i1] > defaultsp ? defaultsi + " " + defaultsp : ptnsisi[i1] + " " + ptnsisp[i1];
                                                             Sign finalSetable = setable;
                                                             Bukkit.getScheduler().runTaskLater(plugin, () -> updateSignals(finalSetable, "set " + str), 1);
-
                                                         }
                                                     }
                                                 }
                                                 lastresetablesign.put(p, newloc);
+                                            }
+                                            // Prevent non-resettable ATS Run caused by red light but without receiving warning
+                                            else {
+                                                lastsisign.putIfAbsent(p, cartevent.getLocation());
+                                                lastsisp.putIfAbsent(p, signalspeed);
                                             }
                                         }
                                         break;

@@ -73,9 +73,10 @@ class ato {
             lastsisp.putIfAbsent(p, 360);
             // Actual controlling part
             // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
-            double tempdist = lastsisp.get(p).equals(0) ? (distnow < 0 ? 0 : distnow - 5) : distnow;
+            boolean nextredlight = lastsisp.get(p).equals(0) && priority == signaldistdiff;
+            double tempdist = nextredlight ? (distnow - 5 < 0 ? 0 : distnow - 5) : distnow;
             // Require accel? (no need to prepare for braking yet + additional thinking time)
-            if (tempdist - reqdist[6] > speed1s(p) * (getThinkingTime(p, 6) + 2) && allowaccel) {
+            if (tempdist - reqdist[6] > speed1s(p) * (getThinkingTime(p, 6) + 2) && allowaccel && !(nextredlight && tempdist < 10)) {
                 finalmascon = 5;
             }
             // Require braking? (additional thinking time to prevent braking too hard)
