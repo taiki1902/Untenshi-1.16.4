@@ -381,34 +381,6 @@ class cmds implements CommandExecutor, TabCompleter {
         return false;
     }
 
-    // ATO Stop Time Countdown
-    static void atodepartcountdown(Player p) {
-        if (playing.get(p) && atostoptime.containsKey(p)) {
-            if (atostoptime.get(p) > 0 && doordiropen.get(p)) {
-                atostoptime.put(p, atostoptime.get(p) - 1);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> atodepartcountdown(p), 20);
-            } else {
-                doorControls(p, false);
-                // Reset values in order to depart
-                atostoptime.remove(p);
-                atodest.remove(p);
-                atospeed.remove(p);
-                atodoorcloseddepart(p);
-            }
-        }
-    }
-
-    private static void atodoorcloseddepart(Player p) {
-        if (playing.get(p)) {
-            // Wait doors fully closed then depart
-            if (dooropen.get(p).equals(0) && doorconfirm.get(p)) {
-                mascon.put(p, 5);
-            } else {
-                Bukkit.getScheduler().runTaskLater(plugin, () -> atodoorcloseddepart(p), interval);
-            }
-        }
-    }
-
     boolean pContains(String s) {
         return getPConfig().contains(pDataInfo + s);
     }

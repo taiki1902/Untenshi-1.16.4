@@ -40,7 +40,7 @@ public final class main extends JavaPlugin implements Listener {
     public static HashMap<Player, Double[]> stoppos = new HashMap<>();
     public static HashMap<Player, Location> lastsisign = new HashMap<>();
     public static HashMap<Player, Location> lastspsign = new HashMap<>();
-    public static HashMap<Player, Location[][]> lastresetablesign = new HashMap<>();
+    public static HashMap<Player, Location[][]> resettablesisign = new HashMap<>();
     public static HashMap<Player, String> traintype = new HashMap<>();
     public static HashMap<Player, String> signaltype = new HashMap<>();
     public static HashMap<Player, String> signalorderptn = new HashMap<>();
@@ -185,13 +185,13 @@ public final class main extends JavaPlugin implements Listener {
             helpnotitle(p, ChatColor.YELLOW, getlang("activate") + ChatColor.RED + getlang("disable"));
             // Reset signals
             try {
-                Location[][] locs = lastresetablesign.get(p);
+                Location[][] locs = resettablesisign.get(p);
                 for (Location[] locs1 : locs) {
                     resetSignals(p.getWorld(), locs1);
                 }
             } catch (Exception ignored) {
             }
-            lastresetablesign.remove(p);
+            resettablesisign.remove(p);
             signalorderptn.remove(p);
         }
     }

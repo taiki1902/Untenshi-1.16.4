@@ -57,17 +57,17 @@ class signalsign extends SignAction {
                                     // Set signal speed limit
                                     case "set":
                                         // [y][x], y for vertical (number of signals passed), x for horizontal (same row needed to be set)
-                                        lastresetablesign.putIfAbsent(p, new Location[1][1]);
+                                        resettablesisign.putIfAbsent(p, new Location[1][1]);
                                         signalorderptn.put(p, cartevent.getLine(3).split(" ")[0]);
                                         // Prevent stepping on same signal causing ATS run
-                                        if (lastresetablesign.get(p)[0][0] == null || !lastresetablesign.get(p)[0][0].equals(cartevent.getLocation())) {
+                                        if (resettablesisign.get(p)[0][0] == null || !resettablesisign.get(p)[0][0].equals(cartevent.getLocation())) {
                                             // Check if that location exists in any other train, then delete that record (except red light, signal must get reset first)
                                             if (signalspeed != 0) {
                                                 Location currentloc = cartevent.getLocation();
                                                 for (Player p2 : playing.keySet()) {
-                                                    if (lastresetablesign.containsKey(p2) && playing.containsKey(p2)) {
+                                                    if (resettablesisign.containsKey(p2) && playing.containsKey(p2)) {
                                                         if (playing.get(p2)) {
-                                                            Location[][] locs = lastresetablesign.get(p2);
+                                                            Location[][] locs = resettablesisign.get(p2);
                                                             for (int i1 = 0; i1 < locs.length; i1++) {
                                                                 for (int i2 = 0; i2 < locs[i1].length; i2++) {
                                                                     if (locs[i1][i2] != null && currentloc.equals(locs[i1][i2])) {
@@ -75,7 +75,7 @@ class signalsign extends SignAction {
                                                                     }
                                                                 }
                                                             }
-                                                            lastresetablesign.put(p2, locs);
+                                                            resettablesisign.put(p2, locs);
                                                         }
                                                     }
                                                 }
@@ -106,7 +106,7 @@ class signalsign extends SignAction {
                                                     }
                                                 }
                                                 // Get maximum value of x in each y
-                                                Location[][] oldloc = lastresetablesign.get(p);
+                                                Location[][] oldloc = resettablesisign.get(p);
                                                 int maxvalx = 0;
                                                 for (Location[] locations : oldloc) {
                                                     if (locations.length > maxvalx) {
@@ -133,7 +133,7 @@ class signalsign extends SignAction {
                                                 }
                                                 // Set signs with new signal and speed
                                                 for (int i1 = 0; i1 < halfptnlen; i1++) {
-                                                    for (int i2 = 0; i2 < lastresetablesign.get(p)[lastresetablesign.get(p).length - 1].length; i2++) {
+                                                    for (int i2 = 0; i2 < resettablesisign.get(p)[resettablesisign.get(p).length - 1].length; i2++) {
                                                         // setable: Sign to be set
                                                         Sign setable = null;
                                                         try {
@@ -150,7 +150,7 @@ class signalsign extends SignAction {
                                                         }
                                                     }
                                                 }
-                                                lastresetablesign.put(p, newloc);
+                                                resettablesisign.put(p, newloc);
                                             }
                                             // Prevent non-resettable ATS Run caused by red light but without receiving warning
                                             else {
@@ -182,11 +182,11 @@ class signalsign extends SignAction {
                                         }
                                         break;
                                     case "relate":
-                                        lastresetablesign.putIfAbsent(p, new Location[1][1]);
+                                        resettablesisign.putIfAbsent(p, new Location[1][1]);
                                         Sign sign = getSign(cartevent);
                                         if (sign != null && sign.getLine(2).split(" ")[0].equals("set")) {
-                                            int reqlen = lastresetablesign.get(p)[0].length;
-                                            Location[][] oldloc = lastresetablesign.get(p);
+                                            int reqlen = resettablesisign.get(p)[0].length;
+                                            Location[][] oldloc = resettablesisign.get(p);
                                             int maxvaly = 0;
                                             for (Location[] locations : oldloc) {
                                                 if (locations.length > maxvaly) {
@@ -223,7 +223,7 @@ class signalsign extends SignAction {
                                                 }
                                                 newloc[0][reqlen] = sign.getLocation();
                                             }
-                                            lastresetablesign.put(p, newloc);
+                                            resettablesisign.put(p, newloc);
                                         } else {
                                             signimproper(cartevent, p);
                                         }

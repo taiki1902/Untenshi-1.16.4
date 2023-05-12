@@ -1,9 +1,11 @@
 package me.fiveave.untenshi;
 
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import static me.fiveave.untenshi.events.doorControls;
 import static me.fiveave.untenshi.events.toEB;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.motion.*;
@@ -98,6 +100,10 @@ class ato {
             if (tempdist > reqdist[1] + speed1s(p) * (getThinkingTime(p, 1))) {
                 atoforcebrake.put(p, false);
             }
+            // Red light waiting procedure
+            if (nextredlight && speed.get(p) == 0) {
+                waitdepart(p);
+            }
             // Slightly speeding auto braking (not related to ATS-P or ATC)
             if (speed.get(p) > currentlimit) {
                 // Redefine reqdist (here for braking distance to speed limit)
@@ -140,5 +146,36 @@ class ato {
 
     static double speed1s(Player p) {
         return speed.get(p) / 3.6;
+    }
+
+    // ATO Stop Time Countdown
+    static void atodepartcountdown(Player p) {
+        if (playing.get(p) && atostoptime.containsKey(p)) {
+            if (atostoptime.get(p) > 0 && doordiropen.get(p)) {
+                atostoptime.put(p, atostoptime.get(p) - 1);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> atodepartcountdown(p), 20);
+            } else {
+                doorControls(p, false);
+                // Reset values in order to depart
+                atostoptime.remove(p);
+                atodest.remove(p);
+                atospeed.remove(p);
+                waitdepart(p);
+            }
+        }
+    }
+
+    private static void waitdepart(Player p) {
+        if (playing.get(p)) {
+            // Wait doors fully closed then depart
+            if (dooropen.get(p).equals(0) && doorconfirm.get(p) && mascon.get(p) != -9 && (!lastsisp.containsKey(p) || !lastsisp.get(p).equals(0))) {
+                mascon.put(p, 5);
+            } else {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> waitdepart(p), interval);
+                if (mascon.get(p) != -9) {
+                    mascon.put(p, -8);
+                }
+            }
+        }
     }
 }
