@@ -70,7 +70,7 @@ class ato {
             double[] reqdist = new double[10];
             getallreqdist(p, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccel);
             double potentialaccel = accelswitch(accel, 5, speed.get(p), speedsteps) + slopeaccel;
-            boolean allowaccel = ((currentlimit - speed.get(p) > 5 && mascon.get(p) == 0) || mascon.get(p) > 0) && speed.get(p) + potentialaccel / ticksin1s <= currentlimit && !overrun.get(p);
+            boolean allowaccel = ((currentlimit - speed.get(p) > 5 && mascon.get(p) == 0) || mascon.get(p) > 0) && speed.get(p) + potentialaccel / 2 <= currentlimit && !overrun.get(p);
             // If no signal give it one
             lastsisp.putIfAbsent(p, 360);
             // Actual controlling part
@@ -140,7 +140,7 @@ class ato {
         }
     }
 
-    private static double getThinkingTime(Player p, int a) {
+    static double getThinkingTime(Player p, int a) {
         return Math.max(1.0 / ticksin1s, 1.0 / ticksin1s * Math.min(a, a + (current.get(p) * 9 / 480)));
     }
 

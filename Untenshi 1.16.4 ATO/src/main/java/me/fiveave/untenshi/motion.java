@@ -17,8 +17,7 @@ import java.text.DecimalFormat;
 import java.util.Objects;
 import java.util.Set;
 
-import static me.fiveave.untenshi.ato.atosys;
-import static me.fiveave.untenshi.ato.speed1s;
+import static me.fiveave.untenshi.ato.*;
 import static me.fiveave.untenshi.events.doorControls;
 import static me.fiveave.untenshi.main.stoppos;
 import static me.fiveave.untenshi.main.*;
@@ -141,7 +140,7 @@ class motion {
         // ATS Forced Controls
         if (mascon.get(p) == -9) {
             if (atsforced.get(p) == 2) {
-                speed.put(p, speed.get(p) - 3.5);
+                speed.put(p, speed.get(p) - decel);
             }
         } else {
             atsforced.put(p, 0);
@@ -222,35 +221,32 @@ class motion {
         }
         // ATS-P
         boolean isoverspeed0 = speed.get(p) > minSpeedLimit(p);
-        boolean isoverspeed3 = speed.get(p) > minSpeedLimit(p) + 3;
+        boolean isoverspeed3 = speed.get(p) > minSpeedLimit(p) + 3 || signallimit.get(p) == 0;
         if (signaltype.get(p).equals("ats")) {
-            double signaldist;
-            double speeddist;
-            double lowerSpeed;
-            double shortestDist;
-            speeddist = lastspsign.containsKey(p) ? distFormula(lastspsign.get(p).getX() + 0.5, p.getLocation().getX(), lastspsign.get(p).getZ() + 0.5, p.getLocation().getZ()) : Double.MAX_VALUE;
-            signaldist = lastsisign.containsKey(p) ? distFormula(lastsisign.get(p).getX() + 0.5, p.getLocation().getX(), lastsisign.get(p).getZ() + 0.5, p.getLocation().getZ()) : Double.MAX_VALUE;
-            shortestDist = Math.min(signaldist, speeddist);
-            lowerSpeed = shortestDist == signaldist ? Math.min((lastsisp.containsKey(p) ? Math.min(signallimit.get(p), lastsisp.get(p)) : signallimit.get(p)), speedlimit.get(p)) : Math.min((lastspsp.containsKey(p) ? Math.min(signallimit.get(p), lastspsp.get(p)) : signallimit.get(p)), speedlimit.get(p));
+            double speeddist = lastspsign.containsKey(p) ? distFormula(lastspsign.get(p).getX() + 0.5, p.getLocation().getX(), lastspsign.get(p).getZ() + 0.5, p.getLocation().getZ()) : Double.MAX_VALUE;
+            double signaldist = lastsisign.containsKey(p) ? distFormula(lastsisign.get(p).getX() + 0.5, p.getLocation().getX(), lastsisign.get(p).getZ() + 0.5, p.getLocation().getZ()) : Double.MAX_VALUE;
+            double shortestDist = Math.min(signaldist, speeddist);
+            double lowerSpeed = shortestDist == signaldist ? Math.min((lastsisp.containsKey(p) ? Math.min(signallimit.get(p), lastsisp.get(p)) : signallimit.get(p)), speedlimit.get(p)) : Math.min((lastspsp.containsKey(p) ? Math.min(signallimit.get(p), lastspsp.get(p)) : signallimit.get(p)), speedlimit.get(p));
+            double adjustedDist = Math.max(0, shortestDist - speed1s(p) * getThinkingTime(p, 8));
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
             reqdist[9] = getreqdist(p, globaldecel(decel, speed.get(p), ebdecel, speedsteps), lowerSpeed, slopeaccel, speeddrop);
             reqdist[8] = getreqdist(p, globaldecel(decel, speed.get(p), 9, speedsteps), lowerSpeed, slopeaccel, speeddrop);
             // Pattern run
-            if (((shortestDist < reqdist[8] && speed.get(p) > lowerSpeed + 3) || isoverspeed3) && !atsping.get(p)) {
+            if (((adjustedDist < reqdist[8] && speed.get(p) > lowerSpeed + 3) || isoverspeed3) && !atsping.get(p)) {
                 atsping.put(p, true);
-                if ((lowerSpeed == 0 && shortestDist < 5) || shortestDist < reqdist[9]) {
+                if (adjustedDist < reqdist[9]) {
                     mascon.put(p, -9);
                     pointCounter(p, ChatColor.RED, getlang("atspeb") + " ", -5, "");
                 } else {
                     mascon.put(p, -8);
                     pointCounter(p, ChatColor.RED, getlang("atspb8") + " ", -5, "");
                 }
-            } else if (shortestDist > reqdist[8] && !isoverspeed0) {
+            } else if (adjustedDist > reqdist[8] && !isoverspeed0 && lowerSpeed != 0) {
                 atsping.put(p, false);
             }
             // Pattern near
-            boolean pnear = (shortestDist < reqdist[8] + speed1s(p) * 5 && speed.get(p) > lowerSpeed) || isoverspeed0;
+            boolean pnear = (adjustedDist < reqdist[8] + speed1s(p) * 5 && speed.get(p) > lowerSpeed) || isoverspeed0;
             if (!atspnear.get(p) && pnear) {
                 p.sendMessage(utshead + ChatColor.GOLD + getlang("atspnear"));
             }
