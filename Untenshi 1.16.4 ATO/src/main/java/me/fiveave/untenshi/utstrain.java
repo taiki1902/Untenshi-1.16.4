@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-import static me.fiveave.untenshi.main.noperm;
+import static me.fiveave.untenshi.main.noPerm;
 import static me.fiveave.untenshi.main.playing;
 
 class utstrain extends SignAction {
@@ -34,10 +34,8 @@ class utstrain extends SignAction {
                 List cartps = cart2.getPassengers();
                 for (Object cartobject : cartps) {
                     Player p = (Player) cartobject;
-                    if (playing.containsKey(p)) {
-                        if (playing.get(p)) {
-                            cartevent.setLevers(true);
-                        }
+                    if (playing.containsKey(p) && playing.get(p)) {
+                        cartevent.setLevers(true);
                     }
                 }
             }
@@ -51,7 +49,7 @@ class utstrain extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (noperm(e)) return true;
+        if (noPerm(e)) return true;
         try {
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Untenshi Train Detector");
             opt.setDescription("detect if the train is a Untenshi train");

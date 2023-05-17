@@ -131,7 +131,7 @@ signalsignchange: 改變告示牌成功。
 signaltypewrong: 信號種類不正確。(R / YY / Y / YG / G / ATC)
 signalargwrong1: 參數不正確。(set / warn / relate)
 signalargwrong2: 參數不正確。(warn / sign)
-signalmax360: 速度應該等於或小於 360 km/h。
+signalmax: 速度應該等於或小於 360 km/h。
 signalmin0: 速度不應該是負數。
 signaldiv5: 速度應該可以被 5 整除。
 signalg: 進行

@@ -17,8 +17,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Objects;
 
-import static me.fiveave.untenshi.cmds.helpnotitle;
-import static me.fiveave.untenshi.motion.freemodenoato;
+import static me.fiveave.untenshi.cmds.generalMsg;
+import static me.fiveave.untenshi.motion.freemodeNoATO;
 import static me.fiveave.untenshi.signalsign.resetSignals;
 
 public final class main extends JavaPlugin implements Listener {
@@ -70,6 +70,9 @@ public final class main extends JavaPlugin implements Listener {
     static abstractfile signalorder;
     static final int ticksin1s = 10;
     static final int interval = 20 / ticksin1s;
+    static final int maxspeed = 360;
+
+    static final double cartYPosDiff = 0.0625;
 
     static String getlang(String path) {
         langdata.reloadConfig();
@@ -122,7 +125,7 @@ public final class main extends JavaPlugin implements Listener {
         SignAction.unregister(v5);
     }
 
-    static boolean noperm(SignChangeActionEvent e) {
+    static boolean noPerm(SignChangeActionEvent e) {
         if (!e.getPlayer().hasPermission("uts.sign")) {
             e.getPlayer().sendMessage(ChatColor.RED + getlang("noperm"));
             e.setCancelled(true);
@@ -137,11 +140,15 @@ public final class main extends JavaPlugin implements Listener {
 
     static void pointCounter(Player p, ChatColor color, String s, int pts, String str) {
         ChatColor color2 = pts > 0 ? ChatColor.GREEN : ChatColor.RED;
-        String ptsstr = !freemodenoato(p) ? "" : String.valueOf(pts);
-        p.sendMessage(utshead + color + s + color2 + ptsstr + str);
-        if (freemodenoato(p)) {
+        String ptsstr = !freemodeNoATO(p) ? "" : String.valueOf(pts);
+        generalMsg(p, color, s + color2 + ptsstr + str);
+        if (freemodeNoATO(p)) {
             points.put(p, points.get(p) + pts);
         }
+    }
+
+    static String getSpeedMax() {
+        return ChatColor.RED + getlang("speedmax").replaceAll("%speed%", String.valueOf(maxspeed));
     }
 
     static void restoreinit(Player p) {
@@ -182,7 +189,7 @@ public final class main extends JavaPlugin implements Listener {
             // Reset inventory
             p.getInventory().setContents(inv.get(p));
             p.updateInventory();
-            helpnotitle(p, ChatColor.YELLOW, getlang("activate") + ChatColor.RED + getlang("disable"));
+            generalMsg(p, ChatColor.YELLOW, getlang("activate") + ChatColor.RED + getlang("disable"));
             // Reset signals
             try {
                 Location[][] locs = resettablesisign.get(p);

@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import static me.fiveave.untenshi.ato.*;
+import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.events.doorControls;
 import static me.fiveave.untenshi.main.stoppos;
 import static me.fiveave.untenshi.main.*;
@@ -38,10 +39,6 @@ class motion {
             mascon.put(ctrlp, -9);
             speed.put(ctrlp, 0.0);
         }
-    }
-
-    static Integer getmascon(Player ctrlplayer) {
-        return mascon.get(ctrlplayer);
     }
 
     static void recursion2(Player p) {
@@ -71,13 +68,13 @@ class motion {
             String tDataInfo = "trains." + seltrainname;
             if (traindata.dataconfig.contains(tDataInfo + ".accel"))
                 accel = traindata.dataconfig.getDouble(tDataInfo + ".accel");
-            if (tcontains(".decel", tDataInfo))
+            if (tContains(".decel", tDataInfo))
                 decel = traindata.dataconfig.getDouble(tDataInfo + ".decel");
-            if (tcontains(".traintype", tDataInfo))
+            if (tContains(".traintype", tDataInfo))
                 traintype.put(p, traindata.dataconfig.getString(tDataInfo + ".traintype"));
-            if (tcontains(".ebdecel", tDataInfo))
+            if (tContains(".ebdecel", tDataInfo))
                 ebdecel = traindata.dataconfig.getDouble(tDataInfo + ".ebdecel") * 2;
-            if (tcontains(".speeds", tDataInfo) && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
+            if (tContains(".speeds", tDataInfo) && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
                 for (int i = 0; i < 6; i++) {
                     speedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
                 }
@@ -114,7 +111,7 @@ class motion {
         // Electric current brake
         double currentnow = current.get(p);
         // Set current for current mascon
-        double ecb = Integer.parseInt(df0.format(480.0 / 9 * getmascon(p)));
+        double ecb = Integer.parseInt(df0.format(480.0 / 9 * mascon.get(p)));
         df0.setRoundingMode(RoundingMode.HALF_EVEN);
         // Set real current
         if (ecb < currentnow) {
@@ -127,16 +124,17 @@ class motion {
             current.put(p, 0.0);
         }
         // Slope speed adjust (new physics testing in progress)
-        double slopeaccel = getSlopeAccel(mg.head().getEntity().getLocation(), mg.tail().getEntity().getLocation());
+        Location headLoc = mg.head().getEntity().getLocation();
+        Location tailLoc = mg.tail().getEntity().getLocation();
+        double slopeaccel = getSlopeAccel(headLoc, tailLoc);
         // Accel and decel
-        double stopdecel = decelswitch(p, speed.get(p), speeddrop, decel, ebdecel, currentnow, speedsteps, slopeaccel);
+        double stopdecel = decelSwitch(p, speed.get(p), speeddrop, decel, ebdecel, currentnow, speedsteps, slopeaccel);
         if (dooropen.get(p) == 0) {
             speed.put(p, speed.get(p)
-                    + accelswitch(accel, (int) (currentnow * 9 / 480), speed.get(p), speedsteps) / ticksin1s // Acceleration
+                    + accelSwitch(accel, (int) (currentnow * 9 / 480), speed.get(p), speedsteps) / ticksin1s // Acceleration
                     - stopdecel / ticksin1s // Deceleration (speed drop included)
             );
         }
-        // Have speed drop even if no accel
         // ATS Forced Controls
         if (mascon.get(p) == -9) {
             if (atsforced.get(p) == 2) {
@@ -147,14 +145,14 @@ class motion {
         }
         // Ctrl Text
         String ctrltext = "";
-        if (getmascon(p) == -9) {
+        if (mascon.get(p) == -9) {
             ctrltext = ChatColor.DARK_RED + "EB";
-        } else if (getmascon(p) >= -8 && getmascon(p) <= -1) {
-            ctrltext = ChatColor.RED + "B" + Math.abs(getmascon(p));
-        } else if (getmascon(p) == 0) {
+        } else if (mascon.get(p) >= -8 && mascon.get(p) <= -1) {
+            ctrltext = ChatColor.RED + "B" + Math.abs(mascon.get(p));
+        } else if (mascon.get(p) == 0) {
             ctrltext = ChatColor.WHITE + "N";
-        } else if (getmascon(p) >= 1 && getmascon(p) <= 5) {
-            ctrltext = ChatColor.GREEN + "P" + getmascon(p);
+        } else if (mascon.get(p) >= 1 && mascon.get(p) <= 5) {
+            ctrltext = ChatColor.GREEN + "P" + mascon.get(p);
         }
         // Anti-negative speed and force stop when door is open
         if (speed.get(p) < 0 || dooropen.get(p) > 0) {
@@ -171,12 +169,12 @@ class motion {
         mg.setForwardForce(blockpertick);
         mg.setProperties(tprop);
         // Door (enter and exit train)
-        if (doordiropen.get(p) && dooropen.get(p) < 30) {
+        boolean do30 = dooropen.get(p) == 30;
+        if (doordiropen.get(p) && !do30) {
             dooropen.put(p, dooropen.get(p) + 1);
         } else if (!doordiropen.get(p) && dooropen.get(p) > 0) {
             dooropen.put(p, dooropen.get(p) - 1);
         }
-        boolean do30 = dooropen.get(p) == 30;
         if (!doorconfirm.get(p) && (dooropen.get(p) == 0 || do30)) {
             tprop.setPlayersEnter(do30);
             tprop.setPlayersExit(do30);
@@ -189,7 +187,7 @@ class motion {
         String actionbarmsg = "" + ctrltext + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + ChatColor.WHITE + df0.format(speed.get(p)) + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + points.get(p) + " | " + ChatColor.YELLOW + getlang("door") + doortxt;
         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbarmsg));
         // Count points
-        if (freemodenoato(p) && getmascon(p) == -9 && speed.get(p) > 20 && !atsbraking.get(p) && !atsping.get(p)) {
+        if (freemodeNoATO(p) && mascon.get(p) == -9 && speed.get(p) > 20 && !atsbraking.get(p) && !atsping.get(p)) {
             // Misuse EB
             if (deductdelay.get(p) >= 50) {
                 deductdelay.put(p, 0);
@@ -199,75 +197,14 @@ class motion {
             }
         }
         // Get signal update when warn (if signal speed isn't same)
-        if (lastsisign.containsKey(p) && lastsisp.containsKey(p)) {
-            Sign warnsign = (Sign) p.getWorld().getBlockAt(lastsisign.get(p)).getState();
-            String warnsi = warnsign.getLine(2).split(" ")[1];
-            int warnsp = Integer.parseInt(warnsign.getLine(2).split(" ")[2]);
-            // Detect difference (saved sign speed != sign speed now)
-            if (warnsp != lastsisp.get(p)) {
-                lastsisp.put(p, warnsp);
-                String signalmsg = "";
-                signalmsg = signalName(warnsi, signalmsg);
-                // If red light
-                if (atsbraking.get(p) && signallimit.get(p) == 0) {
-                    // Remove lastsisign and lastsisp as need to detect further signal warnings
-                    signallimit.put(p, warnsp);
-                    lastsisign.remove(p);
-                    lastsisp.remove(p);
-                }
-                String speedlimittxt = warnsp >= 360 ? getlang("nolimit") : warnsp + " km/h";
-                p.sendMessage(utshead + ChatColor.YELLOW + getlang("signalchange") + signalmsg + ChatColor.GRAY + " " + speedlimittxt);
-            }
-        }
-        // ATS-P
+        catchSignalUpdate(p);
+        // Types of speeding
         boolean isoverspeed0 = speed.get(p) > minSpeedLimit(p);
         boolean isoverspeed3 = speed.get(p) > minSpeedLimit(p) + 3 || signallimit.get(p) == 0;
-        if (signaltype.get(p).equals("ats")) {
-            double speeddist = lastspsign.containsKey(p) ? distFormula(lastspsign.get(p).getX() + 0.5, p.getLocation().getX(), lastspsign.get(p).getZ() + 0.5, p.getLocation().getZ()) : Double.MAX_VALUE;
-            double signaldist = lastsisign.containsKey(p) ? distFormula(lastsisign.get(p).getX() + 0.5, p.getLocation().getX(), lastsisign.get(p).getZ() + 0.5, p.getLocation().getZ()) : Double.MAX_VALUE;
-            double shortestDist = Math.min(signaldist, speeddist);
-            double lowerSpeed = shortestDist == signaldist ? Math.min((lastsisp.containsKey(p) ? Math.min(signallimit.get(p), lastsisp.get(p)) : signallimit.get(p)), speedlimit.get(p)) : Math.min((lastspsp.containsKey(p) ? Math.min(signallimit.get(p), lastspsp.get(p)) : signallimit.get(p)), speedlimit.get(p));
-            double adjustedDist = Math.max(0, shortestDist - speed1s(p) * getThinkingTime(p, 8));
-            // Get brake distance (reqdist)
-            double[] reqdist = new double[10];
-            reqdist[9] = getreqdist(p, globaldecel(decel, speed.get(p), ebdecel, speedsteps), lowerSpeed, slopeaccel, speeddrop);
-            reqdist[8] = getreqdist(p, globaldecel(decel, speed.get(p), 9, speedsteps), lowerSpeed, slopeaccel, speeddrop);
-            // Pattern run
-            if (((adjustedDist < reqdist[8] && speed.get(p) > lowerSpeed + 3) || isoverspeed3) && !atsping.get(p)) {
-                atsping.put(p, true);
-                if (adjustedDist < reqdist[9]) {
-                    mascon.put(p, -9);
-                    pointCounter(p, ChatColor.RED, getlang("atspeb") + " ", -5, "");
-                } else {
-                    mascon.put(p, -8);
-                    pointCounter(p, ChatColor.RED, getlang("atspb8") + " ", -5, "");
-                }
-            } else if (adjustedDist > reqdist[8] && !isoverspeed0 && lowerSpeed != 0) {
-                atsping.put(p, false);
-            }
-            // Pattern near
-            boolean pnear = (adjustedDist < reqdist[8] + speed1s(p) * 5 && speed.get(p) > lowerSpeed) || isoverspeed0;
-            if (!atspnear.get(p) && pnear) {
-                p.sendMessage(utshead + ChatColor.GOLD + getlang("atspnear"));
-            }
-            atspnear.put(p, pnear);
-        }
-        // ATC Signal Speeding (not atsebing, speed limit is 0 or other +3 km/h), Speed limit speeding (+3 km/h)
-        if (!atsbraking.get(p) && isoverspeed3 && signaltype.get(p).equals("atc")) {
-            if (freemodenoato(p)) {
-                pointCounter(p, ChatColor.YELLOW, getlang("signalspeeding"), -5, "");
-            }
-            p.sendMessage(utshead + ChatColor.RED + getlang("atcrun"));
-        }
+        // ATS-P
+        atsp(p, decel, ebdecel, speedsteps, speeddrop, mg, isoverspeed0, isoverspeed3);
         // ATC Auto Control
-        if (signaltype.get(p).equals("atc") && signallimit.get(p) > 0) {
-            if (!atsbraking.get(p) && isoverspeed3) {
-                atsbraking.put(p, true);
-                mascon.put(p, -8);
-            } else if (!isoverspeed3) {
-                atsbraking.put(p, false);
-            }
-        }
+        atc(p, isoverspeed3);
         // Instant ATS / ATC if red light
         if (signallimit.get(p) == 0) {
             atsbraking.put(p, true);
@@ -287,11 +224,11 @@ class motion {
             }
             // Rewards and penalties
             // In station EB
-            if (getmascon(p) == -9 && !staeb.get(p) && !plugin.getConfig().getBoolean("allowebstop")) {
+            if (mascon.get(p) == -9 && !staeb.get(p) && !plugin.getConfig().getBoolean("allowebstop")) {
                 staeb.put(p, true);
             }
             // In station accel
-            if (getmascon(p) >= 1 && !staaccel.get(p) && !fixstoppos.get(p) && !plugin.getConfig().getBoolean("allowreaccel")) {
+            if (mascon.get(p) >= 1 && !staaccel.get(p) && !fixstoppos.get(p) && !plugin.getConfig().getBoolean("allowreaccel")) {
                 staaccel.put(p, true);
             }
             // Stop positions
@@ -300,36 +237,36 @@ class motion {
                 // 25 cm
                 if (stopdist <= 0.25) {
                     // Need to fix stop pos? If no then add points
-                    showstoppos(p, "stopposperfect", stopdistcm, shock, 10);
+                    showStopPos(p, "stopposperfect", stopdistcm, shock, 10);
                 }
                 // 50 cm
                 else if (stopdist <= 0.50) {
-                    showstoppos(p, "stopposgreat", stopdistcm, shock, 5);
+                    showStopPos(p, "stopposgreat", stopdistcm, shock, 5);
                 }
                 // 1 m
                 else {
-                    showstoppos(p, "stopposgood", stopdistcm, shock, 3);
+                    showStopPos(p, "stopposgood", stopdistcm, shock, 3);
                 }
-                opendoorprocedure(p);
+                openDoorProcedure(p);
             }
             // < 50 m
             else if (stopdist < 50 && speed.get(p) == 0 && overrun.get(p) && !fixstoppos.get(p)) {
                 fixstoppos.put(p, true);
                 staaccel.put(p, false);
-                if (freemodenoato(p)) {
+                if (freemodeNoATO(p)) {
                     pointCounter(p, ChatColor.YELLOW, getlang("stopposover"), Math.toIntExact(-Math.round(stopdist)), shock);
                 } else {
-                    p.sendMessage(utshead + ChatColor.YELLOW + getlang("stopposover") + ChatColor.RED + Math.round(stopdist) + " m" + shock);
+                    generalMsg(p, ChatColor.YELLOW, getlang("stopposover") + ChatColor.RED + Math.round(stopdist) + " m" + shock);
                 }
             }
             // Cho-heta-dane!
             else if (stopdist >= 50 && overrun.get(p)) {
-                if (freemodenoato(p)) {
+                if (freemodeNoATO(p)) {
                     if (speed.get(p) > 0) {
                         atsforced.put(p, 2);
                         mascon.put(p, -9);
                     } else {
-                        p.sendMessage(utshead + ChatColor.RED + getlang("stopposseriousover"));
+                        generalMsg(p, ChatColor.RED, getlang("stopposseriousover"));
                         restoreinit(p);
                     }
                 } else {
@@ -339,40 +276,145 @@ class motion {
             }
         }
         // Catch point <= 0 and end game
-        if (freemodenoato(p) && points.get(p) <= 0) {
-            p.sendMessage(utshead + ChatColor.RED + getlang("nopoints"));
-            Bukkit.dispatchCommand(p, "uts activate false");
+        if (freemodeNoATO(p) && points.get(p) <= 0) {
+            generalMsg(p, ChatColor.RED, getlang("nopoints"));
+            restoreinit(p);
+        }
+    }
+
+    private static void catchSignalUpdate(Player p) {
+        if (lastsisign.containsKey(p) && lastsisp.containsKey(p)) {
+            Sign warnsign = (Sign) p.getWorld().getBlockAt(lastsisign.get(p)).getState();
+            String warnsi = warnsign.getLine(2).split(" ")[1];
+            int warnsp = Integer.parseInt(warnsign.getLine(2).split(" ")[2]);
+            // Detect difference (saved sign speed != sign speed now)
+            if (warnsp != lastsisp.get(p)) {
+                lastsisp.put(p, warnsp);
+                String signalmsg = signalName(warnsi);
+                // If red light
+                if (atsbraking.get(p) && signallimit.get(p) == 0) {
+                    // Remove lastsisign and lastsisp as need to detect further signal warnings
+                    signallimit.put(p, warnsp);
+                    lastsisign.remove(p);
+                    lastsisp.remove(p);
+                }
+                String speedlimittxt = warnsp >= maxspeed ? getlang("nolimit") : warnsp + " km/h";
+                generalMsg(p, ChatColor.YELLOW, getlang("signalchange") + signalmsg + ChatColor.GRAY + " " + speedlimittxt);
+            }
+        }
+    }
+
+    private static void atc(Player p, boolean isoverspeed3) {
+        if (signaltype.get(p).equals("atc")) {
+            if (!atsbraking.get(p) && isoverspeed3) {
+                mascon.put(p, -8);
+                pointCounter(p, ChatColor.RED, getlang("atcrun"), -5, "");
+            }
+            atsbraking.put(p, isoverspeed3);
+        }
+    }
+
+    private static void atsp(Player p, double decel, double ebdecel, int[] speedsteps, double speeddrop, MinecartGroup mg, boolean isoverspeed0, boolean isoverspeed3) {
+        if (signaltype.get(p).equals("ats")) {
+            double lowerSpeed = minSpeedLimit(p);
+            // 0.0625 from result of getting mg.head() y-location
+            Location headLoc = mg.head().getEntity().getLocation();
+            Location tailLoc = mg.tail().getEntity().getLocation();
+            double slopeaccel = 0;
+            double slopeaccelsi = 0;
+            double slopeaccelsp = 0;
+            double signaldist = Double.MAX_VALUE;
+            double signaldistdiff = Double.MAX_VALUE;
+            double speeddist = Double.MAX_VALUE;
+            double speeddistdiff = Double.MAX_VALUE;
+            double reqsidist;
+            double reqspdist;
+            double distnow = Double.MAX_VALUE;
+            // Find either signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
+            if (lastsisign.containsKey(p) && lastsisp.containsKey(p)) {
+                Location siLocForSlope = new Location(mg.getWorld(), lastsisign.get(p).getX(), lastsisign.get(p).getY() + cartYPosDiff, lastsisign.get(p).getZ());
+                slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
+                reqsidist = getReqdist(p, globalDecel(decel, speed.get(p), 6, speedsteps), lastsisp.get(p), slopeaccelsi, speeddrop);
+                signaldist = distFormula(lastsisign.get(p).getX() + 0.5, headLoc.getX(), lastsisign.get(p).getZ() + 0.5, headLoc.getZ());
+                signaldistdiff = signaldist - reqsidist;
+            }
+            if (lastspsign.containsKey(p) && lastspsp.containsKey(p)) {
+                Location spLocForSlope = new Location(mg.getWorld(), lastspsign.get(p).getX(), lastspsign.get(p).getY() + cartYPosDiff, lastspsign.get(p).getZ());
+                slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
+                reqspdist = getReqdist(p, globalDecel(decel, speed.get(p), 6, speedsteps), lastspsp.get(p), slopeaccelsp, speeddrop);
+                speeddist = distFormula(lastspsign.get(p).getX() + 0.5, headLoc.getX(), lastspsign.get(p).getZ() + 0.5, headLoc.getZ());
+                speeddistdiff = speeddist - reqspdist;
+            }
+            double priority = Math.min(signaldistdiff, speeddistdiff);
+            if (lastsisign.containsKey(p) && lastsisp.containsKey(p) && priority == signaldistdiff) {
+                lowerSpeed = lastsisp.get(p);
+                distnow = signaldist;
+                slopeaccel = slopeaccelsi;
+            }
+            if (lastspsign.containsKey(p) && lastspsp.containsKey(p) && priority == speeddistdiff) {
+                lowerSpeed = lastspsp.get(p);
+                distnow = speeddist;
+                slopeaccel = slopeaccelsp;
+            }
+            // Get brake distance (reqdist)
+            double[] reqdist = new double[10];
+            getAllReqdist(p, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccel);
+            // If no signal give it one
+            lastsisp.putIfAbsent(p, maxspeed);
+            // Actual controlling part
+            // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
+            boolean nextredlight = lastsisp.get(p).equals(0) && priority == signaldistdiff;
+            double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
+            // Pattern run
+            if (((tempdist < reqdist[8] && speed.get(p) > lowerSpeed + 3) || isoverspeed3) && !atsping.get(p)) {
+                atsping.put(p, true);
+                if (tempdist < reqdist[9]) {
+                    mascon.put(p, -9);
+                    pointCounter(p, ChatColor.RED, getlang("atspeb") + " ", -5, "");
+                } else {
+                    mascon.put(p, -8);
+                    pointCounter(p, ChatColor.RED, getlang("atspb8") + " ", -5, "");
+                }
+            } else if (tempdist > reqdist[8] && !isoverspeed0 && lowerSpeed != 0) {
+                atsping.put(p, false);
+            }
+            // Pattern near
+            boolean pnear = (tempdist < reqdist[8] + speed1s(p) * 5 && speed.get(p) > lowerSpeed) || isoverspeed0;
+            if (!atspnear.get(p) && pnear) {
+                generalMsg(p, ChatColor.GOLD, getlang("atspnear"));
+            }
+            atspnear.put(p, pnear);
         }
     }
 
     static double getSlopeAccel(Location endpt, Location beginpt) {
         double height = beginpt.getY() - endpt.getY();
         double length = distFormula(endpt.getX(), beginpt.getX(), endpt.getZ(), beginpt.getZ());
-        return 3.6 * 9.81 * height / (Math.hypot(height, length));
+        return 35.30394 * height / (Math.hypot(height, length)); // 3.6 * gravity
     }
 
     static double distFormula(double x1, double x2, double y1, double y2) {
         return Math.hypot(x1 - x2, y1 - y2);
     }
 
-    static void showstoppos(Player p, String stopposeval, int stopdistcm, String shock, int pts) {
+    static void showStopPos(Player p, String stopposeval, int stopdistcm, String shock, int pts) {
         if (!fixstoppos.get(p)) {
             String s = " ";
-            if (freemodenoato(p)) {
+            if (freemodeNoATO(p)) {
                 s = " " + ChatColor.GREEN + "+" + pts + " ";
-                points.put(p, (points.get(p) + pts));
+                points.put(p, points.get(p) + pts);
             }
-            p.sendMessage(utshead + ChatColor.YELLOW + getlang(stopposeval) + s + ChatColor.GRAY + stopdistcm + " cm" + shock);
+            generalMsg(p, ChatColor.YELLOW, getlang(stopposeval) + s + ChatColor.GRAY + stopdistcm + " cm" + shock);
         }
     }
 
-    static boolean freemodenoato(Player p) {
+    static boolean freemodeNoATO(Player p) {
         return !freemode.get(p) && !atodest.containsKey(p);
     }
 
 
     // Reset values, open doors, reset ATO
-    static void opendoorprocedure(Player ctrlp) {
+    static void openDoorProcedure(Player ctrlp) {
         reqstopping.put(ctrlp, false);
         fixstoppos.put(ctrlp, false);
         doorControls(ctrlp, true);
@@ -383,33 +425,11 @@ class motion {
         atospeed.remove(ctrlp);
     }
 
-    static double getreqdist(Player ctrlp, double decel, double lowerSpeed, double slopeaccel, double speeddrop) {
+    static double getReqdist(Player ctrlp, double decel, double lowerSpeed, double slopeaccel, double speeddrop) {
         return (Math.pow(speed.get(ctrlp) + slopeaccel / ticksin1s, 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop));
     }
 
-    static double decelswitch(Player ctrlp, double speednow, double speeddrop, double decel, double ebrate, double current, int[] speedsteps, double slopeaccel) {
-        double retdecel = 0;
-        if (current == 0) {
-            retdecel = speeddrop;
-        } else if (current < 0 && current > -480) {
-            retdecel = globaldecel(decel, speednow, Math.abs(current * 9 / 480) + 1, speedsteps);
-        } else if (current == -480) {
-            if (!atsbraking.get(ctrlp) && signallimit.get(ctrlp) != 0) {
-                retdecel = globaldecel(decel, speednow, ebrate, speedsteps);
-            } else {
-                // SPAD ATS EB (-35 km/h/s)
-                atsforced.put(ctrlp, 2);
-            }
-        }
-        return retdecel - slopeaccel;
-    }
-
-    static double globaldecel(double decel, double speednow, double decelfr, int[] speedsteps) {
-        // (1 / 98) = (1 / 7 / 14)
-        return (speednow >= speedsteps[0]) ? (decel * decelfr * (15 - 4 * (speednow - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * decelfr * 15 / 98);
-    }
-
-    static double accelswitch(double accel, int dcurrent, double cspd, int[] sec) {
+    static double accelSwitch(double accel, int dcurrent, double cspd, int[] sec) {
         double retaccel = 0;
         if (dcurrent - 1 >= 0) {
             retaccel = accel * sec[dcurrent] / sec[5] * (1 - 0.5 * cspd / sec[5]);
@@ -423,11 +443,34 @@ class motion {
         return retaccel;
     }
 
+    static double decelSwitch(Player ctrlp, double speednow, double speeddrop, double decel, double ebrate, double current, int[] speedsteps, double slopeaccel) {
+        double retdecel = 0;
+        if (current == 0) {
+            retdecel = speeddrop;
+        } else if (current < 0 && current > -480) {
+            retdecel = globalDecel(decel, speednow, Math.abs(current * 9 / 480) + 1, speedsteps);
+        } else if (current == -480) {
+            if (!atsbraking.get(ctrlp) && signallimit.get(ctrlp) != 0) {
+                retdecel = globalDecel(decel, speednow, ebrate, speedsteps);
+            } else {
+                // SPAD ATS EB (-35 km/h/s)
+                atsforced.put(ctrlp, 2);
+            }
+        }
+        return retdecel - slopeaccel;
+    }
+
+    static double globalDecel(double decel, double speednow, double decelfr, int[] speedsteps) {
+        // (1 / 98) = (1 / 7 / 14)
+        return (speednow >= speedsteps[0]) ? (decel * decelfr * (15 - 4 * (speednow - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * decelfr * 15 / 98);
+    }
+
+
     static int minSpeedLimit(Player p) {
         return Math.min(speedlimit.get(p), signallimit.get(p));
     }
 
-    static boolean tcontains(String s, String tDataInfo) {
+    static boolean tContains(String s, String tDataInfo) {
         return traindata.dataconfig.contains(tDataInfo + s);
     }
 }

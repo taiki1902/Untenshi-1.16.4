@@ -13,6 +13,8 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 import static java.lang.Integer.parseInt;
+import static me.fiveave.untenshi.cmds.generalMsg;
+import static me.fiveave.untenshi.main.stoppos;
 import static me.fiveave.untenshi.main.*;
 
 class stoppos extends SignAction {
@@ -34,27 +36,25 @@ class stoppos extends SignAction {
                 List cartps = cart2.getPassengers();
                 for (Object cartobject : cartps) {
                     Player p = (Player) cartobject;
-                    if (playing.containsKey(p)) {
-                        if (playing.get(p)) {
-                            String[] sloc = cartevent.getLine(2).split(" ");
-                            String[] sloc2 = cartevent.getLine(3).split(" ");
-                            Double[] loc = new Double[3];
-                            Integer[] loc2 = new Integer[3];
-                            for (int a = 0; a <= 2; a++) {
-                                loc[a] = Double.valueOf(sloc[a]);
-                                if (!cartevent.getLine(3).equals("")) {
-                                    loc2[a] = Integer.parseInt(sloc2[a]);
-                                }
+                    if (playing.containsKey(p) && playing.get(p)) {
+                        String[] sloc = cartevent.getLine(2).split(" ");
+                        String[] sloc2 = cartevent.getLine(3).split(" ");
+                        Double[] loc = new Double[3];
+                        Integer[] loc2 = new Integer[3];
+                        for (int a = 0; a <= 2; a++) {
+                            loc[a] = Double.valueOf(sloc[a]);
+                            if (!cartevent.getLine(3).equals("")) {
+                                loc2[a] = Integer.parseInt(sloc2[a]);
                             }
-                            loc[0] += 0.5;
-                            loc[2] += 0.5;
-                            stoppos.put(p, loc);
-                            if (!cartevent.getLine(3).isEmpty()) {
-                                stopoutput.put(p, loc2);
-                            }
-                            reqstopping.put(p, true);
-                            p.sendMessage(utshead + ChatColor.YELLOW + getlang("nextstop"));
                         }
+                        loc[0] += 0.5;
+                        loc[2] += 0.5;
+                        stoppos.put(p, loc);
+                        if (!cartevent.getLine(3).isEmpty()) {
+                            stopoutput.put(p, loc2);
+                        }
+                        reqstopping.put(p, true);
+                        generalMsg(p, ChatColor.YELLOW, getlang("nextstop"));
                     }
                 }
             }
@@ -63,7 +63,7 @@ class stoppos extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (noperm(e)) return true;
+        if (noPerm(e)) return true;
         String[] loc = e.getLine(2).split(" ");
         String[] loc2 = e.getLine(3).split(" ");
         try {

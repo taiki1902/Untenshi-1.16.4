@@ -14,8 +14,9 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 import static java.lang.Integer.parseInt;
+import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
-import static me.fiveave.untenshi.signalsign.signimproper;
+import static me.fiveave.untenshi.signalsign.signImproper;
 
 class speedsign extends SignAction {
 
@@ -39,15 +40,15 @@ class speedsign extends SignAction {
                         // Speed limit set
                         if (!cartevent.getLine(2).equals("warn")) {
                             int intspeed = parseInt(speedsign);
-                            if (intspeed <= 360 && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
+                            if (intspeed <= maxspeed && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
                                 speedlimit.put(p, intspeed);
-                                p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitset") + (intspeed == 360 ? ChatColor.GREEN + getlang("nolimit") : speedlimit.get(p) + " km/h"));
+                                generalMsg(p, ChatColor.YELLOW, getlang("speedlimitset") + (intspeed == maxspeed ? ChatColor.GREEN + getlang("nolimit") : speedlimit.get(p) + " km/h"));
                                 if (parseInt(speedsign) != 0) {
                                     lastspsign.remove(p);
                                     lastspsp.remove(p);
                                 }
                             } else {
-                                signimproper(cartevent, p);
+                                signImproper(cartevent, p);
                             }
                         }
                         // Speed limit warn
@@ -58,16 +59,16 @@ class speedsign extends SignAction {
                                     lastspsign.put(p, warn.getLocation());
                                     int warnsp = parseInt(warn.getLine(2));
                                     lastspsp.put(p, warnsp);
-                                    if (warnsp < 360) {
-                                        p.sendMessage(utshead + ChatColor.YELLOW + getlang("speedlimitwarn") + warnsp + " km/h");
+                                    if (warnsp < maxspeed) {
+                                        generalMsg(p, ChatColor.YELLOW, getlang("speedlimitwarn") + warnsp + " km/h");
                                     } else {
-                                        signimproper(cartevent, p);
+                                        signImproper(cartevent, p);
                                     }
                                 } else {
-                                    signimproper(cartevent, p);
+                                    signImproper(cartevent, p);
                                 }
                             } catch (NumberFormatException | IndexOutOfBoundsException e) {
-                                signimproper(cartevent, p);
+                                signImproper(cartevent, p);
                                 e.printStackTrace();
                             }
                         }
@@ -79,14 +80,23 @@ class speedsign extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (noperm(e)) return true;
+        if (noPerm(e)) return true;
+        Player p = e.getPlayer();
         try {
             int intspeed;
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Speed limit sign");
             if (!e.getLine(2).equals("warn")) {
                 intspeed = parseInt(e.getLine(2));
-                if (!(intspeed > 0) || !(intspeed <= 360) || !(Math.floorMod(intspeed, 5) == 0)) {
-                    e.getPlayer().sendMessage(ChatColor.RED + getlang("speedlimitdiv5"));
+                if (intspeed > maxspeed) {
+                    p.sendMessage(getSpeedMax());
+                    e.setCancelled(true);
+                }
+                if (intspeed <= 0) {
+                    p.sendMessage(ChatColor.RED + getlang("speedpositive"));
+                    e.setCancelled(true);
+                }
+                if (Math.floorMod(intspeed, 5) != 0) {
+                    p.sendMessage(ChatColor.RED + getlang("speeddiv5"));
                     e.setCancelled(true);
                 }
                 opt.setDescription("set speed limit for train");
@@ -107,14 +117,27 @@ class speedsign extends SignAction {
     }
 
     static Sign getSign(SignActionEvent cartevent) {
-        if (cartevent.getWorld().getBlockAt(getloc(cartevent, 0), getloc(cartevent, 1), getloc(cartevent, 2)).getState() instanceof Sign) {
-            return (Sign) cartevent.getWorld().getBlockAt(getloc(cartevent, 0), getloc(cartevent, 1), getloc(cartevent, 2)).getState();
+        if (cartevent.getWorld().getBlockAt(getLoc(cartevent, 0), getLoc(cartevent, 1), getLoc(cartevent, 2)).getState() instanceof Sign) {
+            return (Sign) cartevent.getWorld().getBlockAt(getLoc(cartevent, 0), getLoc(cartevent, 1), getLoc(cartevent, 2)).getState();
         } else {
             return null;
         }
     }
 
-    static int getloc(SignActionEvent cartevent, int i) {
+    static int getLoc(SignActionEvent cartevent, int i) {
         return parseInt(cartevent.getLine(3).split(" ")[i]);
+    }
+
+    // l[n]: "n"th split text in line 3
+    static String l1(SignActionEvent e) {
+        return e.getLine(2).toLowerCase().split(" ")[0];
+    }
+
+    static String l2(SignActionEvent e) {
+        return e.getLine(2).toLowerCase().split(" ")[1];
+    }
+
+    static String l3(SignActionEvent e) {
+        return e.getLine(2).split(" ")[2];
     }
 }

@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 import static java.lang.Integer.parseInt;
+import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
 
 class atosign extends SignAction {
@@ -35,25 +36,23 @@ class atosign extends SignAction {
                     List cartpassengers = cart2.getPassengers();
                     for (Object cartobj : cartpassengers) {
                         Player p = (Player) cartobj;
-                        if (playing.containsKey(p)) {
-                            if (playing.get(p) && allowatousage.get(p)) {
-                                if (cartevent.getLine(2).equals("stoptime")) {
-                                    atostoptime.put(p, parseInt(cartevent.getLine(3)));
-                                    p.sendMessage(utshead + ChatColor.GOLD + getlang("atodetectstoptime"));
-                                } else {
-                                    Integer[] loc = new Integer[3];
-                                    String[] sloc = cartevent.getLine(3).split(" ");
-                                    for (int a = 0; a <= 2; a++) {
-                                        loc[a] = Integer.parseInt(sloc[a]);
-                                    }
-                                    overrun.put(p, false);
-                                    double val = Double.parseDouble(cartevent.getLine(2));
-                                    // Direct or indirect pattern?
-                                    atopisdirect.put(p, val < 0);
-                                    atospeed.put(p, Math.abs(val));
-                                    atodest.put(p, loc);
-                                    p.sendMessage(utshead + ChatColor.GOLD + getlang("atodetectpattern"));
+                        if (playing.containsKey(p) && playing.get(p) && allowatousage.get(p)) {
+                            if (cartevent.getLine(2).equals("stoptime")) {
+                                atostoptime.put(p, parseInt(cartevent.getLine(3)));
+                                generalMsg(p, ChatColor.GOLD, getlang("atodetectstoptime"));
+                            } else {
+                                Integer[] loc = new Integer[3];
+                                String[] sloc = cartevent.getLine(3).split(" ");
+                                for (int a = 0; a <= 2; a++) {
+                                    loc[a] = Integer.parseInt(sloc[a]);
                                 }
+                                overrun.put(p, false);
+                                double val = Double.parseDouble(cartevent.getLine(2));
+                                // Direct or indirect pattern?
+                                atopisdirect.put(p, val < 0);
+                                atospeed.put(p, Math.abs(val));
+                                atodest.put(p, loc);
+                                generalMsg(p, ChatColor.GOLD, getlang("atodetectpattern"));
                             }
                         }
                     }
@@ -66,29 +65,30 @@ class atosign extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (noperm(e)) return true;
+        if (noPerm(e)) return true;
+        Player p = e.getPlayer();
         try {
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "ATO sign");
             if (e.getLine(2).equals("stoptime")) {
                 opt.setDescription("set ATO station stopping time for train");
                 if (parseInt(e.getLine(3)) < 1) {
-                    e.getPlayer().sendMessage(ChatColor.RED + "The value should not be less than 1.");
+                    p.sendMessage(ChatColor.RED + getlang("speedpositive"));
                     e.setCancelled(true);
                 }
             } else {
                 double val = parseInt(e.getLine(2));
                 opt.setDescription(val >= 0 ? "set ATO indirect pattern for train" : "set ATO direct pattern for train");
-                if (val > 360) {
-                    e.getPlayer().sendMessage(ChatColor.RED + "The value should not be more than 360.");
+                if (val > maxspeed) {
+                    p.sendMessage(getSpeedMax());
                     e.setCancelled(true);
                 }
                 for (String i : e.getLine(3).split(" ")) {
                     parseInt(i);
                 }
             }
-            return opt.handle(e.getPlayer());
+            return opt.handle(p);
         } catch (Exception exception) {
-            e.getPlayer().sendMessage(ChatColor.RED + "The number is not valid!");
+            p.sendMessage(ChatColor.RED + "The number is not valid!");
             exception.printStackTrace();
             e.setCancelled(true);
         }

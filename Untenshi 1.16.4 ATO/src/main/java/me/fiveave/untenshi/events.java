@@ -12,7 +12,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.inventory.*;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCreativeEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -23,11 +25,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.text.DecimalFormat;
 import java.util.Objects;
 
-import static me.fiveave.untenshi.ato.atodepartcountdown;
-import static me.fiveave.untenshi.cmds.*;
-import static me.fiveave.untenshi.main.mascon;
+import static me.fiveave.untenshi.ato.atoDepartCountdown;
+import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
-import static me.fiveave.untenshi.motion.freemodenoato;
+import static me.fiveave.untenshi.motion.freemodeNoATO;
 
 class events implements Listener {
 
@@ -74,7 +75,7 @@ class events implements Listener {
                 doorControls(p, !rev);
             }
             if (sbLever().equals(item)) {
-                switchback(p);
+                switchBack(p);
                 event.setCancelled(true);
             }
             if (ebButton().equals(item)) {
@@ -89,18 +90,18 @@ class events implements Listener {
         atsforced.put(p, 1);
     }
 
-    static void switchback(Player p) {
+    static void switchBack(Player p) {
         if (p.isInsideVehicle()) {
             if (speed.get(p).equals(0.0)) {
                 MinecartGroupStore.get(p.getVehicle()).reverse();
                 if (atodest.containsKey(p) && atospeed.containsKey(p)) {
                     atodest.remove(p);
                     atospeed.remove(p);
-                    p.sendMessage(utshead + ChatColor.GOLD + getlang("atopatterncancel"));
+                    generalMsg(p, ChatColor.GOLD, getlang("atopatterncancel"));
                 }
-                helpnotitle(p, ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(MinecartMemberStore.getFromEntity(p.getVehicle())).getDirection() + ")");
+                generalMsg(p, ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(MinecartMemberStore.getFromEntity(p.getVehicle())).getDirection() + ")");
             } else {
-                helpnotitle(p, ChatColor.YELLOW, getlang("sbinmotion"));
+                generalMsg(p, ChatColor.YELLOW, getlang("sbinmotion"));
             }
         }
     }
@@ -109,11 +110,11 @@ class events implements Listener {
         doordiropen.putIfAbsent(p, false);
         if (open) {
             if (speed.get(p) > 0.0) {
-                helpnotitle(p, ChatColor.YELLOW, getlang("dooropeninmotion"));
+                generalMsg(p, ChatColor.YELLOW, getlang("dooropeninmotion"));
                 return;
             }
             if (fixstoppos.get(p) || reqstopping.get(p)) {
-                helpnotitle(p, ChatColor.YELLOW, getlang("fixstoppos"));
+                generalMsg(p, ChatColor.YELLOW, getlang("fixstoppos"));
                 return;
             }
             doordiropen.put(p, true);
@@ -130,7 +131,7 @@ class events implements Listener {
                 }, 4);
             }
             // Stop penalties (If have)
-            if (freemodenoato(p)) {
+            if (freemodeNoATO(p)) {
                 // In station EB
                 if (staeb.get(p)) {
                     staeb.put(p, false);
@@ -143,7 +144,7 @@ class events implements Listener {
                 }
             }
             // ATO Stop Time Countdown, cancelled if door is closed
-            atodepartcountdown(p);
+            atoDepartCountdown(p);
         } else {
             doordiropen.put(p, false);
             reqstopping.put(p, false);
@@ -158,7 +159,7 @@ class events implements Listener {
             MinecartGroup mg = MinecartGroupStore.get(event.getVehicle());
             for (String s : mg.getProperties().getOwners()) {
                 Player p = Bukkit.getPlayer(s);
-                if (playing.get(p) && p != null && !speed.get(p).equals(0.0)) {
+                if (p != null && playing.get(p) && !speed.get(p).equals(0.0)) {
                     DecimalFormat df0 = new DecimalFormat("#");
                     double spd = speed.get(p);
                     String sp = df0.format(spd);

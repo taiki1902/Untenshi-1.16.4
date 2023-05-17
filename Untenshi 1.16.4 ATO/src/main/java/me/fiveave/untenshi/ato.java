@@ -21,19 +21,18 @@ class ato {
             */
             double lowerSpeed = atospeed.get(p);
             // 0.0625 from result of getting mg.head() y-location
-            final double cartPosDiff = 0.0625;
             Location headLoc = mg.head().getEntity().getLocation();
             Location tailLoc = mg.tail().getEntity().getLocation();
-            Location atoLocForSlope = new Location(mg.getWorld(), atodest.get(p)[0] + 0.5, atodest.get(p)[1] + cartPosDiff, atodest.get(p)[2] + 0.5);
+            Location atoLocForSlope = new Location(mg.getWorld(), atodest.get(p)[0] + 0.5, atodest.get(p)[1] + cartYPosDiff, atodest.get(p)[2] + 0.5);
             double slopeaccel = getSlopeAccel(atoLocForSlope, tailLoc);
             double slopeaccelsi = 0;
             double slopeaccelsp = 0;
-            double reqatodist = getreqdist(p, globaldecel(decel, speed.get(p), 7, speedsteps), atospeed.get(p), slopeaccel, speeddrop);
+            double reqatodist = getReqdist(p, globalDecel(decel, speed.get(p), 7, speedsteps), atospeed.get(p), slopeaccel, speeddrop);
             double signaldist = Double.MAX_VALUE;
             double signaldistdiff = Double.MAX_VALUE;
             double speeddist = Double.MAX_VALUE;
             double speeddistdiff = Double.MAX_VALUE;
-            double atodist = distFormula(atodest.get(p)[0] + 0.5, p.getLocation().getX(), atodest.get(p)[2] + 0.5, p.getLocation().getZ());
+            double atodist = distFormula(atodest.get(p)[0] + 0.5, headLoc.getX(), atodest.get(p)[2] + 0.5, headLoc.getZ());
             double atodistdiff = atodist - reqatodist;
             double reqsidist;
             double reqspdist;
@@ -42,17 +41,17 @@ class ato {
             int finalmascon = 0;
             // Find either ATO, signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
             if (lastsisign.containsKey(p) && lastsisp.containsKey(p)) {
-                Location siLocForSlope = new Location(mg.getWorld(), lastsisign.get(p).getX(), lastsisign.get(p).getY() + cartPosDiff, lastsisign.get(p).getZ());
+                Location siLocForSlope = new Location(mg.getWorld(), lastsisign.get(p).getX(), lastsisign.get(p).getY() + cartYPosDiff, lastsisign.get(p).getZ());
                 slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
-                reqsidist = getreqdist(p, globaldecel(decel, speed.get(p), 6, speedsteps), lastsisp.get(p), slopeaccelsi, speeddrop);
-                signaldist = distFormula(lastsisign.get(p).getX() + 0.5, p.getLocation().getX(), lastsisign.get(p).getZ() + 0.5, p.getLocation().getZ());
+                reqsidist = getReqdist(p, globalDecel(decel, speed.get(p), 6, speedsteps), lastsisp.get(p), slopeaccelsi, speeddrop);
+                signaldist = distFormula(lastsisign.get(p).getX() + 0.5, headLoc.getX(), lastsisign.get(p).getZ() + 0.5, headLoc.getZ());
                 signaldistdiff = signaldist - reqsidist;
             }
             if (lastspsign.containsKey(p) && lastspsp.containsKey(p)) {
-                Location spLocForSlope = new Location(mg.getWorld(), lastspsign.get(p).getX(), lastspsign.get(p).getY() + cartPosDiff, lastspsign.get(p).getZ());
+                Location spLocForSlope = new Location(mg.getWorld(), lastspsign.get(p).getX(), lastspsign.get(p).getY() + cartYPosDiff, lastspsign.get(p).getZ());
                 slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
-                reqspdist = getreqdist(p, globaldecel(decel, speed.get(p), 6, speedsteps), lastspsp.get(p), slopeaccelsp, speeddrop);
-                speeddist = distFormula(lastspsign.get(p).getX() + 0.5, p.getLocation().getX(), lastspsign.get(p).getZ() + 0.5, p.getLocation().getZ());
+                reqspdist = getReqdist(p, globalDecel(decel, speed.get(p), 6, speedsteps), lastspsp.get(p), slopeaccelsp, speeddrop);
+                speeddist = distFormula(lastspsign.get(p).getX() + 0.5, headLoc.getX(), lastspsign.get(p).getZ() + 0.5, headLoc.getZ());
                 speeddistdiff = speeddist - reqspdist;
             }
             double priority = (atodistdiff < signaldistdiff) ? (Math.min(atodistdiff, speeddistdiff)) : (Math.min(signaldistdiff, speeddistdiff));
@@ -68,11 +67,11 @@ class ato {
             }
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
-            getallreqdist(p, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccel);
-            double potentialaccel = accelswitch(accel, 5, speed.get(p), speedsteps) + slopeaccel;
+            getAllReqdist(p, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccel);
+            double potentialaccel = accelSwitch(accel, 5, speed.get(p), speedsteps) + slopeaccel;
             boolean allowaccel = ((currentlimit - speed.get(p) > 5 && mascon.get(p) == 0) || mascon.get(p) > 0) && speed.get(p) + potentialaccel / 2 <= currentlimit && !overrun.get(p);
             // If no signal give it one
-            lastsisp.putIfAbsent(p, 360);
+            lastsisp.putIfAbsent(p, maxspeed);
             // Actual controlling part
             // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
             boolean nextredlight = lastsisp.get(p).equals(0) && priority == signaldistdiff;
@@ -97,17 +96,17 @@ class ato {
                 }
             }
             // Cancel braking?
-            if (tempdist > reqdist[1] + speed1s(p) * (getThinkingTime(p, 1))) {
+            if (tempdist > reqdist[1] + speed1s(p) * getThinkingTime(p, 1)) {
                 atoforcebrake.put(p, false);
             }
             // Red light waiting procedure
             if (nextredlight && speed.get(p) == 0) {
-                waitdepart(p);
+                waitDepart(p);
             }
             // Slightly speeding auto braking (not related to ATS-P or ATC)
             if (speed.get(p) > currentlimit) {
                 // Redefine reqdist (here for braking distance to speed limit)
-                getallreqdist(p, decel, ebdecel, speeddrop, speedsteps, currentlimit, reqdist, getSlopeAccel(headLoc, tailLoc));
+                getAllReqdist(p, decel, ebdecel, speeddrop, speedsteps, currentlimit, reqdist, getSlopeAccel(headLoc, tailLoc));
                 int finalbrake = -8;
                 for (int a = 8; a >= 1; a--) {
                     // If braking distance is greater than distance in 1 s and if the brake is greater, then use the value
@@ -128,15 +127,15 @@ class ato {
         }
     }
 
-    private static void getallreqdist(Player p, double decel, double ebdecel, double speeddrop, int[] speedsteps, double lowerSpeed, double[] reqdist, double slopeaccel) {
+    static void getAllReqdist(Player p, double decel, double ebdecel, double speeddrop, int[] speedsteps, double lowerSpeed, double[] reqdist, double slopeaccel) {
         double speedlater = speed.get(p) + slopeaccel;
         // Consider normal case or else EB will be too common
-        reqdist[9] = getreqdist(p, globaldecel(decel, speed.get(p), ebdecel, speedsteps), lowerSpeed, slopeaccel, speeddrop);
+        reqdist[9] = getReqdist(p, globalDecel(decel, speed.get(p), ebdecel, speedsteps), lowerSpeed, slopeaccel, speeddrop);
         // Get speed drop distance
-        reqdist[0] = getreqdist(p, speeddrop, lowerSpeed, slopeaccel, speeddrop);
+        reqdist[0] = getReqdist(p, speeddrop, lowerSpeed, slopeaccel, speeddrop);
         for (int a = 1; a <= 8; a++) {
             // Plus reaction time + consider speed after adding slopeaccel to prevent reaction lag
-            reqdist[a] = getreqdist(p, globaldecel(decel, speedlater, a + 1, speedsteps), lowerSpeed, slopeaccel, speeddrop) + speedlater / 3.6 * getThinkingTime(p, a);
+            reqdist[a] = getReqdist(p, globalDecel(decel, speedlater, a + 1, speedsteps), lowerSpeed, slopeaccel, speeddrop) + speedlater / 3.6 * getThinkingTime(p, a);
         }
     }
 
@@ -149,29 +148,29 @@ class ato {
     }
 
     // ATO Stop Time Countdown
-    static void atodepartcountdown(Player p) {
+    static void atoDepartCountdown(Player p) {
         if (playing.get(p) && atostoptime.containsKey(p)) {
             if (atostoptime.get(p) > 0 && doordiropen.get(p)) {
                 atostoptime.put(p, atostoptime.get(p) - 1);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> atodepartcountdown(p), 20);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> atoDepartCountdown(p), 20);
             } else {
                 doorControls(p, false);
                 // Reset values in order to depart
                 atostoptime.remove(p);
                 atodest.remove(p);
                 atospeed.remove(p);
-                waitdepart(p);
+                waitDepart(p);
             }
         }
     }
 
-    private static void waitdepart(Player p) {
+    private static void waitDepart(Player p) {
         if (playing.get(p)) {
             // Wait doors fully closed then depart
             if (dooropen.get(p).equals(0) && doorconfirm.get(p) && mascon.get(p) != -9 && (!lastsisp.containsKey(p) || !lastsisp.get(p).equals(0))) {
                 mascon.put(p, 5);
             } else {
-                Bukkit.getScheduler().runTaskLater(plugin, () -> waitdepart(p), interval);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> waitDepart(p), interval);
                 if (mascon.get(p) != -9) {
                     mascon.put(p, -8);
                 }
