@@ -169,12 +169,12 @@ class motion {
         mg.setForwardForce(blockpertick);
         mg.setProperties(tprop);
         // Door (enter and exit train)
-        boolean do30 = dooropen.get(p) == 30;
-        if (doordiropen.get(p) && !do30) {
+        if (doordiropen.get(p) && dooropen.get(p) < 30) {
             dooropen.put(p, dooropen.get(p) + 1);
         } else if (!doordiropen.get(p) && dooropen.get(p) > 0) {
             dooropen.put(p, dooropen.get(p) - 1);
         }
+        boolean do30 = dooropen.get(p) == 30;
         if (!doorconfirm.get(p) && (dooropen.get(p) == 0 || do30)) {
             tprop.setPlayersEnter(do30);
             tprop.setPlayersExit(do30);
