@@ -25,7 +25,7 @@ help3f: 1. Type /uts activate false
 help3g: 2. Your control handles will be cleared
 help3h: '* Your inventory will be restored *'
 help3i: 'Warnings:'
-help3j: traintype/freemode/allowato must be executed before /uts activate true.
+help3j: freemode/allowato must be executed before /uts activate true.
 help3k: After you pass through a 0 km/h signal, you must confirm using /uts ac after the signals have been changed.
 help4a: 'speedsign: Set speed limit'
 help4b: '3rd line: '
@@ -81,12 +81,6 @@ doorinfo2: '[false: Close doors]'
 acsuccess: ATS Confirm Successful
 acfailed: ATS Confirm Failed
 acnotneeded: ATS Confirm is not needed
-localtrainaccel: 'Train Acceleration: Now using local train acceleration.'
-hsrtrainaccel: 'Train Acceleration: Now using high speed rail train acceleration.'
-lrttrainaccel: 'Train Acceleration: Now using light rail train acceleration.'
-traintypeinfo1: '[local: Local train speeds]'
-traintypeinfo2: '[hsr: HSR train speeds]'
-traintypeinfo3: '[lrt: LRT train speeds]'
 freemode: 'Free mode: '
 freemodeinfo1: '[true: Enable]'
 freemodeinfo2: '[false: Disable]'

@@ -25,7 +25,7 @@ help3f: 1. 輸入 /uts activate false
 help3g: 2. 你身上的操控桿會被清除
 help3h: '* 你身上的物品會被還原 *'
 help3i: '注意:'
-help3j: traintype/freemode/allowato 必須在 /uts activate true 前執行。
+help3j: freemode/allowato 必須在 /uts activate true 前執行。
 help3k: 超越 0 km/h 的信號之後，必須在信號改變後使用 /uts ac 確認。
 help4a: 'speedsign: 設定速度限制'
 help4b: '第3行: '
@@ -81,12 +81,6 @@ doorinfo2: '[false: 關門]'
 acsuccess: ATS 確認成功。
 acfailed: ATS 確認失敗。
 acnotneeded: ATS 不需確認。
-localtrainaccel: '列車變速: 現正使用普通列車變速。'
-hsrtrainaccel: '列車變速: 現正使用高鐵列車變速。'
-lrttrainaccel: '列車變速: 現正使用輕軌列車變速。'
-traintypeinfo1: '[local: 普通列車速度]'
-traintypeinfo2: '[hsr: 高鐵列車速度]'
-traintypeinfo3: '[lrt: 輕軌列車速度]'
 freemode: '自由模式: '
 freemodeinfo1: '[true: 啟用]'
 freemodeinfo2: '[false: 停用]'

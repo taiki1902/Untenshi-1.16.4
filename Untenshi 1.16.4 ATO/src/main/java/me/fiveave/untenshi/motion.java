@@ -54,7 +54,7 @@ class motion {
         MinecartGroup mg = MinecartGroupStore.get(p.getVehicle());
         TrainProperties tprop = mg.getProperties();
         // From traindata (if available)
-        String seltrainname = "";
+        String seltrainname = "default";
         Set<String> allTrains = Objects.requireNonNull(traindata.dataconfig.getConfigurationSection("trains")).getKeys(false);
         // Choose most suitable type
         for (String tname : allTrains) {
@@ -64,43 +64,16 @@ class motion {
             }
         }
         // Set data accordingly
-        if (seltrainname.length() > 0) {
-            String tDataInfo = "trains." + seltrainname;
-            if (traindata.dataconfig.contains(tDataInfo + ".accel"))
-                accel = traindata.dataconfig.getDouble(tDataInfo + ".accel");
-            if (tContains(".decel", tDataInfo))
-                decel = traindata.dataconfig.getDouble(tDataInfo + ".decel");
-            if (tContains(".traintype", tDataInfo))
-                traintype.put(p, traindata.dataconfig.getString(tDataInfo + ".traintype"));
-            if (tContains(".ebdecel", tDataInfo))
-                ebdecel = traindata.dataconfig.getDouble(tDataInfo + ".ebdecel") * 2;
-            if (tContains(".speeds", tDataInfo) && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
-                for (int i = 0; i < 6; i++) {
-                    speedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
-                }
-            }
-        }
-        // If cannot find most suitable type
-        else {
-            switch (traintype.get(p)) {
-                case "local":
-                    ebdecel = 10.4;
-                    speedsteps = new int[]{21, 41, 61, 81, 111, 130};
-                    accel = plugin.getConfig().getDouble(traintype.get(p) + "accelrate");
-                    decel = plugin.getConfig().getDouble(traintype.get(p) + "decelrate");
-                    break;
-                case "hsr":
-                    ebdecel = 10.4;
-                    speedsteps = new int[]{41, 101, 161, 221, 261, 280};
-                    accel = plugin.getConfig().getDouble(traintype.get(p) + "accelrate");
-                    decel = plugin.getConfig().getDouble(traintype.get(p) + "decelrate");
-                    break;
-                case "lrt":
-                    ebdecel = 19;
-                    speedsteps = new int[]{16, 31, 46, 61, 71, 80};
-                    accel = plugin.getConfig().getDouble("localaccelrate") * 4.68 / 3.5;
-                    decel = plugin.getConfig().getDouble("localdecelrate") * 3.6 / 3.5;
-                    break;
+        String tDataInfo = "trains." + seltrainname;
+        if (traindata.dataconfig.contains(tDataInfo + ".accel"))
+            accel = traindata.dataconfig.getDouble(tDataInfo + ".accel");
+        if (tContains(".decel", tDataInfo))
+            decel = traindata.dataconfig.getDouble(tDataInfo + ".decel");
+        if (tContains(".ebdecel", tDataInfo))
+            ebdecel = traindata.dataconfig.getDouble(tDataInfo + ".ebdecel") * 2;
+        if (tContains(".speeds", tDataInfo) && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
+            for (int i = 0; i < 6; i++) {
+                speedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
             }
         }
         // Rounding
@@ -184,7 +157,7 @@ class motion {
         String tolangtxt = doorconfirm.get(p) ? "ed" : "ing";
         String doortxt = doordiropen.get(p) ? (atostoptime.containsKey(p) ? ChatColor.GOLD + "..." + atostoptime.get(p) : ChatColor.GREEN + getlang("open" + tolangtxt)) : ChatColor.RED + getlang("clos" + tolangtxt);
         // Action bar
-        String actionbarmsg = "" + ctrltext + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + ChatColor.WHITE + df0.format(speed.get(p)) + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + points.get(p) + " | " + ChatColor.YELLOW + getlang("door") + doortxt;
+        String actionbarmsg = ctrltext + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + ChatColor.WHITE + df0.format(speed.get(p)) + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + points.get(p) + " | " + ChatColor.YELLOW + getlang("door") + doortxt;
         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbarmsg));
         // Count points
         if (freemodeNoATO(p) && mascon.get(p) == -9 && speed.get(p) > 20 && !atsbraking.get(p) && !atsping.get(p)) {

@@ -25,7 +25,7 @@ help3f: 1. /uts activate false と入力する
 help3g: 2. コントロールハンドルが削除される
 help3h: '* 持ち物は復元される *'
 help3i: '注意事項について:'
-help3j: traintype/freemode/allowato は、/uts activate true の前に実行する必要があります。
+help3j: freemode/allowato は、/uts activate true の前に実行する必要があります。
 help3k: 0 km/h の信号を通過した後、信号が変更された後、/uts ac を使用して確認する必要があります。
 help4a: 'speedsign: 速度制限を設定する'
 help4b: '3行目: '
@@ -81,12 +81,6 @@ doorinfo2: '[false: ドアを閉まる]'
 acsuccess: ATS 確認が成功しました。
 acfailed: ATS 確認が失敗しました。
 acnotneeded: ATS 確認する必要がありません。
-localtrainaccel: '列車変速: 普通鉄道列車の變速が使っています。'
-hsrtrainaccel: '列車変速: 新幹線列車の變速が使っています。'
-lrttrainaccel: '列車変速: ライトレール列車の變速が使っています。'
-traintypeinfo1: '[local: 普通鉄道列車の速度]'
-traintypeinfo2: '[hsr: 新幹線列車の速度]'
-traintypeinfo3: '[lrt: ライトレール列車の速度]'
 freemode: 'フリーモード: '
 freemodeinfo1: '[true: オン]'
 freemodeinfo2: '[false: オフ]'

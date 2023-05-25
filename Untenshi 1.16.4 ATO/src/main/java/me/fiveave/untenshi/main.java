@@ -41,7 +41,6 @@ public final class main extends JavaPlugin implements Listener {
     public static HashMap<Player, Location> lastsisign = new HashMap<>();
     public static HashMap<Player, Location> lastspsign = new HashMap<>();
     public static HashMap<Player, Location[][]> resettablesisign = new HashMap<>();
-    public static HashMap<Player, String> traintype = new HashMap<>();
     public static HashMap<Player, String> signaltype = new HashMap<>();
     public static HashMap<Player, String> signalorderptn = new HashMap<>();
     public static HashMap<Player, Boolean> playing = new HashMap<>();

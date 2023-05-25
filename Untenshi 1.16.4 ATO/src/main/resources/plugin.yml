@@ -1,5 +1,5 @@
 name: Untenshi
-version: 1.9.2-ATO
+version: 1.9.3-ATO
 main: me.fiveave.untenshi.main
 api-version: 1.15
 description: Untenshi Plugin
@@ -17,7 +17,6 @@ permissions:
     description: All Untenshi Perms
     children:
       uts.main: true
-      uts.traintype: true
       uts.freemode: true
       uts.reload: true
       uts.sign: true
@@ -25,9 +24,6 @@ permissions:
     default: op
   uts.main:
     description: Allow Untenshi usage (basic perm)
-    default: op
-  uts.traintype:
-    description: Allow train type change
     default: op
   uts.freemode:
     description: Allow freemode change

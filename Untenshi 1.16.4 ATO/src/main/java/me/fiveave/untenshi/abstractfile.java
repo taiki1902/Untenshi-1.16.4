@@ -1,5 +1,6 @@
 package me.fiveave.untenshi;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -8,7 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import static me.fiveave.untenshi.main.utshead;
 
@@ -28,30 +31,39 @@ class abstractfile {
     }
 
     void reloadConfig() {
+        // Default config from plugin itself
+        // dataconfig and oldconfig from local files
         InputStream stream = plugin.getResource(file.getName());
         if (stream != null) {
             YamlConfiguration defaultConfig = YamlConfiguration.loadConfiguration(new InputStreamReader(stream));
             if (file.exists() && !dataconfig.getKeys(true).containsAll(defaultConfig.getKeys(true))) {
-                dataconfig.setDefaults(defaultConfig);
                 plugin.saveResource(file.getName(), true);
+                // Get actual data
                 dataconfig = YamlConfiguration.loadConfiguration(file);
-                for (String str : dataconfig.getKeys(true)) {
+                // Whole required list
+                Set<String> setstr = new HashSet<>(oldconfig.getKeys(true));
+                // 1st node != not 1st node then remove 1st node
+                if (!oldconfig.getKeys(true).equals(oldconfig.getKeys(false))) {
+                    setstr.removeAll(oldconfig.getKeys(false));
+                }
+                // Add back defaults
+                dataconfig.addDefaults(defaultConfig);
+                // Put new data config to default values
+                for (String str : setstr) {
                     if (!Objects.equals(oldconfig.get(str), dataconfig.get(str))) {
                         if (oldconfig.get(str) != null) {
                             dataconfig.set(str, oldconfig.get(str));
                         }
                     }
-                    if (oldconfig.get(str) instanceof String) {
-                        dataconfig.set(str, dataconfig.get(str));
-                    }
                 }
+                // Save file
                 plugin.saveResource(file.getName(), true);
                 try {
                     dataconfig.save(file);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                System.out.println(utshead + ChatColor.YELLOW + file.getName() + " has been updated due to missing content");
+                Bukkit.getLogger().info(file.getName() + " has been updated due to missing content");
             }
         }
     }

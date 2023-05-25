@@ -3,21 +3,7 @@
 ##############################
 
 # IMPORTANT: Any value out of recommended range may cause malfunction
-# Deceleration rate is for B6
-# Acceleration and deceleration: 2.5 - 10
 # Speed drop: 0 - 0.5
-
-# Acceleration rate for local trains (km/h/s) (default 3.5)
-localaccelrate: 3.5
-
-# Deceleration rate for local trains (km/h/s) (default 3.5)
-localdecelrate: 3.5
-
-# Acceleration rate for HSR (km/h/s) (default 4.0)
-hsraccelrate: 4.0
-
-# Deceleration rate for HSR (km/h/s) (default 4.0)
-hsrdecelrate: 4.0
 
 # Neutral speed drop rate (km/h/s) (default 0.1)
 speeddroprate: 0.1

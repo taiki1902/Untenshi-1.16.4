@@ -102,12 +102,12 @@ class signalsign extends SignAction {
                                             // Get maximum value of x in each y
                                             Location[][] oldloc = resettablesisign.get(p);
                                             int maxvalx = 0;
-                                            for (Location[] locations : oldloc) {
-                                                if (locations.length > maxvalx) {
-                                                    maxvalx = locations.length;
+                                            for (Location[] everyoldloc : oldloc) {
+                                                if (everyoldloc.length > maxvalx) {
+                                                    maxvalx = everyoldloc.length;
                                                 }
                                             }
-                                            // Array copy
+                                            // Array copy (move passed signals to the back)
                                             Location[][] newloc = new Location[halfptnlen][maxvalx];
                                             for (int i1 = 0; i1 < oldloc.length; i1++) {
                                                 if (i1 + 1 < newloc.length) {

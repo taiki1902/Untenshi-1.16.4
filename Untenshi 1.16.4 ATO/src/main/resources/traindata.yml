@@ -1,7 +1,6 @@
 trains:
-  IMR_Hasan_Local:
+  default:
     accel: 3.5
     decel: 3.5
     ebdecel: 5.2
-    traintype: local
     speeds: [ 21, 41, 61, 81, 111, 130 ]

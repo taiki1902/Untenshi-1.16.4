@@ -48,8 +48,6 @@ class cmds implements CommandExecutor, TabCompleter {
             Player sender2 = (Player) sender;
             // Initialize from playerdata.yml
             pDataInfo = "players." + sender2.getUniqueId();
-            if (pContains(".traintype"))
-                traintype.put(sender2, getPConfig().getString(pDataInfo + ".traintype"));
             if (pContains(".freemode"))
                 freemode.put(sender2, getPConfig().getBoolean(pDataInfo + ".freemode"));
             if (pContains(".allowatousage"))
@@ -58,7 +56,6 @@ class cmds implements CommandExecutor, TabCompleter {
             playing.putIfAbsent(sender2, false);
             speed.putIfAbsent(sender2, 0.0);
             freemode.putIfAbsent(sender2, false);
-            traintype.putIfAbsent(sender2, "local");
             signallimit.putIfAbsent(sender2, maxspeed);
             dooropen.putIfAbsent(sender2, 0);
             doordiropen.putIfAbsent(sender2, false);
@@ -96,7 +93,6 @@ class cmds implements CommandExecutor, TabCompleter {
                                     helpDesc(sender, getlang("cmdlist"));
                                     helpInfo(sender, "help <page>", getlang("help1a"));
                                     helpInfo(sender, "reload", getlang("help2a"));
-                                    helpInfo(sender, "traintype <local/hsr/lrt>", getlang("help2b"));
                                     helpInfo(sender, "freemode <true/false>", getlang("help2c"));
                                     helpInfo(sender, "allowato <true/false>", getlang("help2d"));
                                     helpDesc(sender, getlang("help1g"));
@@ -228,15 +224,6 @@ class cmds implements CommandExecutor, TabCompleter {
                             sender.sendMessage(utshead + ChatColor.YELLOW + getlang("acnotneeded"));
                         }
                         break;
-                    case "traintype":
-                        if (cannotSetTrain(args, sender2)) break;
-                        if ("local".equalsIgnoreCase(args[1]) || "hsr".equalsIgnoreCase(args[1]) || "lrt".equalsIgnoreCase(args[1])) {
-                            traintype.put(sender2, args[1].toLowerCase());
-                            generalMsg(sender, ChatColor.YELLOW, getlang(args[1].toLowerCase() + "trainaccel"));
-                            break;
-                        }
-                        sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts traintype <local/hsr/lrt>" + ChatColor.YELLOW + "]\n" + getlang("traintypeinfo1") + "\n" + getlang("traintypeinfo2") + "\n" + getlang("traintypeinfo3"));
-                        break;
                     case "freemode":
                         if (cannotSetTrain(args, sender2)) break;
                         if (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
@@ -349,7 +336,6 @@ class cmds implements CommandExecutor, TabCompleter {
                 helpMsg(sender);
             }
             // Save in config
-            getPConfig().set(pDataInfo + ".traintype", traintype.get(sender2));
             getPConfig().set(pDataInfo + ".freemode", freemode.get(sender2));
             getPConfig().set(pDataInfo + ".allowatousage", allowatousage.get(sender2));
             playerdata.save();
@@ -419,7 +405,7 @@ class cmds implements CommandExecutor, TabCompleter {
         List<String> result = new ArrayList<>();
         int arglength = args.length;
         if (arglength == 1) {
-            ta.addAll(Arrays.asList("help", "activate", "atsconfirm", "ac", "switchends", "se", "traintype", "freemode", "reload", "pa", "allowato"));
+            ta.addAll(Arrays.asList("help", "activate", "atsconfirm", "ac", "switchends", "se", "freemode", "reload", "pa", "allowato"));
             for (String a : ta) {
                 if (a.toLowerCase().startsWith(args[0].toLowerCase())) {
                     result.add(a);
@@ -435,9 +421,6 @@ class cmds implements CommandExecutor, TabCompleter {
                 case "freemode":
                 case "allowato":
                     ta.addAll(Arrays.asList("true", "false"));
-                    break;
-                case "traintype":
-                    ta.addAll(Arrays.asList("local", "hsr", "lrt"));
                     break;
                 default:
                     ta.add("");
