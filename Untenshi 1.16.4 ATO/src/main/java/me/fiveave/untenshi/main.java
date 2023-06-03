@@ -22,67 +22,120 @@ import static me.fiveave.untenshi.motion.freemodeNoATO;
 import static me.fiveave.untenshi.signalsign.resetSignals;
 
 public final class main extends JavaPlugin implements Listener {
-    public static HashMap<Player, Integer> mascon = new HashMap<>();
-    public static HashMap<Player, Integer> speedlimit = new HashMap<>();
-    public static HashMap<Player, Integer> signallimit = new HashMap<>();
-    public static HashMap<Player, Integer> points = new HashMap<>();
-    public static HashMap<Player, Integer> deductdelay = new HashMap<>();
-    public static HashMap<Player, Integer> atsforced = new HashMap<>();
-    public static HashMap<Player, Integer> lastsisp = new HashMap<>();
-    public static HashMap<Player, Integer> lastspsp = new HashMap<>();
-    public static HashMap<Player, Integer> dooropen = new HashMap<>();
-    public static HashMap<Player, Integer[]> stopoutput = new HashMap<>();
-    public static HashMap<Player, Integer[]> atodest = new HashMap<>();
-    public static HashMap<Player, Integer> atostoptime = new HashMap<>();
-    public static HashMap<Player, Double> current = new HashMap<>();
-    public static HashMap<Player, Double> speed = new HashMap<>();
-    public static HashMap<Player, Double> atospeed = new HashMap<>();
-    public static HashMap<Player, Double[]> stoppos = new HashMap<>();
-    public static HashMap<Player, Location> lastsisign = new HashMap<>();
-    public static HashMap<Player, Location> lastspsign = new HashMap<>();
-    public static HashMap<Player, Location[][]> resettablesisign = new HashMap<>();
-    public static HashMap<Player, String> signaltype = new HashMap<>();
-    public static HashMap<Player, String> signalorderptn = new HashMap<>();
-    public static HashMap<Player, Boolean> playing = new HashMap<>();
-    public static HashMap<Player, Boolean> freemode = new HashMap<>();
-    public static HashMap<Player, Boolean> reqstopping = new HashMap<>();
-    public static HashMap<Player, Boolean> overrun = new HashMap<>();
-    public static HashMap<Player, Boolean> fixstoppos = new HashMap<>();
-    public static HashMap<Player, Boolean> staaccel = new HashMap<>();
-    public static HashMap<Player, Boolean> staeb = new HashMap<>();
-    public static HashMap<Player, Boolean> atsbraking = new HashMap<>();
-    public static HashMap<Player, Boolean> atsping = new HashMap<>();
-    public static HashMap<Player, Boolean> atspnear = new HashMap<>();
-    public static HashMap<Player, Boolean> doordiropen = new HashMap<>();
-    public static HashMap<Player, Boolean> doorconfirm = new HashMap<>();
-    public static HashMap<Player, Boolean> frozen = new HashMap<>();
-    public static HashMap<Player, Boolean> allowatousage = new HashMap<>();
-    public static HashMap<Player, Boolean> atopisdirect = new HashMap<>();
-    public static HashMap<Player, Boolean> atoforcebrake = new HashMap<>();
-    public static HashMap<Player, MinecartGroup> train = new HashMap<>();
-    public static HashMap<Player, ItemStack[]> inv = new HashMap<>();
+
+    static final int ticksin1s = 20;
+    static final int interval = 20 / ticksin1s;
+    static final int maxspeed = 360;
+    static final double cartYPosDiff = 0.0625;
+    public static HashMap<Player, untenshi> driver = new HashMap<>();
     public static main plugin;
     static abstractfile config;
     static abstractfile langdata;
     static abstractfile traindata;
     static abstractfile playerdata;
     static abstractfile signalorder;
-    static final int ticksin1s = 10;
-    static final int interval = 20 / ticksin1s;
-    static final int maxspeed = 360;
-
-    static final double cartYPosDiff = 0.0625;
+    static String pureutstitle = ChatColor.YELLOW + "[========== " + ChatColor.GREEN + "Untenshi " + ChatColor.YELLOW + "==========]\n";
+    static String utshead = "[" + ChatColor.GREEN + "Untenshi" + ChatColor.WHITE + "] ";
+    stoppos v1 = new stoppos();
+    speedsign v2 = new speedsign();
+    signalsign v3 = new signalsign();
+    atosign v4 = new atosign();
+    utstrain v5 = new utstrain();
 
     static String getlang(String path) {
         langdata.reloadConfig();
         return Objects.requireNonNull(langdata.dataconfig.getString(path));
     }
 
-    stoppos v1 = new stoppos();
-    speedsign v2 = new speedsign();
-    signalsign v3 = new signalsign();
-    atosign v4 = new atosign();
-    utstrain v5 = new utstrain();
+    static boolean noPerm(SignChangeActionEvent e) {
+        if (!e.getPlayer().hasPermission("uts.sign")) {
+            e.getPlayer().sendMessage(ChatColor.RED + getlang("noperm"));
+            e.setCancelled(true);
+            return true;
+        }
+        return false;
+    }
+
+    static void pointCounter(untenshi ld, ChatColor color, String s, int pts, String str) {
+        ChatColor color2 = pts > 0 ? ChatColor.GREEN : ChatColor.RED;
+        String ptsstr = !freemodeNoATO(ld) ? "" : String.valueOf(pts);
+        generalMsg(ld.getP(), color, s + color2 + ptsstr + str);
+        if (freemodeNoATO(ld)) {
+            ld.setPoints(ld.getPoints() + pts);
+        }
+    }
+
+
+    static String getSpeedMax() {
+        return ChatColor.RED + getlang("speedmax").replaceAll("%speed%", String.valueOf(maxspeed));
+    }
+
+    static void restoreinit(untenshi ld) {
+        // Get train group and stop train and open doors
+        if (ld.isPlaying()) {
+            MinecartGroup mg = ld.getTrain();
+            TrainProperties trainprop = mg.getProperties();
+            trainprop.setSpeedLimit(0);
+            mg.setForwardForce(0);
+            trainprop.setPlayersEnter(true);
+            trainprop.setPlayersExit(true);
+            ld.setPlaying(false);
+            ld.setSpeed(0.0);
+            ld.setSignallimit(maxspeed);
+            ld.setSpeedlimit(maxspeed);
+            ld.setFrozen(false);
+            ld.setDooropen(0);
+            ld.setDoordiropen(false);
+            ld.setDoorconfirm(false);
+            ld.setFixstoppos(false);
+            ld.setStaeb(false);
+            ld.setStaaccel(false);
+            ld.setMascon(-9);
+            ld.setCurrent(-480.0);
+            ld.setPoints(30);
+            ld.setAtsbraking(false);
+            ld.setAtsping(false);
+            ld.setAtspnear(false);
+            ld.setOverrun(false);
+            ld.setSignaltype("ats");
+            ld.setReqstopping(false);
+            ld.setAtsforced(0);
+            ld.setAtopisdirect(false);
+            ld.setAtoforcebrake(false);
+            ld.setTrain(null);
+            ld.setStoppos(null);
+            ld.setAtospeed(-1);
+            ld.setAtodest(null);
+            ld.setAtostoptime(-1);
+            ld.setLastsisign(null);
+            ld.setLastspsign(null);
+            ld.setLastsisp(-1);
+            ld.setLastspsp(-1);
+            // Delete owners
+            trainprop.clearOwners();
+            // Clear Inventory
+            for (int i = 0; i < 41; i++) {
+                ld.getP().getInventory().setItem(i, new ItemStack(Material.AIR));
+            }
+            // Reset inventory
+            ld.getP().getInventory().setContents(ld.getInv());
+            ld.getP().updateInventory();
+            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + ChatColor.RED + getlang("disable"));
+            // Reset signals
+            try {
+                Location[][] locs = ld.getResettablesisign();
+                for (Location[] locs1 : locs) {
+                    resetSignals(ld.getP().getWorld(), locs1);
+                }
+            } catch (Exception ignored) {
+            }
+            ld.setResettablesisign(null);
+            ld.setSignalorderptn("default");
+            ld.setIlposlist(null);
+            ld.setIlposoccupied(null);
+            ld.setIlenterqueuetime(0);
+        }
+    }
 
     @Override
     public void onEnable() {
@@ -113,92 +166,14 @@ public final class main extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        for (Player p : this.getServer().getOnlinePlayers()) {
+        for (Player p : driver.keySet()) {
             // Prevent plugin shutdown affecting playing status
-            restoreinit(p);
+            restoreinit(driver.get(p));
         }
         SignAction.unregister(v1);
         SignAction.unregister(v2);
         SignAction.unregister(v3);
         SignAction.unregister(v4);
         SignAction.unregister(v5);
-    }
-
-    static boolean noPerm(SignChangeActionEvent e) {
-        if (!e.getPlayer().hasPermission("uts.sign")) {
-            e.getPlayer().sendMessage(ChatColor.RED + getlang("noperm"));
-            e.setCancelled(true);
-            return true;
-        }
-        return false;
-    }
-
-    static String pureutstitle = ChatColor.YELLOW + "[========== " + ChatColor.GREEN + "Untenshi " + ChatColor.YELLOW + "==========]\n";
-
-    static String utshead = "[" + ChatColor.GREEN + "Untenshi" + ChatColor.WHITE + "] ";
-
-    static void pointCounter(Player p, ChatColor color, String s, int pts, String str) {
-        ChatColor color2 = pts > 0 ? ChatColor.GREEN : ChatColor.RED;
-        String ptsstr = !freemodeNoATO(p) ? "" : String.valueOf(pts);
-        generalMsg(p, color, s + color2 + ptsstr + str);
-        if (freemodeNoATO(p)) {
-            points.put(p, points.get(p) + pts);
-        }
-    }
-
-    static String getSpeedMax() {
-        return ChatColor.RED + getlang("speedmax").replaceAll("%speed%", String.valueOf(maxspeed));
-    }
-
-    static void restoreinit(Player p) {
-        // Get train group and stop train and open doors
-        playing.putIfAbsent(p, false);
-        if (playing.get(p)) {
-            MinecartGroup mg = train.get(p);
-            TrainProperties trainprop = mg.getProperties();
-            trainprop.setSpeedLimit(0);
-            mg.setForwardForce(0);
-            trainprop.setPlayersEnter(true);
-            trainprop.setPlayersExit(true);
-            speed.put(p, 0.0);
-            points.put(p, 30);
-            overrun.put(p, false);
-            reqstopping.put(p, false);
-            fixstoppos.put(p, false);
-            playing.put(p, false);
-            train.remove(p);
-            stoppos.remove(p);
-            speedlimit.remove(p);
-            signallimit.remove(p);
-            atospeed.remove(p);
-            atodest.remove(p);
-            atostoptime.remove(p);
-            atopisdirect.remove(p);
-            atoforcebrake.remove(p);
-            lastsisign.remove(p);
-            lastspsign.remove(p);
-            lastsisp.remove(p);
-            lastspsp.remove(p);
-            // Delete owners
-            trainprop.clearOwners();
-            // Clear Inventory
-            for (int i = 0; i < 41; i++) {
-                p.getInventory().setItem(i, new ItemStack(Material.AIR));
-            }
-            // Reset inventory
-            p.getInventory().setContents(inv.get(p));
-            p.updateInventory();
-            generalMsg(p, ChatColor.YELLOW, getlang("activate") + ChatColor.RED + getlang("disable"));
-            // Reset signals
-            try {
-                Location[][] locs = resettablesisign.get(p);
-                for (Location[] locs1 : locs) {
-                    resetSignals(p.getWorld(), locs1);
-                }
-            } catch (Exception ignored) {
-            }
-            resettablesisign.remove(p);
-            signalorderptn.remove(p);
-        }
     }
 }

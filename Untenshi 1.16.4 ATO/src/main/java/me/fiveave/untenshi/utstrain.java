@@ -12,8 +12,8 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
-import static me.fiveave.untenshi.main.noPerm;
-import static me.fiveave.untenshi.main.playing;
+import static me.fiveave.untenshi.cmds.absentDriver;
+import static me.fiveave.untenshi.main.*;
 
 class utstrain extends SignAction {
 
@@ -34,7 +34,9 @@ class utstrain extends SignAction {
                 List cartps = cart2.getPassengers();
                 for (Object cartobject : cartps) {
                     Player p = (Player) cartobject;
-                    if (playing.containsKey(p) && playing.get(p)) {
+                    absentDriver(p);
+                    untenshi localdriver = driver.get(p);
+                    if (localdriver.isPlaying()) {
                         cartevent.setLevers(true);
                     }
                 }

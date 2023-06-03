@@ -1,5 +1,5 @@
 name: Untenshi
-version: 1.9.3-ATO
+version: 1.9.4-ATO
 main: me.fiveave.untenshi.main
 api-version: 1.15
 description: Untenshi Plugin
@@ -21,6 +21,7 @@ permissions:
       uts.reload: true
       uts.sign: true
       uts.pa: true
+      uts.ato: true
     default: op
   uts.main:
     description: Allow Untenshi usage (basic perm)

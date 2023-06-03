@@ -1,7 +1,6 @@
 package me.fiveave.untenshi;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -12,8 +11,6 @@ import java.io.InputStreamReader;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-
-import static me.fiveave.untenshi.main.utshead;
 
 class abstractfile {
     protected final main plugin;

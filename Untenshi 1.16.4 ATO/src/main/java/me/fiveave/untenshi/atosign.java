@@ -36,22 +36,24 @@ class atosign extends SignAction {
                     List cartpassengers = cart2.getPassengers();
                     for (Object cartobj : cartpassengers) {
                         Player p = (Player) cartobj;
-                        if (playing.containsKey(p) && playing.get(p) && allowatousage.get(p)) {
+                        cmds.absentDriver(p);
+                        untenshi localdriver = driver.get(p);
+                        if (localdriver.isPlaying() && localdriver.isAllowatousage()) {
                             if (cartevent.getLine(2).equals("stoptime")) {
-                                atostoptime.put(p, parseInt(cartevent.getLine(3)));
+                                localdriver.setAtostoptime(parseInt(cartevent.getLine(3)));
                                 generalMsg(p, ChatColor.GOLD, getlang("atodetectstoptime"));
                             } else {
-                                Integer[] loc = new Integer[3];
+                                int[] loc = new int[3];
                                 String[] sloc = cartevent.getLine(3).split(" ");
                                 for (int a = 0; a <= 2; a++) {
                                     loc[a] = Integer.parseInt(sloc[a]);
                                 }
-                                overrun.put(p, false);
+                                localdriver.setOverrun(false);
                                 double val = Double.parseDouble(cartevent.getLine(2));
                                 // Direct or indirect pattern?
-                                atopisdirect.put(p, val < 0);
-                                atospeed.put(p, Math.abs(val));
-                                atodest.put(p, loc);
+                                localdriver.setAtopisdirect(val < 0);
+                                localdriver.setAtospeed(Math.abs(val));
+                                localdriver.setAtodest(loc);
                                 generalMsg(p, ChatColor.GOLD, getlang("atodetectpattern"));
                             }
                         }

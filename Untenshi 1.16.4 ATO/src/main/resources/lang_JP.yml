@@ -1,7 +1,6 @@
-help1title: 基本的なコマンド 1/4 ページ
-help2title: 列車の設定 2/4 ページ
-help3title: 運転說明 3/4 ページ
-help4title: サイン 4/4 ページ
+help1title: 基本的なコマンド 1/3 ページ
+help2title: 列車の設定 2/3 ページ
+help3title: 運転說明 3/3 ページ
 cmdlist: 'コマンド列表:'
 help1a: ヘルプを表示する
 help1b: 運転モードを切替する
@@ -27,24 +26,6 @@ help3h: '* 持ち物は復元される *'
 help3i: '注意事項について:'
 help3j: freemode/allowato は、/uts activate true の前に実行する必要があります。
 help3k: 0 km/h の信号を通過した後、信号が変更された後、/uts ac を使用して確認する必要があります。
-help4a: 'speedsign: 速度制限を設定する'
-help4b: '3行目: '
-help4c: '速度 (5で割り切れる必要があります) / warn (予告)'
-help4c1: 'サインの x, y, z (warn に適用可能)'
-help4d: 'stoppos: 停止位置を設定する'
-help4e: '停止位置の x, y, z (例: 10 64 20)'
-help4f: '4行目: '
-help4g: 'レッドストーン出力位置の x, y, z (例: 10 64 20、 該当する場合)'
-help4h: 'signalsign: 信号/閉塞を設定する'
-help4i: 'モード: set (信号を設定する) / relate (信号を電車にリンクする), 信号, 速度'
-help4j: '信号: R / YY / Y / YG / G / ATC'
-help4k: '速度: km/h、 5で割り切れる必要があります'
-help4l: 'モード: warn (信号予告) / relate del (信号と電車のリンクを解除する)'
-help4m: 'サインの x, y, z (例: 10 64 20、 warn / relate (del) に適用可能) / 信号順番, 信号, 速度 (例: default g 360、 set に適用可能)'
-help4n: 'utstrain: Untenshi 列車ディテクター'
-help4o: 'atosign: ATO パターンを設定する'
-help4p: '目標速度 (例: 130) / stoptime (停車時間)'
-help4q: '目標位置の x, y, z (例: 10 64 20、 目標速度に適用可能) / 停車時間 (例: 30、 stoptime に適用可能)'
 pagenotexist: このページは存在していません。正確なページ数を入力してください。
 upwandname: 上
 nwandname: 切
@@ -70,7 +51,7 @@ opened: 開いています
 closed: 閉まっています
 ebstop: '非常制動停車 '
 reaccel: '駅構内再加速 '
-dooropeninmotion: 運転中にドアを開けられないでください!
+dooropeninmotion: 運転中にドアを開けないでください!
 openedalready: ドアが開いています!
 closedalready: ドアが閉まっています!
 fixstoppos: 停止位置を修正してください!

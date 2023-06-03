@@ -1,7 +1,6 @@
-help1title: Basic Commands Page 1/4
-help2title: Train Settings Page 2/4
-help3title: Driving Instructions Page 3/4
-help4title: Signs Page 4/4
+help1title: Basic Commands Page 1/3
+help2title: Train Settings Page 2/3
+help3title: Driving Instructions Page 3/3
 cmdlist: 'List of commands:'
 help1a: Show help
 help1b: Toggle drive mode
@@ -27,24 +26,6 @@ help3h: '* Your inventory will be restored *'
 help3i: 'Warnings:'
 help3j: freemode/allowato must be executed before /uts activate true.
 help3k: After you pass through a 0 km/h signal, you must confirm using /uts ac after the signals have been changed.
-help4a: 'speedsign: Set speed limit'
-help4b: '3rd line: '
-help4c: 'Speed (Must be divisible by 5) / warn (warning)'
-help4c1: 'x, y, z of a sign (for warn)'
-help4d: 'stoppos: Set stop position'
-help4e: 'x, y, z of stop positon (e.g.: 10 64 20)'
-help4f: '4th line: '
-help4g: 'x, y, z of redstone output position (e.g.: 10 64 20, if applicable)'
-help4h: 'signalsign: Set signals'
-help4i: 'Mode: set, Signal, Speed (Set signals) / relate, Signal, Speed (Relate signals to train)'
-help4j: 'Signal: R / YY / Y / YG / G / ATC'
-help4k: 'Speed: km/h, must be divisible by 5'
-help4l: 'Mode: warn (Give signal warning) / relate del (Delete signal relations from train)'
-help4m: 'x, y, z of a sign (e.g.: 10 64 20, applicable to warn / relate (del)) / Signal Order, Signal, Speed (e.g.: default g 360, applicable to set)'
-help4n: 'utstrain: Untenshi Train Detector'
-help4o: 'atosign: Set ATO Pattern'
-help4p: 'Target speed (e.g.: 130) / stoptime (Stopping time)'
-help4q: 'x, y, z of Target speed (e.g.: 10 64 20, for target speed) / Stopping time (e.g.: 30, for stoptime)'
 pagenotexist: This page does not exist. Please enter a valid page number.
 upwandname: Up
 nwandname: Neutral

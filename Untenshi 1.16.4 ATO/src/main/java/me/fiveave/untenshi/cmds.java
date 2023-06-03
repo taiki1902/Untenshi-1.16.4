@@ -32,7 +32,22 @@ import static me.fiveave.untenshi.main.*;
 class cmds implements CommandExecutor, TabCompleter {
     String helphead = ChatColor.GOLD + "/uts ";
     String helpformat = " " + ChatColor.WHITE + "-" + ChatColor.GREEN + " ";
-    String pDataInfo;
+
+    static void absentDriver(Player p) {
+        driver.putIfAbsent(p, new untenshi(p, getPConfig().getBoolean("players." + p.getUniqueId() + ".freemode"), getPConfig().getBoolean("players." + p.getUniqueId() + ".allowatousage")));
+    }
+
+    static void helpSectionTitle(CommandSender sender, ChatColor color, String arg) {
+        sender.sendMessage(pureutstitle + color + " ----- " + getlang("help" + arg + "title") + " -----");
+    }
+
+    static void generalMsg(CommandSender sender, ChatColor color, String s) {
+        sender.sendMessage(utshead + color + s);
+    }
+
+    static FileConfiguration getPConfig() {
+        return playerdata.dataconfig;
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -45,26 +60,14 @@ class cmds implements CommandExecutor, TabCompleter {
                 noPerm(sender);
                 return true;
             }
-            Player sender2 = (Player) sender;
             // Initialize from playerdata.yml
-            pDataInfo = "players." + sender2.getUniqueId();
-            if (pContains(".freemode"))
-                freemode.put(sender2, getPConfig().getBoolean(pDataInfo + ".freemode"));
-            if (pContains(".allowatousage"))
-                allowatousage.put(sender2, getPConfig().getBoolean(pDataInfo + ".allowatousage"));
+            Player sender2 = (Player) sender;
             // Initialize if none (not duplicating)
-            playing.putIfAbsent(sender2, false);
-            speed.putIfAbsent(sender2, 0.0);
-            freemode.putIfAbsent(sender2, false);
-            signallimit.putIfAbsent(sender2, maxspeed);
-            dooropen.putIfAbsent(sender2, 0);
-            doordiropen.putIfAbsent(sender2, false);
-            frozen.putIfAbsent(sender2, false);
-            atsbraking.putIfAbsent(sender2, false);
-            allowatousage.putIfAbsent(sender2, false);
+            absentDriver(sender2);
+            untenshi ld = driver.get(sender2);
             // Force freemode false if perm not given
             if (!sender.hasPermission("uts.freemode")) {
-                freemode.put(sender2, false);
+                ld.setFreemode(false);
             }
             // Change arg to case-non-sensitive
             // For each arg need check length of arg to ensure safety
@@ -103,14 +106,6 @@ class cmds implements CommandExecutor, TabCompleter {
                                     sender.sendMessage("\n" + ChatColor.RED + getlang("help3e") + "\n" + ChatColor.YELLOW + getlang("help3f") + "\n" + getlang("help3g") + "\n" + getlang("help3h"));
                                     sender.sendMessage(ChatColor.GOLD + "\n" + getlang("help3i") + "\n" + ChatColor.YELLOW + getlang("help3j") + "\n" + getlang("help3k"));
                                     break;
-                                case "4":
-                                    helpSectionTitle(sender, ChatColor.DARK_AQUA, args[1]);
-                                    sender.sendMessage(ChatColor.GOLD + getlang("help4a") + "\n" + ChatColor.GREEN + getlang("help4b") + ChatColor.YELLOW + getlang("help4c") + "\n" + ChatColor.GREEN + getlang("help4f") + ChatColor.YELLOW + getlang("help4c1"));
-                                    sender.sendMessage("\n" + ChatColor.GOLD + getlang("help4d") + "\n" + ChatColor.GREEN + getlang("help4b") + ChatColor.YELLOW + getlang("help4e") + "\n" + ChatColor.GREEN + getlang("help4f") + ChatColor.YELLOW + getlang("help4g"));
-                                    sender.sendMessage("\n" + ChatColor.GOLD + getlang("help4h") + "\n" + ChatColor.GREEN + getlang("help4b") + ChatColor.YELLOW + getlang("help4i") + "\n" + getlang("help4j") + "\n" + getlang("help4k") + "\n" + getlang("help4l") + "\n" + ChatColor.GREEN + getlang("help4f") + "\n" + ChatColor.YELLOW + getlang("help4m"));
-                                    sender.sendMessage("\n" + ChatColor.GOLD + getlang("help4n"));
-                                    sender.sendMessage("\n" + ChatColor.GOLD + getlang("help4o") + "\n" + ChatColor.GREEN + getlang("help4b") + ChatColor.YELLOW + getlang("help4p") + "\n" + ChatColor.GREEN + getlang("help4f") + ChatColor.YELLOW + getlang("help4q"));
-                                    break;
                                 default:
                                     generalMsg(sender, ChatColor.YELLOW, getlang("pagenotexist"));
                                     break;
@@ -121,7 +116,7 @@ class cmds implements CommandExecutor, TabCompleter {
                         if (args.length == 2) {
                             switch (args[1].toLowerCase()) {
                                 case "true":
-                                    if (playing.get(sender)) {
+                                    if (ld.isPlaying()) {
                                         generalMsg(sender, ChatColor.YELLOW, getlang("activatedalready"));
                                         break label;
                                     }
@@ -147,41 +142,17 @@ class cmds implements CommandExecutor, TabCompleter {
                                         // Anti collision
                                         tprop.setCollision(tprop.getCollision().cloneAndSetMiscMode(CollisionMode.CANCEL));
                                         tprop.setCollision(tprop.getCollision().cloneAndSetPlayerMode(CollisionMode.CANCEL));
-                                        // Reset values and init
-                                        dooropen.put(sender2, 0);
-                                        doordiropen.put(sender2, false);
-                                        doorconfirm.put(sender2, false);
-                                        fixstoppos.put(sender2, false);
-                                        staeb.put(sender2, false);
-                                        staaccel.put(sender2, false);
-                                        speedlimit.put(sender2, maxspeed);
-                                        signallimit.put(sender2, maxspeed);
-                                        mascon.put(sender2, -9);
-                                        current.put(sender2, -480.0);
-                                        points.put(sender2, 30);
-                                        atsbraking.put(sender2, false);
-                                        atsping.put(sender2, false);
-                                        atspnear.put(sender2, false);
-                                        overrun.put(sender2, false);
-                                        deductdelay.put(sender2, 49);
-                                        signaltype.put(sender2, "ats");
-                                        reqstopping.put(sender2, false);
-                                        atsforced.put(sender2, 0);
-                                        atopisdirect.putIfAbsent(sender2, false);
-                                        atoforcebrake.putIfAbsent(sender2, false);
                                         // Set train group for player
                                         if (selcart instanceof Minecart) {
                                             //noinspection rawtypes
                                             MinecartMember mem = (MinecartMember) CommonEntity.get(selcart).getController();
                                             if (!selcart.getPassengers().isEmpty() && selcart.getPassengers().get(0) instanceof Player) {
-                                                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                                    CartProperties.setEditing((Player) selcart.getPassengers().get(0), mem.getProperties());
-                                                    train.put(sender2, mem.getGroup());
-                                                }, interval);
+                                                Bukkit.getScheduler().runTaskLater(plugin, () -> CartProperties.setEditing((Player) selcart.getPassengers().get(0), mem.getProperties()), interval);
                                             }
+                                            ld.setTrain(mem.getGroup());
                                         }
                                         // Save inventory
-                                        inv.put(sender2, sender2.getInventory().getContents());
+                                        ld.setInv(sender2.getInventory().getContents());
                                         // Clear other slots
                                         for (int i = 0; i < 41; i++) {
                                             sender2.getInventory().setItem(i, new ItemStack(Material.AIR));
@@ -194,17 +165,17 @@ class cmds implements CommandExecutor, TabCompleter {
                                         sender2.getInventory().setItem(7, sbLever());
                                         sender2.getInventory().setItem(8, doorButton());
                                         // Playing = true
-                                        playing.put(sender2, true);
-                                        motion.recursion1(sender);
-                                        generalMsg(sender, ChatColor.YELLOW, getlang("trainset"));
-                                        generalMsg(sender, ChatColor.YELLOW, getlang("activate") + ChatColor.GREEN + getlang("enable"));
+                                        ld.setPlaying(true);
+                                        motion.recursiveClock(ld);
+                                        generalMsg(ld.getP(), ChatColor.YELLOW, getlang("trainset"));
+                                        generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + ChatColor.GREEN + getlang("enable"));
                                     } else {
-                                        generalMsg(sender, ChatColor.RED, getlang("notowner"));
+                                        generalMsg(ld.getP(), ChatColor.RED, getlang("notowner"));
                                     }
                                     break label;
                                 case "false":
-                                    if (playing.get(sender)) {
-                                        restoreinit(sender2);
+                                    if (ld.isPlaying()) {
+                                        restoreinit(ld);
                                     } else {
                                         generalMsg(sender, ChatColor.YELLOW, getlang("deactivatedalready"));
                                     }
@@ -215,44 +186,44 @@ class cmds implements CommandExecutor, TabCompleter {
                         break;
                     case "atsconfirm":
                     case "ac":
-                        if (!signallimit.get(sender).equals(0) && atsbraking.get(sender)) {
-                            atsbraking.put(sender2, false);
+                        if (ld.getSignallimit() != 0 && ld.isAtsbraking()) {
+                            ld.setAtsbraking(false);
                             sender.sendMessage(utshead + ChatColor.GOLD + getlang("acsuccess"));
-                        } else if (signallimit.get(sender).equals(0) || (atsbraking.get(sender) && speed.get(sender) > 0)) {
+                        } else if (ld.getSignallimit() == 0) {
                             sender.sendMessage(utshead + ChatColor.RED + getlang("acfailed"));
                         } else {
                             sender.sendMessage(utshead + ChatColor.YELLOW + getlang("acnotneeded"));
                         }
                         break;
                     case "freemode":
-                        if (cannotSetTrain(args, sender2)) break;
+                        if (cannotSetTrain(args, ld)) break;
                         if (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-                            freemode.put(sender2, Boolean.valueOf(args[1].toLowerCase()));
-                            sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("freemode") + (freemode.get(sender2) ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
+                            ld.setFreemode(Boolean.parseBoolean(args[1].toLowerCase()));
+                            sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("freemode") + (ld.isFreemode() ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
                             break;
                         }
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts freemode <true/false>" + ChatColor.YELLOW + "]\n" + getlang("freemodeinfo1") + "\n" + getlang("freemodeinfo2"));
                         break;
                     case "allowato":
-                        if (cannotSetTrain(args, sender2)) break;
+                        if (cannotSetTrain(args, ld)) break;
                         if (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-                            allowatousage.put(sender2, Boolean.valueOf(args[1].toLowerCase()));
-                            sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("ato") + (allowatousage.get(sender) ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
+                            ld.setAllowatousage(Boolean.parseBoolean(args[1].toLowerCase()));
+                            sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("ato") + (ld.isAllowatousage() ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
                             break;
                         }
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts allowato <true/false>" + ChatColor.YELLOW + "]\n" + getlang("atoinfo1") + "\n" + getlang("atoinfo2"));
                         break;
                     case "switchends":
                     case "se":
-                        if (playing.get(sender)) {
-                            if (speed.get(sender).equals(0.0)) {
+                        if (ld.isPlaying()) {
+                            if (ld.getSpeed() == 0) {
                                 Entity selcart = sender2.getVehicle();
                                 MinecartGroup mg = MinecartGroupStore.get(selcart);
                                 MinecartMember<?> mm = MinecartMemberStore.getFromEntity(selcart);
                                 MinecartMember<?> mm2 = mm;
                                 assert mm != null;
                                 // Check if head or tail is not current cart and they are minecarts
-                                if ((mg.head() != mm || mg.tail() != mm) && !frozen.get(sender)) {
+                                if ((mg.head() != mm || mg.tail() != mm) && !ld.isFrozen()) {
                                     // Must clear passenger in cart, or else player will bug out
                                     if (mg.head() != mm) {
                                         mm2 = mg.head();
@@ -263,15 +234,15 @@ class cmds implements CommandExecutor, TabCompleter {
                                     }
                                     if (mm2.getEntity().getEntity() instanceof RideableMinecart) {
                                         // MUST wait after eject, and teleport, and finally enter, or else will bug
-                                        frozen.put(sender2, true);
+                                        ld.setFrozen(true);
                                         mm.eject();
                                         MinecartMember<?> finalMm = mm2;
                                         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                            sender2.teleport(finalMm.getEntity().getLocation());
+                                            ld.getP().teleport(finalMm.getEntity().getLocation());
                                             Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                                finalMm.addPassengerForced(sender2);
-                                                generalMsg(sender2, ChatColor.YELLOW, getlang("sesuccess"));
-                                                frozen.put(sender2, false);
+                                                finalMm.addPassengerForced(ld.getP());
+                                                generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sesuccess"));
+                                                ld.setFrozen(false);
                                             }, interval);
                                         }, interval);
                                         break;
@@ -287,7 +258,7 @@ class cmds implements CommandExecutor, TabCompleter {
                         break;
                     case "pa":
                         if (checkPerm(sender2, "uts.pa")) break;
-                        if (playing.get(sender)) {
+                        if (ld.isPlaying()) {
                             MinecartGroup mg = MinecartGroupStore.get(sender2.getVehicle());
                             //noinspection rawtypes
                             for (MinecartMember mm : mg) {
@@ -336,10 +307,9 @@ class cmds implements CommandExecutor, TabCompleter {
                 helpMsg(sender);
             }
             // Save in config
-            getPConfig().set(pDataInfo + ".freemode", freemode.get(sender2));
-            getPConfig().set(pDataInfo + ".allowatousage", allowatousage.get(sender2));
+            getPConfig().set("players." + sender2.getUniqueId() + ".freemode", ld.isFreemode());
+            getPConfig().set("players." + sender2.getUniqueId() + ".allowatousage", ld.isAllowatousage());
             playerdata.save();
-
         } catch (Exception e) {
             sender.sendMessage(utshead + ChatColor.RED + getlang("error"));
             e.printStackTrace();
@@ -347,13 +317,13 @@ class cmds implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private boolean cannotSetTrain(String[] args, Player sender2) {
-        return checkPerm(sender2, "uts." + args[0].toLowerCase()) || reqDeactivate(sender2) || args.length != 2;
+    private boolean cannotSetTrain(String[] args, untenshi ld) {
+        return checkPerm(ld.getP(), "uts." + args[0].toLowerCase()) || reqDeactivate(ld) || args.length != 2;
     }
 
-    private boolean reqDeactivate(CommandSender sender) {
-        if (playing.get((Player) sender)) {
-            generalMsg(sender, ChatColor.YELLOW, getlang("deactivatefirst"));
+    private boolean reqDeactivate(untenshi ld) {
+        if (ld.isPlaying()) {
+            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("deactivatefirst"));
             return true;
         }
         return false;
@@ -367,20 +337,8 @@ class cmds implements CommandExecutor, TabCompleter {
         return false;
     }
 
-    boolean pContains(String s) {
-        return getPConfig().contains(pDataInfo + s);
-    }
-
     void noPerm(CommandSender sender) {
         sender.sendMessage(utshead + ChatColor.RED + getlang("noperm"));
-    }
-
-    static void helpSectionTitle(CommandSender sender, ChatColor color, String arg) {
-        sender.sendMessage(pureutstitle + color + " ----- " + getlang("help" + arg + "title") + " -----");
-    }
-
-    static void generalMsg(CommandSender sender, ChatColor color, String s) {
-        sender.sendMessage(utshead + color + s);
     }
 
     void helpDesc(CommandSender sender, String s) {
@@ -393,10 +351,6 @@ class cmds implements CommandExecutor, TabCompleter {
 
     void helpMsg(CommandSender sender) {
         sender.sendMessage(pureutstitle + helphead + "help <page>" + helpformat + getlang("help1a"));
-    }
-
-    FileConfiguration getPConfig() {
-        return playerdata.dataconfig;
     }
 
     @Override
@@ -415,7 +369,7 @@ class cmds implements CommandExecutor, TabCompleter {
         } else if (arglength == 2) {
             switch (args[0].toLowerCase()) {
                 case "help":
-                    ta.addAll(Arrays.asList("1", "2", "3", "4"));
+                    ta.addAll(Arrays.asList("1", "2", "3"));
                     break;
                 case "activate":
                 case "freemode":

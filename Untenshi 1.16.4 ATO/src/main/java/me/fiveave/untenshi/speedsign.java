@@ -8,17 +8,86 @@ import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import com.bergerkiller.bukkit.tc.signactions.SignActionType;
 import com.bergerkiller.bukkit.tc.utils.SignBuildOptions;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.BlockState;
+import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.Rail;
+import org.bukkit.block.data.type.WallSign;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
 import static java.lang.Integer.parseInt;
+import static me.fiveave.untenshi.cmds.absentDriver;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.signImproper;
 
 class speedsign extends SignAction {
+
+    static Location getFullLoc(World world, String loctext) {
+        return new Location(world, getLoc(loctext, 0), getLoc(loctext, 1), getLoc(loctext, 2));
+    }
+
+    static Sign getSignFromLoc(Location loc) {
+        BlockState bl = loc.getBlock().getState();
+        return bl instanceof Sign ? (Sign) bl : null;
+    }
+
+    static Chest getChestFromLoc(Location loc) {
+        BlockState bl = loc.getBlock().getState();
+        return bl instanceof Chest ? (Chest) bl : null;
+    }
+
+    static int[] getSignToRailOffset(Location loc, World w) {
+        int[] blkoffset = new int[3];
+        if (w.getBlockAt(loc) instanceof Sign) {
+            Sign sign = (Sign) w.getBlockAt(loc);
+            if (sign instanceof WallSign) {
+                blkoffset[1] = 1;
+                WallSign ws = (WallSign) sign;
+                switch (String.valueOf(ws.getFacing())) {
+                    case "NORTH":
+                        blkoffset[2] = 1;
+                        break;
+                    case "SOUTH":
+                        blkoffset[2] = -1;
+                        break;
+                    case "WEST":
+                        blkoffset[0] = 1;
+                        break;
+                    case "EAST":
+                        blkoffset[0] = -1;
+                        break;
+                }
+            } else {
+                blkoffset[1] = 2;
+            }
+            while (!(sign.getWorld().getBlockAt(blkoffset[0], blkoffset[1], blkoffset[2]) instanceof Rail)) {
+                blkoffset[1]++;
+            }
+        }
+        return blkoffset;
+    }
+
+    static int getLoc(String str, int i) {
+        return parseInt(str.split(" ")[i]);
+    }
+
+    // l[n]: "n"th split text in line 3
+    static String l1(SignActionEvent e) {
+        return e.getLine(2).toLowerCase().split(" ")[0];
+    }
+
+    static String l2(SignActionEvent e) {
+        return e.getLine(2).toLowerCase().split(" ")[1];
+    }
+
+    static String l3(SignActionEvent e) {
+        return e.getLine(2).split(" ")[2];
+    }
 
     @Override
     public boolean match(SignActionEvent info) {
@@ -36,16 +105,18 @@ class speedsign extends SignAction {
                 List cartpassengers = cart2.getPassengers();
                 for (Object cartobj : cartpassengers) {
                     Player p = (Player) cartobj;
-                    if (playing.containsKey(p) && playing.get(p)) {
+                    absentDriver(p);
+                    untenshi ld = driver.get(p);
+                    if (ld.isPlaying()) {
                         // Speed limit set
                         if (!cartevent.getLine(2).equals("warn")) {
                             int intspeed = parseInt(speedsign);
                             if (intspeed <= maxspeed && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
-                                speedlimit.put(p, intspeed);
-                                generalMsg(p, ChatColor.YELLOW, getlang("speedlimitset") + (intspeed == maxspeed ? ChatColor.GREEN + getlang("nolimit") : speedlimit.get(p) + " km/h"));
+                                ld.setSpeedlimit(intspeed);
+                                generalMsg(p, ChatColor.YELLOW, getlang("speedlimitset") + (intspeed == maxspeed ? ChatColor.GREEN + getlang("nolimit") : intspeed + " km/h"));
                                 if (parseInt(speedsign) != 0) {
-                                    lastspsign.remove(p);
-                                    lastspsp.remove(p);
+                                    ld.setLastspsign(null);
+                                    ld.setLastspsp(maxspeed);
                                 }
                             } else {
                                 signImproper(cartevent, p);
@@ -54,11 +125,11 @@ class speedsign extends SignAction {
                         // Speed limit warn
                         else {
                             try {
-                                Sign warn = getSign(cartevent);
+                                Sign warn = getSignFromLoc(getFullLoc(cartevent.getWorld(), cartevent.getLine(3)));
                                 if (warn != null) {
-                                    lastspsign.put(p, warn.getLocation());
+                                    ld.setLastspsign(warn.getLocation());
                                     int warnsp = parseInt(warn.getLine(2));
-                                    lastspsp.put(p, warnsp);
+                                    ld.setLastspsp(warnsp);
                                     if (warnsp < maxspeed) {
                                         generalMsg(p, ChatColor.YELLOW, getlang("speedlimitwarn") + warnsp + " km/h");
                                     } else {
@@ -114,30 +185,5 @@ class speedsign extends SignAction {
             exception.printStackTrace();
         }
         return true;
-    }
-
-    static Sign getSign(SignActionEvent cartevent) {
-        if (cartevent.getWorld().getBlockAt(getLoc(cartevent, 0), getLoc(cartevent, 1), getLoc(cartevent, 2)).getState() instanceof Sign) {
-            return (Sign) cartevent.getWorld().getBlockAt(getLoc(cartevent, 0), getLoc(cartevent, 1), getLoc(cartevent, 2)).getState();
-        } else {
-            return null;
-        }
-    }
-
-    static int getLoc(SignActionEvent cartevent, int i) {
-        return parseInt(cartevent.getLine(3).split(" ")[i]);
-    }
-
-    // l[n]: "n"th split text in line 3
-    static String l1(SignActionEvent e) {
-        return e.getLine(2).toLowerCase().split(" ")[0];
-    }
-
-    static String l2(SignActionEvent e) {
-        return e.getLine(2).toLowerCase().split(" ")[1];
-    }
-
-    static String l3(SignActionEvent e) {
-        return e.getLine(2).split(" ")[2];
     }
 }

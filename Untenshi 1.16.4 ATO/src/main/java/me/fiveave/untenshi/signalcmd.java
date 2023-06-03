@@ -2,9 +2,7 @@ package me.fiveave.untenshi;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -17,6 +15,8 @@ import java.util.List;
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.*;
+import static me.fiveave.untenshi.speedsign.getFullLoc;
+import static me.fiveave.untenshi.speedsign.getSignFromLoc;
 
 class signalcmd implements CommandExecutor, TabCompleter {
 
@@ -26,7 +26,7 @@ class signalcmd implements CommandExecutor, TabCompleter {
                 int signalspeed = args[3].equals("sign") ? parseInt(args[5]) : 0;
                 // Anti returning wrong arguments
                 String e;
-                String cartevent = args[0] + " " + args[1] + " " + args[2];
+                String inputpos = args[0] + " " + args[1] + " " + args[2];
                 if (args.length == 4) {
                     e = args[3];
                 } else if (args.length == 6) {
@@ -53,8 +53,8 @@ class signalcmd implements CommandExecutor, TabCompleter {
                     switch (args[3]) {
                         // Signal speed limit warn
                         case "warn":
-                            Sign warn = getSign(sender, cartevent);
-                            if (warn.getLine(1).equals("signalsign")) {
+                            Sign warn = getSignFromLoc(getFullLoc(((BlockCommandSender) sender).getBlock().getWorld(), inputpos));
+                            if (warn != null && warn.getLine(1).equals("signalsign")) {
                                 // lastsisign and lastsisp are for detecting signal change
                                 String warnsi = warn.getLine(2).split(" ")[1];
                                 String warnsp = warn.getLine(2).split(" ")[2];
@@ -69,8 +69,10 @@ class signalcmd implements CommandExecutor, TabCompleter {
                         // Set line 4 of sign at (line 3 of this sign) to turn signal
                         case "sign":
                             if (isSignalType(args[4])) {
-                                Sign sign = getSign(sender, cartevent);
-                                updateSignals(sign, "set " + args[4] + " " + args[5]);
+                                Sign sign = getSignFromLoc(getFullLoc(((BlockCommandSender) sender).getBlock().getWorld(), inputpos));
+                                if (sign != null) {
+                                    updateSignals(sign, "set " + args[4] + " " + args[5]);
+                                }
                                 sender.sendMessage(utshead + getlang("signalsignchange") + " (" + args[4] + " " + args[5] + ")");
                                 break;
                             }
@@ -93,17 +95,6 @@ class signalcmd implements CommandExecutor, TabCompleter {
     // l[n]: "n"th split text in line 3
     String l1(String e) {
         return e.toLowerCase().split(" ")[0];
-    }
-
-    int getLoc(String loctext, int i) {
-        return parseInt(loctext.split(" ")[i]);
-    }
-
-    Sign getSign(CommandSender sender, String loctext) {
-        World w = sender instanceof Player ? ((Player) sender).getWorld() : (sender instanceof BlockCommandSender ? ((BlockCommandSender) sender).getBlock().getWorld() : null);
-        assert w != null;
-        BlockState bl = w.getBlockAt(getLoc(loctext, 0), getLoc(loctext, 1), getLoc(loctext, 2)).getState();
-        return bl instanceof Sign ? (Sign) bl : null;
     }
 
     @Override

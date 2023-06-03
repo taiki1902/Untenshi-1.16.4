@@ -2,7 +2,6 @@ package me.fiveave.untenshi;
 
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
 import com.bergerkiller.bukkit.tc.controller.MinecartGroupStore;
-import com.bergerkiller.bukkit.tc.controller.MinecartMemberStore;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -26,198 +25,78 @@ import java.text.DecimalFormat;
 import java.util.Objects;
 
 import static me.fiveave.untenshi.ato.atoDepartCountdown;
+import static me.fiveave.untenshi.cmds.absentDriver;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.motion.freemodeNoATO;
 
 class events implements Listener {
 
-    @EventHandler
-    void onPlayerClicks(PlayerInteractEvent event) {
-        // Init
-        Player p = event.getPlayer();
-        Action ac = event.getAction();
-        ItemStack item = event.getItem();
-        mascon.putIfAbsent(p, -9);
-        int masconstat = mascon.get(p);
-        dooropen.putIfAbsent(p, 0);
-        doorconfirm.putIfAbsent(p, true);
-        playing.putIfAbsent(p, false);
-        // Main Part
-        if ((ac.equals(Action.LEFT_CLICK_AIR) || ac.equals(Action.LEFT_CLICK_BLOCK) || ac.equals(Action.RIGHT_CLICK_AIR) || ac.equals(Action.RIGHT_CLICK_BLOCK)) && item != null && playing.get(p) && !frozen.get(p)) {
-            if (!atodest.containsKey(p) || atsforced.get(p) == 1) {
-                if (upWand().equals(item)) {
-                    if (masconstat > -9) {
-                        mascon.put(p, masconstat - 1);
-                    }
-                    event.setCancelled(true);
-                }
-                if (nWand().equals(item)) {
-                    if (!atsping.get(p) && !atsbraking.get(p)) {
-                        mascon.put(p, 0);
-                    }
-                    event.setCancelled(true);
-                }
-                if (downWand().equals(item)) {
-                    if (!atsping.get(p) && !atsbraking.get(p) && (dooropen.get(p) == 0 || (dooropen.get(p) > 0 && masconstat < 0))) {
-                        if (masconstat < 5) {
-                            mascon.put(p, masconstat + 1);
-                        }
-                    } else {
-                        mascon.put(p, -9);
-                    }
-                    event.setCancelled(true);
-                }
+    static void toEB(untenshi ld) {
+        if (freemodeNoATO(ld) && ld.getMascon() != -9 && ld.getSpeed() > 20 && !ld.isAtsbraking() && !ld.isAtsping()) {
+            // Misuse EB
+            pointCounter(ld, ChatColor.YELLOW, getlang("misuseeb"), -5, "");
+        }
+        ld.setMascon(-9);
+        ld.setAtsforced(1);
+    }
+
+    static void switchBack(untenshi ld) {
+        if (ld.getSpeed() == 0) {
+            ld.getTrain().reverse();
+            if (ld.getAtodest() != null && ld.getAtospeed() != -1) {
+                ld.setAtodest(null);
+                ld.setAtospeed(-1);
+                generalMsg(ld.getP(), ChatColor.GOLD, getlang("atopatterncancel"));
             }
-            if (doorButton().equals(item)) {
-                event.setCancelled(true);
-                Boolean rev = doordiropen.get(p);
-                doorControls(p, !rev);
-            }
-            if (sbLever().equals(item)) {
-                switchBack(p);
-                event.setCancelled(true);
-            }
-            if (ebButton().equals(item)) {
-                toEB(p);
-                event.setCancelled(true);
-            }
+            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(ld.getTrain().head()).getDirection() + ")");
+        } else {
+            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sbinmotion"));
         }
     }
 
-    static void toEB(Player p) {
-        mascon.put(p, -9);
-        atsforced.put(p, 1);
-    }
-
-    static void switchBack(Player p) {
-        if (p.isInsideVehicle()) {
-            if (speed.get(p).equals(0.0)) {
-                MinecartGroupStore.get(p.getVehicle()).reverse();
-                if (atodest.containsKey(p) && atospeed.containsKey(p)) {
-                    atodest.remove(p);
-                    atospeed.remove(p);
-                    generalMsg(p, ChatColor.GOLD, getlang("atopatterncancel"));
-                }
-                generalMsg(p, ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(MinecartMemberStore.getFromEntity(p.getVehicle())).getDirection() + ")");
-            } else {
-                generalMsg(p, ChatColor.YELLOW, getlang("sbinmotion"));
-            }
-        }
-    }
-
-    static void doorControls(Player p, Boolean open) {
-        doordiropen.putIfAbsent(p, false);
+    static void doorControls(untenshi ld, Boolean open) {
         if (open) {
-            if (speed.get(p) > 0.0) {
-                generalMsg(p, ChatColor.YELLOW, getlang("dooropeninmotion"));
+            if (ld.getSpeed() > 0.0) {
+                generalMsg(ld.getP(), ChatColor.YELLOW, getlang("dooropeninmotion"));
                 return;
             }
-            if (fixstoppos.get(p) || reqstopping.get(p)) {
-                generalMsg(p, ChatColor.YELLOW, getlang("fixstoppos"));
+            if (ld.isFixstoppos() || ld.isReqstopping()) {
+                generalMsg(ld.getP(), ChatColor.YELLOW, getlang("fixstoppos"));
                 return;
             }
-            doordiropen.put(p, true);
-            fixstoppos.put(p, false);
-            doorconfirm.put(p, false);
+            ld.setDoordiropen(true);
+            ld.setDoorconfirm(false);
             // Provide output when open door
-            if (stopoutput.containsKey(p)) {
-                Block b = p.getWorld().getBlockAt(stopoutput.get(p)[0], stopoutput.get(p)[1], stopoutput.get(p)[2]);
+            if (ld.getStopoutput() != null) {
+                Block b = ld.getP().getWorld().getBlockAt(ld.getStopoutput()[0], ld.getStopoutput()[1], ld.getStopoutput()[2]);
                 b.getChunk().load();
                 b.setType(Material.REDSTONE_BLOCK);
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     b.setType(Material.AIR);
-                    stopoutput.remove(p);
+                    ld.setStopoutput(null);
                 }, 4);
             }
             // Stop penalties (If have)
-            if (freemodeNoATO(p)) {
+            if (freemodeNoATO(ld)) {
                 // In station EB
-                if (staeb.get(p)) {
-                    staeb.put(p, false);
-                    pointCounter(p, ChatColor.YELLOW, getlang("ebstop"), -5, "");
+                if (ld.isStaeb()) {
+                    ld.setStaeb(false);
+                    pointCounter(ld, ChatColor.YELLOW, getlang("ebstop"), -5, "");
                 }
                 // In station accel
-                if (staaccel.get(p)) {
-                    staaccel.put(p, false);
-                    pointCounter(p, ChatColor.YELLOW, getlang("reaccel"), -5, "");
+                if (ld.isStaaccel()) {
+                    ld.setStaaccel(false);
+                    pointCounter(ld, ChatColor.YELLOW, getlang("reaccel"), -5, "");
                 }
             }
             // ATO Stop Time Countdown, cancelled if door is closed
-            atoDepartCountdown(p);
+            atoDepartCountdown(ld);
         } else {
-            doordiropen.put(p, false);
-            reqstopping.put(p, false);
-            overrun.put(p, false);
-            doorconfirm.put(p, false);
-        }
-    }
-
-    @EventHandler
-    void collision(VehicleBlockCollisionEvent event) {
-        try {
-            MinecartGroup mg = MinecartGroupStore.get(event.getVehicle());
-            for (String s : mg.getProperties().getOwners()) {
-                Player p = Bukkit.getPlayer(s);
-                if (p != null && playing.get(p) && !speed.get(p).equals(0.0)) {
-                    DecimalFormat df0 = new DecimalFormat("#");
-                    double spd = speed.get(p);
-                    String sp = df0.format(spd);
-                    toEB(p);
-                    current.put(p, -480.0);
-                    speed.put(p, 0.0);
-                    pointCounter(p, ChatColor.YELLOW, getlang("collidebuffer"), -10, " " + sp + " km/h");
-                }
-            }
-        } catch (Exception ignored) {
-        }
-    }
-
-    @EventHandler
-    void onDropItem(PlayerDropItemEvent event) {
-        ItemStack item = event.getItemDrop().getItemStack();
-        if (isItems(item)) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    void onClickItem(InventoryClickEvent event) {
-        playing.putIfAbsent((Player) event.getWhoClicked(), false);
-        if (playing.get((Player) event.getWhoClicked())) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    void onMoveItem(InventoryMoveItemEvent event) {
-        ItemStack item = event.getItem();
-        if (isItems(item)) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    void onCreativeMoveItem(InventoryCreativeEvent event) {
-        ItemStack item = event.getCursor();
-        if (isItems(item)) {
-            event.setCancelled(true);
-        }
-    }
-
-    private boolean isItems(ItemStack item) {
-        return item.equals(upWand()) || item.equals(nWand()) || item.equals(downWand()) || item.equals(doorButton()) || item.equals(sbLever()) || item.equals(ebButton());
-    }
-
-
-    @EventHandler
-        // Prevent player leaving affecting playing status
-    void onLeave(PlayerQuitEvent event) {
-        Player p = event.getPlayer();
-        if (playing.containsKey(p)) {
-            if (playing.get(p)) {
-                restoreinit(p);
-            }
+            ld.setDoordiropen(false);
+            ld.setReqstopping(false);
+            ld.setOverrun(false);
+            ld.setDoorconfirm(false);
         }
     }
 
@@ -253,5 +132,128 @@ class events implements Listener {
 
     protected static ItemStack ebButton() {
         return getItem(Material.STONE_BUTTON, ChatColor.DARK_RED, getlang("ebbuttonname"));
+    }
+
+    @EventHandler
+    void onPlayerClicks(PlayerInteractEvent event) {
+        // Init
+        Player p = event.getPlayer();
+        Action ac = event.getAction();
+        ItemStack item = event.getItem();
+        absentDriver(p);
+        untenshi ld = driver.get(p);
+        // Main Part
+        if ((ac.equals(Action.LEFT_CLICK_AIR) || ac.equals(Action.LEFT_CLICK_BLOCK) || ac.equals(Action.RIGHT_CLICK_AIR) || ac.equals(Action.RIGHT_CLICK_BLOCK)) && item != null && ld.isPlaying() && !ld.isFrozen()) {
+            if (ld.getAtodest() == null || ld.getAtsforced() == 1) {
+                if (upWand().equals(item)) {
+                    if (ld.getMascon() > -8) {
+                        ld.setMascon(ld.getMascon() - 1);
+                    } else if (ld.getMascon() == -8) {
+                        toEB(ld);
+                    }
+                    event.setCancelled(true);
+                }
+                if (nWand().equals(item)) {
+                    if (!ld.isAtsping() && !ld.isAtsbraking()) {
+                        ld.setMascon(0);
+                    }
+                    event.setCancelled(true);
+                }
+                if (downWand().equals(item)) {
+                    if (!ld.isAtsping() && !ld.isAtsbraking() && (ld.getDooropen() == 0 || ld.getDooropen() > 0 && ld.getMascon() < 0)) {
+                        if (ld.getMascon() < 5) {
+                            ld.setMascon(ld.getMascon() + 1);
+                        }
+                    } else {
+                        ld.setMascon(-9);
+                    }
+                    event.setCancelled(true);
+                }
+            }
+            if (doorButton().equals(item)) {
+                event.setCancelled(true);
+                boolean rev = ld.isDoordiropen();
+                doorControls(ld, !rev);
+            }
+            if (sbLever().equals(item)) {
+                switchBack(ld);
+                event.setCancelled(true);
+            }
+            if (ebButton().equals(item)) {
+                toEB(ld);
+                event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    void collision(VehicleBlockCollisionEvent event) {
+        try {
+            MinecartGroup mg = MinecartGroupStore.get(event.getVehicle());
+            for (String s : mg.getProperties().getOwners()) {
+                Player p = Bukkit.getPlayer(s);
+                cmds.absentDriver(p);
+                untenshi ld = driver.get(p);
+                if (ld != null && ld.isPlaying() && ld.getSpeed() != 0) {
+                    DecimalFormat df0 = new DecimalFormat("#");
+                    double spd = ld.getSpeed();
+                    String sp = df0.format(spd);
+                    toEB(ld);
+                    ld.setCurrent(-480);
+                    ld.setSpeed(0);
+                    pointCounter(ld, ChatColor.YELLOW, getlang("collidebuffer"), -10, " " + sp + " km/h");
+                }
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    @EventHandler
+    void onDropItem(PlayerDropItemEvent event) {
+        ItemStack item = event.getItemDrop().getItemStack();
+        if (isItems(item)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    void onClickItem(InventoryClickEvent event) {
+        Player p = (Player) event.getWhoClicked();
+        cmds.absentDriver(p);
+        untenshi ld = driver.get(p);
+        if (ld.isPlaying()) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    void onMoveItem(InventoryMoveItemEvent event) {
+        ItemStack item = event.getItem();
+        if (isItems(item)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    void onCreativeMoveItem(InventoryCreativeEvent event) {
+        ItemStack item = event.getCursor();
+        if (isItems(item)) {
+            event.setCancelled(true);
+        }
+    }
+
+    private boolean isItems(ItemStack item) {
+        return item.equals(upWand()) || item.equals(nWand()) || item.equals(downWand()) || item.equals(doorButton()) || item.equals(sbLever()) || item.equals(ebButton());
+    }
+
+    @EventHandler
+        // Prevent player leaving affecting playing status
+    void onLeave(PlayerQuitEvent event) {
+        Player p = event.getPlayer();
+        absentDriver(p);
+        untenshi ld = driver.get(p);
+        if (ld.isPlaying()) {
+            restoreinit(ld);
+        }
     }
 }

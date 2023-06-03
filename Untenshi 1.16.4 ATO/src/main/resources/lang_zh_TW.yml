@@ -1,7 +1,6 @@
-help1title: 基本指令 1/4 頁
-help2title: 列車設定 2/4 頁
-help3title: 駕駛說明 3/4 頁
-help4title: 指示牌 4/4 頁
+help1title: 基本指令 1/3 頁
+help2title: 列車設定 2/3 頁
+help3title: 駕駛說明 3/3 頁
 cmdlist: '指令列表:'
 help1a: 顯示幫助
 help1b: 駕駛模式切換
@@ -27,24 +26,6 @@ help3h: '* 你身上的物品會被還原 *'
 help3i: '注意:'
 help3j: freemode/allowato 必須在 /uts activate true 前執行。
 help3k: 超越 0 km/h 的信號之後，必須在信號改變後使用 /uts ac 確認。
-help4a: 'speedsign: 設定速度限制'
-help4b: '第3行: '
-help4c: '速度 (必須可以被5整除) / warn (預告)'
-help4c1: '告示牌的 x, y, z (warn 適用)'
-help4d: 'stoppos: 設定停車位置'
-help4e: '停車位置的 x, y, z (例: 10 64 20)'
-help4f: '第4行: '
-help4g: '紅石輸出位置的 x, y, z (例: 10 64 20, 如適用)'
-help4h: 'signalsign: 設定信號/閉塞'
-help4i: '模式: set (設定信號) / relate (連結信號與列車), 燈號, 速度'
-help4j: '燈號: R / YY / Y / YG / G / ATC'
-help4k: '速度: km/h, 必須可以被5整除'
-help4l: '模式: warn (信號預告) / relate del (解除信號與列車的連結)'
-help4m: '告示牌的 x, y, z (例: 10 64 20, warn / relate (del) 適用) / 信號順序, 燈號, 速度 (例: default g 360, set 適用)'
-help4n: 'utstrain: Untenshi 列車偵測器'
-help4o: 'atosign: 設定 ATO Pattern'
-help4p: '目標速度 (例: 130) / stoptime (停車時間)'
-help4q: '目標位置的 x, y, z (例: 10 64 20, 目標速度適用) / 停車時間 (例: 30, stoptime 適用)'
 pagenotexist: 該頁面不存在。請輸入正確的頁數。
 upwandname: 上
 nwandname: 切
