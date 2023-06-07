@@ -104,8 +104,7 @@ signalchange: '閉塞変更: '
 nolimit: 解除
 signalsignchange: サインの変更に成功しました。
 signaltypewrong: 信号の種類は正確ではありません。(R / YY / Y / YG / G / ATC)
-signalargwrong1: 引数が正しくありません。(set / warn / relate)
-signalargwrong2: 引数が正しくありません。(warn / sign)
+signalargwrong: 引数が正しくありません。
 signalmax: 速度は 360 km/h 以下である必要があります。
 signalmin0: 速度は負であってはなりません。
 signaldiv5: 速度は5で割り切れる必要があります。

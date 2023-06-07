@@ -123,10 +123,8 @@ public final class main extends JavaPlugin implements Listener {
             generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + ChatColor.RED + getlang("disable"));
             // Reset signals
             try {
-                Location[][] locs = ld.getResettablesisign();
-                for (Location[] locs1 : locs) {
-                    resetSignals(ld.getP().getWorld(), locs1);
-                }
+                Location[] locs = ld.getResettablesisign();
+                resetSignals(ld.getP().getWorld(), locs);
             } catch (Exception ignored) {
             }
             ld.setResettablesisign(null);

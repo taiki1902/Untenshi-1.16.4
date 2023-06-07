@@ -13,7 +13,8 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 import static me.fiveave.untenshi.cmds.absentDriver;
-import static me.fiveave.untenshi.main.*;
+import static me.fiveave.untenshi.main.driver;
+import static me.fiveave.untenshi.main.noPerm;
 
 class utstrain extends SignAction {
 

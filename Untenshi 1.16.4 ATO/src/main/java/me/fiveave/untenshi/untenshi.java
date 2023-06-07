@@ -27,7 +27,7 @@ class untenshi {
     private double[] stoppos;
     private Location lastsisign;
     private Location lastspsign;
-    private Location[][] resettablesisign;
+    private Location[] resettablesisign;
     private Location[] ilposlist;
     private Location[] ilposoccupied;
     private String signaltype;
@@ -227,11 +227,11 @@ class untenshi {
         this.lastspsign = lastspsign;
     }
 
-    public Location[][] getResettablesisign() {
+    public Location[] getResettablesisign() {
         return resettablesisign;
     }
 
-    public void setResettablesisign(Location[][] resettablesisign) {
+    public void setResettablesisign(Location[] resettablesisign) {
         this.resettablesisign = resettablesisign;
     }
 

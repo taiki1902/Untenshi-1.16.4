@@ -77,7 +77,7 @@ class signalcmd implements CommandExecutor, TabCompleter {
                                 break;
                             }
                         default:
-                            sender.sendMessage(utshead + getlang("signalargwrong2"));
+                            sender.sendMessage(utshead + getlang("signalargwrong"));
                             break;
                     }
                 }

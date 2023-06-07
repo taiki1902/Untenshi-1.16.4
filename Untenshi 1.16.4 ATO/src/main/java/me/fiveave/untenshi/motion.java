@@ -172,15 +172,13 @@ class motion {
                         untenshi ld2 = driver.get(p2);
                         if (ld2.isPlaying()) {
                             // Check resettable sign
-                            Location[][] rssign2locs = ld2.getResettablesisign();
+                            Location[] rssign2locs = ld2.getResettablesisign();
                             if (rssign2locs != null) {
-                                for (Location[] loc : rssign2locs) {
-                                    for (Location location : loc) {
-                                        // Resettable sign = 0 km/h
-                                        if (oldpos[i].equals(location) && Objects.requireNonNull(getSignFromLoc(location)).getLine(2).split(" ")[2].equals("0")) {
-                                            if (i < furthestoccupied) {
-                                                furthestoccupied = i;
-                                            }
+                                for (Location location : rssign2locs) {
+                                    // Resettable sign = 0 km/h
+                                    if (oldpos[i].equals(location) && Objects.requireNonNull(getSignFromLoc(location)).getLine(2).split(" ")[2].equals("0")) {
+                                        if (i < furthestoccupied) {
+                                            furthestoccupied = i;
                                         }
                                     }
                                 }
@@ -372,7 +370,7 @@ class motion {
         if (ld.getSignaltype().equals("atc")) {
             if (!ld.isAtsbraking() && isoverspeed3) {
                 ld.setMascon(-8);
-                pointCounter(ld, ChatColor.RED, getlang("atcrun"), -5, "");
+                pointCounter(ld, ChatColor.RED, getlang("atcrun") + " ", -5, "");
             }
             ld.setAtsbraking(isoverspeed3);
         }
@@ -439,7 +437,7 @@ class motion {
                     ld.setMascon(-8);
                     pointCounter(ld, ChatColor.RED, getlang("atspb8") + " ", -5, "");
                 }
-            } else if (tempdist > reqdist[8] && !isoverspeed0 && lowerSpeed != 0) {
+            } else if (tempdist - reqdist[8] > 1 && !isoverspeed0) {
                 ld.setAtsping(false);
             }
             // Pattern near

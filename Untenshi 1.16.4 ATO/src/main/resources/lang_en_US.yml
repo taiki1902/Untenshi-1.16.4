@@ -104,8 +104,7 @@ signalchange: 'Signal change: '
 nolimit: No Limit
 signalsignchange: Sign change successful.
 signaltypewrong: Incorrect signal type. (R / YY / Y / YG / G / ATC)
-signalargwrong1: Incorrect arguments. (set / warn / relate)
-signalargwrong2: Incorrect arguments. (warn / sign)
+signalargwrong: Incorrect arguments.
 signalmax: The speed should be equal or less than 360 km/h.
 signalmin0: The speed should not be a negative number.
 signaldiv5: The speed should be divisible by 5.
