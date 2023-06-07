@@ -121,12 +121,12 @@ public final class main extends JavaPlugin implements Listener {
             ld.getP().getInventory().setContents(ld.getInv());
             ld.getP().updateInventory();
             generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + ChatColor.RED + getlang("disable"));
-            // Reset signals
-            try {
-                Location[] locs = ld.getResettablesisign();
-                resetSignals(ld.getP().getWorld(), locs);
-            } catch (Exception ignored) {
-            }
+            // Reset signals (resettablesign)
+            final Location[] locs = ld.getResettablesisign();
+            resetSignals(ld.getP().getWorld(), locs);
+            // Reset signals (ilposoccupied)
+            final Location[] locs2 = ld.getIlposoccupied();
+            resetSignals(ld.getP().getWorld(), locs2);
             ld.setResettablesisign(null);
             ld.setSignalorderptn("default");
             ld.setIlposlist(null);

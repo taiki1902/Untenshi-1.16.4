@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
@@ -38,9 +39,12 @@ class signalsign extends SignAction {
         try {
             // Get resetable signs
             for (Location loc : locs) {
-                Sign resetable = (Sign) world.getBlockAt(loc).getState();
-                // Copy signal and speed from line 4 to line 3
-                updateSignals(resetable, "set " + resetable.getLine(3).split(" ")[1] + " " + resetable.getLine(3).split(" ")[2]);
+                BlockState bs = world.getBlockAt(loc).getState();
+                if (bs instanceof Sign) {
+                    Sign resettable = (Sign) world.getBlockAt(loc).getState();
+                    // Copy signal and speed from line 4 to line 3
+                    updateSignals(resettable, "set " + resettable.getLine(3).split(" ")[1] + " " + resettable.getLine(3).split(" ")[2]);
+                }
             }
         } catch (Exception ignored) {
         }
