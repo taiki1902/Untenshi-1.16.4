@@ -145,7 +145,7 @@ class motion {
         atc(ld, isoverspeed3);
         // Instant ATS / ATC if red light
         if (ld.getSignallimit() == 0) {
-            ld.setAtsbraking(true);
+            ld.setForcedbraking(true);
             ld.setMascon(-9);
             ld.setCurrent(-480.0);
         }
@@ -354,7 +354,7 @@ class motion {
                 ld.setLastsisp(warnsp);
                 String signalmsg = signalName(warnsi);
                 // If red light
-                if (ld.isAtsbraking() && ld.getSignallimit() == 0) {
+                if (ld.isForcedbraking() && ld.getSignallimit() == 0) {
                     // Remove lastsisign and lastsisp as need to detect further signal warnings
                     ld.setSignallimit(warnsp);
                     ld.setLastsisign(null);
@@ -368,11 +368,11 @@ class motion {
 
     private static void atc(untenshi ld, boolean isoverspeed3) {
         if (ld.getSignaltype().equals("atc")) {
-            if (!ld.isAtsbraking() && isoverspeed3) {
+            if (!ld.isForcedbraking() && isoverspeed3) {
                 ld.setMascon(-8);
                 pointCounter(ld, ChatColor.RED, getlang("atcrun") + " ", -5, "");
             }
-            ld.setAtsbraking(isoverspeed3);
+            ld.setForcedbraking(isoverspeed3);
         }
     }
 
@@ -437,7 +437,7 @@ class motion {
                     ld.setMascon(-8);
                     pointCounter(ld, ChatColor.RED, getlang("atspb8") + " ", -5, "");
                 }
-            } else if (tempdist - reqdist[8] > 1 && !isoverspeed0) {
+            } else if (tempdist - reqdist[8] > 1 && !isoverspeed0 && !ld.isForcedbraking()) {
                 ld.setAtsping(false);
             }
             // Pattern near
@@ -512,7 +512,7 @@ class motion {
         } else if (current < 0 && current > -480) {
             retdecel = globalDecel(decel, speednow, Math.abs(current * 9 / 480) + 1, speedsteps);
         } else if (current == -480) {
-            if (!ld.isAtsbraking() && ld.getSignallimit() != 0) {
+            if (!ld.isForcedbraking() && ld.getSignallimit() != 0) {
                 retdecel = globalDecel(decel, speednow, ebrate, speedsteps);
             } else {
                 // SPAD ATS EB (-35 km/h/s)

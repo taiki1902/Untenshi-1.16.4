@@ -186,8 +186,8 @@ class cmds implements CommandExecutor, TabCompleter {
                         break;
                     case "atsconfirm":
                     case "ac":
-                        if (ld.getSignallimit() != 0 && ld.isAtsbraking()) {
-                            ld.setAtsbraking(false);
+                        if (ld.getSignallimit() != 0 && ld.isForcedbraking()) {
+                            ld.setForcedbraking(false);
                             sender.sendMessage(utshead + ChatColor.GOLD + getlang("acsuccess"));
                         } else if (ld.getSignallimit() == 0) {
                             sender.sendMessage(utshead + ChatColor.RED + getlang("acfailed"));

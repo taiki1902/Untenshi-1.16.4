@@ -33,7 +33,7 @@ import static me.fiveave.untenshi.motion.freemodeNoATO;
 class events implements Listener {
 
     static void toEB(untenshi ld) {
-        if (freemodeNoATO(ld) && ld.getMascon() != -9 && ld.getSpeed() > 20 && !ld.isAtsbraking() && !ld.isAtsping()) {
+        if (freemodeNoATO(ld) && ld.getMascon() != -9 && ld.getSpeed() > 20 && !ld.isForcedbraking() && !ld.isAtsping()) {
             // Misuse EB
             pointCounter(ld, ChatColor.YELLOW, getlang("misuseeb"), -5, "");
         }
@@ -154,13 +154,13 @@ class events implements Listener {
                     event.setCancelled(true);
                 }
                 if (nWand().equals(item)) {
-                    if (!ld.isAtsping() && !ld.isAtsbraking()) {
+                    if (!ld.isAtsping() && !ld.isForcedbraking()) {
                         ld.setMascon(0);
                     }
                     event.setCancelled(true);
                 }
                 if (downWand().equals(item)) {
-                    if (!ld.isAtsping() && !ld.isAtsbraking() && (ld.getDooropen() == 0 || ld.getDooropen() > 0 && ld.getMascon() < 0)) {
+                    if (!ld.isAtsping() && !ld.isForcedbraking() && (ld.getDooropen() == 0 || ld.getDooropen() > 0 && ld.getMascon() < 0)) {
                         if (ld.getMascon() < 5) {
                             ld.setMascon(ld.getMascon() + 1);
                         }

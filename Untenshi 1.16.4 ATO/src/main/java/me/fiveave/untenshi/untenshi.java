@@ -39,7 +39,7 @@ class untenshi {
     private boolean fixstoppos;
     private boolean staaccel;
     private boolean staeb;
-    private boolean atsbraking;
+    private boolean forcedbraking;
     private boolean atsping;
     private boolean atspnear;
     private boolean doordiropen;
@@ -70,7 +70,7 @@ class untenshi {
         this.setMascon(-9);
         this.setCurrent(-480.0);
         this.setPoints(30);
-        this.setAtsbraking(false);
+        this.setForcedbraking(false);
         this.setAtsping(false);
         this.setAtspnear(false);
         this.setOverrun(false);
@@ -307,12 +307,12 @@ class untenshi {
         this.staeb = staeb;
     }
 
-    public boolean isAtsbraking() {
-        return atsbraking;
+    public boolean isForcedbraking() {
+        return forcedbraking;
     }
 
-    public void setAtsbraking(boolean atsbraking) {
-        this.atsbraking = atsbraking;
+    public void setForcedbraking(boolean forcedbraking) {
+        this.forcedbraking = forcedbraking;
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

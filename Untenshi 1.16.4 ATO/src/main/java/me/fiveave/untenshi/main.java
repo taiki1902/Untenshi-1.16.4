@@ -93,7 +93,7 @@ public final class main extends JavaPlugin implements Listener {
             ld.setMascon(-9);
             ld.setCurrent(-480.0);
             ld.setPoints(30);
-            ld.setAtsbraking(false);
+            ld.setForcedbraking(false);
             ld.setAtsping(false);
             ld.setAtspnear(false);
             ld.setOverrun(false);

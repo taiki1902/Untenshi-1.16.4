@@ -13,7 +13,7 @@ import static me.fiveave.untenshi.speedsign.getSignToRailOffset;
 class ato {
 
     static void atosys(untenshi ld, double accel, double decel, double ebdecel, double speeddrop, int[] speedsteps, MinecartGroup mg) {
-        if (ld.getAtodest() != null && ld.getAtospeed() != -1 && !ld.isAtsbraking() && !ld.isAtsping() && ld.getAtsforced() == 0 && ld.isAllowatousage()) {
+        if (ld.getAtodest() != null && ld.getAtospeed() != -1 && !ld.isForcedbraking() && !ld.isAtsping() && ld.getAtsforced() == 0 && ld.isAllowatousage()) {
             /*
              Get distances (distnow: smaller value of atodist and signaldist)
              reqatodist decelfr must be higher than others to prevent ATS-P or ATC run

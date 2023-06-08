@@ -240,7 +240,7 @@ class signalsign extends SignAction {
                                     break;
                                 // Signal speed limit warn
                                 case "warn":
-                                    if ((!ld.isAtsbraking() && ld.getSignaltype().equals("ats")) || ld.getSignaltype().equals("atc")) {
+                                    if ((!ld.isForcedbraking() && ld.getSignaltype().equals("ats")) || ld.getSignaltype().equals("atc")) {
                                         Sign warn = getSignFromLoc(getFullLoc(cartevent.getWorld(), cartevent.getLine(3)));
                                         if (warn != null && warn.getLine(1).equals("signalsign")) {
                                             // lastsisign and lastsisp are for detecting signal change
@@ -263,47 +263,45 @@ class signalsign extends SignAction {
                                 case "interlock":
                                     Location fullloc = getFullLoc(cartevent.getWorld(), cartevent.getLine(3));
                                     String[] l2 = cartevent.getLine(2).split(" ");
-                                    Chest refsign = getChestFromLoc(fullloc);
-                                    if (refsign != null) {
-                                        if (l2.length == 3 && l2[2].equals("del")) {
-                                            removeIlShift(ld, fullloc);
-                                        } else if (l2.length == 2) {
-                                            for (int itemno = 0; itemno < 27; itemno++) {
-                                                ItemMeta mat = null;
-                                                try {
-                                                    mat = Objects.requireNonNull(refsign.getBlockInventory().getItem(itemno)).getItemMeta();
-                                                } catch (Exception ignored) {
-                                                }
-                                                if (mat instanceof BookMeta) {
-                                                    BookMeta bk = (BookMeta) mat;
-                                                    int pgcount = bk.getPageCount();
-                                                    for (int pgno = 1; pgno <= pgcount; pgno++) {
-                                                        String str = bk.getPage(pgno);
-                                                        Location[] oldilpos = ld.getIlposlist();
-                                                        Location[] newilpos;
-                                                        Location setloc = getFullLoc(cartevent.getWorld(), str);
-                                                        // Null or not? If null just put new
-                                                        if (oldilpos == null) {
-                                                            newilpos = new Location[1];
-                                                            newilpos[0] = setloc;
-                                                        }
-                                                        // If not add new ones in if not duplicated
-                                                        else if (!setloc.equals(oldilpos[oldilpos.length - 1])) {
-                                                            int oldilposlen = oldilpos.length;
-                                                            newilpos = new Location[oldilposlen + 1];
-                                                            // Array copy and set new positions
-                                                            System.arraycopy(oldilpos, 0, newilpos, 0, oldilposlen);
-                                                            newilpos[oldilposlen] = getFullLoc(cartevent.getWorld(), str);
-                                                        }
-                                                        // If duplicated just copy old to new
-                                                        else {
-                                                            newilpos = oldilpos;
-                                                        }
-                                                        ld.setIlposlist(newilpos);
-                                                        ld.setIlenterqueuetime(System.currentTimeMillis());
+                                    Chest refchest = getChestFromLoc(fullloc);
+                                    if (l2.length == 3 && l2[2].equals("del")) {
+                                        removeIlShift(ld, fullloc);
+                                    } else if (l2.length == 2 && refchest != null) {
+                                        for (int itemno = 0; itemno < 27; itemno++) {
+                                            ItemMeta mat = null;
+                                            try {
+                                                mat = Objects.requireNonNull(refchest.getBlockInventory().getItem(itemno)).getItemMeta();
+                                            } catch (Exception ignored) {
+                                            }
+                                            if (mat instanceof BookMeta) {
+                                                BookMeta bk = (BookMeta) mat;
+                                                int pgcount = bk.getPageCount();
+                                                for (int pgno = 1; pgno <= pgcount; pgno++) {
+                                                    String str = bk.getPage(pgno);
+                                                    Location[] oldilpos = ld.getIlposlist();
+                                                    Location[] newilpos;
+                                                    Location setloc = getFullLoc(cartevent.getWorld(), str);
+                                                    // Null or not? If null just put new
+                                                    if (oldilpos == null) {
+                                                        newilpos = new Location[1];
+                                                        newilpos[0] = setloc;
                                                     }
-                                                    ld.setSignalorderptn(cartevent.getLine(2).split(" ")[1]);
+                                                    // If not add new ones in if not duplicated
+                                                    else if (!setloc.equals(oldilpos[oldilpos.length - 1])) {
+                                                        int oldilposlen = oldilpos.length;
+                                                        newilpos = new Location[oldilposlen + 1];
+                                                        // Array copy and set new positions
+                                                        System.arraycopy(oldilpos, 0, newilpos, 0, oldilposlen);
+                                                        newilpos[oldilposlen] = getFullLoc(cartevent.getWorld(), str);
+                                                    }
+                                                    // If duplicated just copy old to new
+                                                    else {
+                                                        newilpos = oldilpos;
+                                                    }
+                                                    ld.setIlposlist(newilpos);
+                                                    ld.setIlenterqueuetime(System.currentTimeMillis());
                                                 }
+                                                ld.setSignalorderptn(cartevent.getLine(2).split(" ")[1]);
                                             }
                                         }
                                     }
