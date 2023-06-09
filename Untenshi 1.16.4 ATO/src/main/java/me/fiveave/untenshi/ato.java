@@ -130,7 +130,7 @@ class ato {
     static void getAllReqdist(untenshi ld, double decel, double ebdecel, double speeddrop, int[] speedsteps, double lowerSpeed, double[] reqdist, double slopeaccel) {
         double speedlater = ld.getSpeed() + slopeaccel;
         // Consider normal case or else EB will be too common
-        reqdist[9] = getReqdist(ld, globalDecel(decel, ld.getSpeed(), ebdecel, speedsteps), lowerSpeed, slopeaccel, speeddrop);
+        reqdist[9] = getReqdist(ld, globalDecel(ebdecel, ld.getSpeed(), 7, speedsteps), lowerSpeed, slopeaccel, speeddrop);
         // Get speed drop distance
         reqdist[0] = getReqdist(ld, speeddrop, lowerSpeed, slopeaccel, speeddrop);
         for (int a = 1; a <= 8; a++) {
