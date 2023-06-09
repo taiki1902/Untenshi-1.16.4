@@ -55,7 +55,7 @@ class motion {
         MinecartGroup mg = ld.getTrain();
         TrainProperties tprop = mg.getProperties();
         // From traindata (if available)
-        String seltrainname = "default";
+        String seltrainname = "";
         Set<String> allTrains = Objects.requireNonNull(traindata.dataconfig.getConfigurationSection("trains")).getKeys(false);
         // Choose most suitable type
         for (String tname : allTrains) {
@@ -64,13 +64,19 @@ class motion {
                 seltrainname = tname;
             }
         }
+        // Set as default if none
+        if (seltrainname.equals("")) {
+            seltrainname = "default";
+        }
         // Set data accordingly
         String tDataInfo = "trains." + seltrainname;
         if (traindata.dataconfig.contains(tDataInfo + ".accel"))
             accel = traindata.dataconfig.getDouble(tDataInfo + ".accel");
-        if (tContains(".decel", tDataInfo)) decel = traindata.dataconfig.getDouble(tDataInfo + ".decel");
-        if (tContains(".ebdecel", tDataInfo)) ebdecel = traindata.dataconfig.getDouble(tDataInfo + ".ebdecel") * 2;
-        if (tContains(".speeds", tDataInfo) && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
+        if (traindata.dataconfig.contains(tDataInfo + ".decel"))
+            decel = traindata.dataconfig.getDouble(tDataInfo + ".decel");
+        if (traindata.dataconfig.contains(tDataInfo + ".ebdecel"))
+            ebdecel = traindata.dataconfig.getDouble(tDataInfo + ".ebdecel");
+        if (traindata.dataconfig.contains(tDataInfo + ".speeds") && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
             for (int i = 0; i < 6; i++) {
                 speedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
             }
@@ -109,7 +115,7 @@ class motion {
         // ATS Forced Controls
         if (ld.getMascon() == -9) {
             if (ld.getAtsforced() == 2) {
-                ld.setSpeed(ld.getSpeed() - decel / ticksin1s * 10);
+                ld.setSpeed(ld.getSpeed() - ebdecel / ticksin1s * 45 / 7);
             }
         } else {
             ld.setAtsforced(0);
@@ -505,7 +511,7 @@ class motion {
         return retaccel;
     }
 
-    static double decelSwitch(untenshi ld, double speednow, double speeddrop, double decel, double ebrate, double current, int[] speedsteps, double slopeaccel) {
+    static double decelSwitch(untenshi ld, double speednow, double speeddrop, double decel, double ebdecel, double current, int[] speedsteps, double slopeaccel) {
         double retdecel = 0;
         if (current == 0) {
             retdecel = speeddrop;
@@ -513,7 +519,7 @@ class motion {
             retdecel = globalDecel(decel, speednow, Math.abs(current * 9 / 480) + 1, speedsteps);
         } else if (current == -480) {
             if (!ld.isForcedbraking() && ld.getSignallimit() != 0) {
-                retdecel = globalDecel(decel, speednow, ebrate, speedsteps);
+                retdecel = globalDecel(ebdecel, speednow, 7, speedsteps);
             } else {
                 // SPAD ATS EB (-35 km/h/s)
                 ld.setAtsforced(2);
@@ -530,9 +536,5 @@ class motion {
 
     static int minSpeedLimit(untenshi ld) {
         return Math.min(ld.getSpeedlimit(), ld.getSignallimit());
-    }
-
-    static boolean tContains(String s, String tDataInfo) {
-        return traindata.dataconfig.contains(tDataInfo + s);
     }
 }
