@@ -97,7 +97,7 @@ public final class main extends JavaPlugin implements Listener {
             ld.setAtsping(false);
             ld.setAtspnear(false);
             ld.setOverrun(false);
-            ld.setSignaltype("ats");
+            ld.setSafetysystype("ats-p");
             ld.setReqstopping(false);
             ld.setAtsforced(0);
             ld.setAtopisdirect(false);
@@ -109,8 +109,8 @@ public final class main extends JavaPlugin implements Listener {
             ld.setAtostoptime(-1);
             ld.setLastsisign(null);
             ld.setLastspsign(null);
-            ld.setLastsisp(-1);
-            ld.setLastspsp(-1);
+            ld.setLastsisp(maxspeed);
+            ld.setLastspsp(maxspeed);
             // Delete owners
             trainprop.clearOwners();
             // Clear Inventory

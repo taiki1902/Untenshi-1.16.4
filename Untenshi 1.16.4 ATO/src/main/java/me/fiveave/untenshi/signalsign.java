@@ -71,7 +71,7 @@ class signalsign extends SignAction {
                 retsi = ChatColor.RED + getlang("signal" + warnsi);
                 break;
             case "atc":
-                retsi = ChatColor.GOLD + getlang("signal" + warnsi);
+                retsi = ChatColor.GOLD + "ATC";
                 break;
         }
         return retsi;
@@ -171,13 +171,18 @@ class signalsign extends SignAction {
                                         }
                                         // Set values and signal name
                                         ld.setSignallimit(signalspeed);
-                                        ld.setSignaltype(l2(cartevent).equals("atc") ? "atc" : "ats");
+                                        ld.setSafetysystype(l2(cartevent).equals("atc") ? "atc" : "ats-p");
                                         signalmsg = signalName(l2(cartevent));
                                         if (signalmsg.equals("")) {
                                             signImproper(cartevent, p);
                                             break;
                                         }
-                                        String temp = signalspeed >= maxspeed ? getlang("nolimit") : signalspeed + " km/h";
+                                        int shownspeed = signalspeed;
+                                        // ATC signal and speed limit min value
+                                        if (ld.getSafetysystype().equals("atc")) {
+                                            shownspeed = Math.min(ld.getSignallimit(), ld.getSpeedlimit());
+                                        }
+                                        String temp = shownspeed >= maxspeed ? getlang("nolimit") : shownspeed + " km/h";
                                         generalMsg(p, ChatColor.YELLOW, getlang("signalset") + signalmsg + ChatColor.GRAY + " " + temp);
                                         // If red light need to wait signal change, if not then delete variable
                                         if (signalspeed != 0) {
@@ -205,7 +210,7 @@ class signalsign extends SignAction {
                                             newloc[0] = cartevent.getLocation();
                                             // Remove variables
                                             ld.setLastsisign(null);
-                                            ld.setLastsisp(-1);
+                                            ld.setLastsisp(maxspeed);
                                             // Reset signals if too much (oldloc.length > newloc.length)
                                             if (oldloc.length > newloc.length) {
                                                 for (int i1 = newloc.length + 1; i1 < oldloc.length; i1++) {
@@ -240,20 +245,25 @@ class signalsign extends SignAction {
                                     break;
                                 // Signal speed limit warn
                                 case "warn":
-                                    if ((!ld.isForcedbraking() && ld.getSignaltype().equals("ats")) || ld.getSignaltype().equals("atc")) {
+                                    if (!ld.isForcedbraking() && (ld.getSafetysystype().equals("ats-p") || ld.getSafetysystype().equals("atc"))) {
                                         Sign warn = getSignFromLoc(getFullLoc(cartevent.getWorld(), cartevent.getLine(3)));
                                         if (warn != null && warn.getLine(1).equals("signalsign")) {
                                             // lastsisign and lastsisp are for detecting signal change
                                             ld.setLastsisign(warn.getLocation());
                                             String warnsi = warn.getLine(2).split(" ")[1];
-                                            String warnsp = warn.getLine(2).split(" ")[2];
-                                            ld.setLastsisp(Integer.parseInt(warnsp));
+                                            int warnsp = Integer.parseInt(warn.getLine(2).split(" ")[2]);
+                                            ld.setLastsisp(warnsp);
                                             signalmsg = signalName(warnsi);
                                             if (signalmsg.equals("")) {
                                                 signImproper(cartevent, p);
                                                 break;
                                             }
-                                            String temp2 = parseInt(warnsp) >= maxspeed ? getlang("nolimit") : warnsp + " km/h";
+
+                                            // ATC signal and speed limit min value
+                                            if (ld.getSafetysystype().equals("atc")) {
+                                                warnsp = Math.min(Math.min(ld.getLastsisp(), ld.getLastspsp()), ld.getSpeedlimit());
+                                            }
+                                            String temp2 = warnsp >= maxspeed ? getlang("nolimit") : warnsp + " km/h";
                                             generalMsg(p, ChatColor.YELLOW, getlang("signalwarn") + signalmsg + ChatColor.GRAY + " " + temp2);
                                         } else {
                                             signImproper(cartevent, p);

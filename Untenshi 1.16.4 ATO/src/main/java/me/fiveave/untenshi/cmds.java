@@ -86,7 +86,7 @@ class cmds implements CommandExecutor, TabCompleter {
                                     helpDesc(sender, getlang("cmdlist"));
                                     helpInfo(sender, "help <page>", getlang("help1a"));
                                     helpInfo(sender, "activate <true/false>", getlang("help1b"));
-                                    helpInfo(sender, "atsconfirm/ac", getlang("help1e"));
+                                    helpInfo(sender, "ac", getlang("help1e"));
                                     helpInfo(sender, "switchends/se", getlang("help1h"));
                                     helpInfo(sender, "pa <text>", getlang("help1i"));
                                     helpDesc(sender, getlang("help1g"));
@@ -184,15 +184,14 @@ class cmds implements CommandExecutor, TabCompleter {
                         }
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts activate <true/false>" + ChatColor.YELLOW + "]\n" + getlang("activateinfo1") + "\n" + getlang("activateinfo2"));
                         break;
-                    case "atsconfirm":
                     case "ac":
                         if (ld.getSignallimit() != 0 && ld.isForcedbraking()) {
                             ld.setForcedbraking(false);
-                            sender.sendMessage(utshead + ChatColor.GOLD + getlang("acsuccess"));
+                            sender.sendMessage(utshead + ChatColor.GOLD + ld.getSafetysystype().toUpperCase() + " " + getlang("acsuccess"));
                         } else if (ld.getSignallimit() == 0) {
-                            sender.sendMessage(utshead + ChatColor.RED + getlang("acfailed"));
+                            sender.sendMessage(utshead + ChatColor.RED + ld.getSafetysystype().toUpperCase() + " " + getlang("acfailed"));
                         } else {
-                            sender.sendMessage(utshead + ChatColor.YELLOW + getlang("acnotneeded"));
+                            sender.sendMessage(utshead + ChatColor.YELLOW + ld.getSafetysystype().toUpperCase() + " " + getlang("acnotneeded"));
                         }
                         break;
                     case "freemode":
@@ -359,7 +358,7 @@ class cmds implements CommandExecutor, TabCompleter {
         List<String> result = new ArrayList<>();
         int arglength = args.length;
         if (arglength == 1) {
-            ta.addAll(Arrays.asList("help", "activate", "atsconfirm", "ac", "switchends", "se", "freemode", "reload", "pa", "allowato"));
+            ta.addAll(Arrays.asList("help", "activate", "ac", "switchends", "se", "freemode", "reload", "pa", "allowato"));
             for (String a : ta) {
                 if (a.toLowerCase().startsWith(args[0].toLowerCase())) {
                     result.add(a);

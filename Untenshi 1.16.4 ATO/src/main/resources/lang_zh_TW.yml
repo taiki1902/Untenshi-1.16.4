@@ -6,7 +6,7 @@ help1a: 顯示幫助
 help1b: 駕駛模式切換
 help1c: 車門控制
 help1d: 緊急停車
-help1e: ATS 確認
+help1e: ATS / ATC 復歸
 help1f: 列車轉向
 help1g: 輸入指令以獲得更多資訊。
 help1h: 轉換駕駛座位
@@ -25,7 +25,7 @@ help3g: 2. 你身上的操控桿會被清除
 help3h: '* 你身上的物品會被還原 *'
 help3i: '注意:'
 help3j: freemode/allowato 必須在 /uts activate true 前執行。
-help3k: 超越 0 km/h 的信號之後，必須在信號改變後使用 /uts ac 確認。
+help3k: 超越 0 km/h 的信號之後，必須在信號改變後使用 /uts ac 復歸。
 pagenotexist: 該頁面不存在。請輸入正確的頁數。
 upwandname: 上
 nwandname: 切
@@ -59,9 +59,9 @@ activatefirst: 請先啟動駕駛模式!
 deactivatefirst: 請先停用駕駛模式!
 doorinfo1: '[true: 開門]'
 doorinfo2: '[false: 關門]'
-acsuccess: ATS 確認成功。
-acfailed: ATS 確認失敗。
-acnotneeded: ATS 不需確認。
+acsuccess: 復歸成功。
+acfailed: 復歸失敗。
+acnotneeded: 不需復歸。
 freemode: '自由模式: '
 freemodeinfo1: '[true: 啟用]'
 freemodeinfo2: '[false: 停用]'
@@ -87,10 +87,9 @@ speed: '速度: '
 points: '分數: '
 speeding: '超速 '
 signalspeeding: '信號超速 '
-atspb8: ATS-P 常用煞車動作
-atspeb: ATS-P 非常煞車動作
-atspnear: ATS-P Pattern 接近
-atcrun: ATC 作動
+pb8: 常用煞車動作
+peb: 非常煞車動作
+pnear: Pattern 接近
 misuseeb: '誤用緊急煞車 '
 stopposperfect: '停止位置: 完美!'
 stopposgreat: '停止位置: 很好!'
@@ -113,7 +112,6 @@ signalyg: 減速
 signaly: 注意
 signalyy: 警戒
 signalr: 停止
-signalatc: ATC
 speedlimitset: '速度限制: '
 speedlimitwarn: '速度限制預告: '
 speedlimitwarnover: 告示牌設定錯誤。速度應在 360 km/h 以下。

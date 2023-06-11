@@ -113,7 +113,14 @@ class speedsign extends SignAction {
                             int intspeed = parseInt(speedsign);
                             if (intspeed <= maxspeed && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
                                 ld.setSpeedlimit(intspeed);
-                                generalMsg(p, ChatColor.YELLOW, getlang("speedlimitset") + (intspeed == maxspeed ? ChatColor.GREEN + getlang("nolimit") : intspeed + " km/h"));
+                                // ATC signal and speed limit min value
+                                if (ld.getSafetysystype().equals("atc")) {
+                                    intspeed = Math.min(ld.getSignallimit(), ld.getSpeedlimit());
+                                    String temp = intspeed >= maxspeed ? getlang("nolimit") : intspeed + " km/h";
+                                    generalMsg(p, ChatColor.YELLOW, getlang("signalset") + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + temp);
+                                } else {
+                                    generalMsg(p, ChatColor.YELLOW, getlang("speedlimitset") + (intspeed == maxspeed ? ChatColor.GREEN + getlang("nolimit") : intspeed + " km/h"));
+                                }
                                 if (parseInt(speedsign) != 0) {
                                     ld.setLastspsign(null);
                                     ld.setLastspsp(maxspeed);
@@ -131,6 +138,10 @@ class speedsign extends SignAction {
                                     int warnsp = parseInt(warn.getLine(2));
                                     ld.setLastspsp(warnsp);
                                     if (warnsp < maxspeed) {
+                                        // ATC signal and speed limit min value
+                                        if (ld.getSafetysystype().equals("atc")) {
+                                            warnsp = Math.min(Math.min(ld.getLastsisp(), ld.getLastspsp()), ld.getSignallimit());
+                                        }
                                         generalMsg(p, ChatColor.YELLOW, getlang("speedlimitwarn") + warnsp + " km/h");
                                     } else {
                                         signImproper(cartevent, p);

@@ -30,7 +30,7 @@ class untenshi {
     private Location[] resettablesisign;
     private Location[] ilposlist;
     private Location[] ilposoccupied;
-    private String signaltype;
+    private String safetysystype;
     private String signalorderptn;
     private boolean playing;
     private boolean freemode;
@@ -74,7 +74,7 @@ class untenshi {
         this.setAtsping(false);
         this.setAtspnear(false);
         this.setOverrun(false);
-        this.setSignaltype("ats");
+        this.setSafetysystype("ats-p");
         this.setSignalorderptn("default");
         this.setReqstopping(false);
         this.setAtsforced(0);
@@ -87,8 +87,8 @@ class untenshi {
         this.setAtostoptime(-1);
         this.setLastsisign(null);
         this.setLastspsign(null);
-        this.setLastsisp(-1);
-        this.setLastspsp(-1);
+        this.setLastsisp(maxspeed);
+        this.setLastspsp(maxspeed);
     }
 
     public int getMascon() {
@@ -235,12 +235,12 @@ class untenshi {
         this.resettablesisign = resettablesisign;
     }
 
-    public String getSignaltype() {
-        return signaltype;
+    public String getSafetysystype() {
+        return safetysystype;
     }
 
-    public void setSignaltype(String signaltype) {
-        this.signaltype = signaltype;
+    public void setSafetysystype(String safetysystype) {
+        this.safetysystype = safetysystype;
     }
 
     public String getSignalorderptn() {

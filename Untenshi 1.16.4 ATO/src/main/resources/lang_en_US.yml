@@ -6,7 +6,7 @@ help1a: Show help
 help1b: Toggle drive mode
 help1c: Door control
 help1d: Emergency stop
-help1e: ATS Confirm
+help1e: ATS / ATC Reset
 help1f: Switchback
 help1g: Type commands to show details.
 help1h: Switch seats
@@ -25,7 +25,7 @@ help3g: 2. Your control handles will be cleared
 help3h: '* Your inventory will be restored *'
 help3i: 'Warnings:'
 help3j: freemode/allowato must be executed before /uts activate true.
-help3k: After you pass through a 0 km/h signal, you must confirm using /uts ac after the signals have been changed.
+help3k: After you pass through a 0 km/h signal, you must reset using /uts ac after the signals have been changed.
 pagenotexist: This page does not exist. Please enter a valid page number.
 upwandname: Up
 nwandname: Neutral
@@ -59,9 +59,9 @@ activatefirst: Please enable your drive mode first!
 deactivatefirst: Please disable your drive mode first!
 doorinfo1: '[true: Open doors]'
 doorinfo2: '[false: Close doors]'
-acsuccess: ATS Confirm Successful
-acfailed: ATS Confirm Failed
-acnotneeded: ATS Confirm is not needed
+aconfirmsuccess: Reset Successful
+acfailed: Reset Failed
+acnotneeded: Reset is not needed
 freemode: 'Free mode: '
 freemodeinfo1: '[true: Enable]'
 freemodeinfo2: '[false: Disable]'
@@ -87,10 +87,9 @@ speed: 'Speed: '
 points: 'Points: '
 speeding: 'Speeding '
 signalspeeding: 'Signal Speeding '
-atspb8: ATS-P Service Brake Run
-atspeb: ATS-P Emergency Brake Run
-atspnear: ATS-P Pattern Approaching
-atcrun: ATC Run
+pb8: Service Brake Run
+peb: Emergency Brake Run
+pnear: Pattern Approaching
 misuseeb: 'Misuse of EB '
 stopposperfect: 'Stop position: Excellent!'
 stopposgreat: 'Stop position: Great!'
@@ -113,7 +112,6 @@ signalyg: Reduced
 signaly: Caution
 signalyy: Restricted
 signalr: Stop
-signalatc: ATC
 speedlimitset: 'Speed limit: '
 speedlimitwarn: 'Speed limit warning: '
 speedlimitwarnover: The sign is set incorrectly. The speed should be less than 360 km/h.

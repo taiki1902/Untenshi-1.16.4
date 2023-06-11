@@ -6,7 +6,7 @@ help1a: ヘルプを表示する
 help1b: 運転モードを切替する
 help1c: ドアコントロール
 help1d: 緊急停車
-help1e: ATS 確認
+help1e: ATS / ATC 復帰
 help1f: 方向切替
 help1g: コマンドを入力して、詳細情報を取得します。
 help1h: 運転席切替
@@ -25,7 +25,7 @@ help3g: 2. コントロールハンドルが削除される
 help3h: '* 持ち物は復元される *'
 help3i: '注意事項について:'
 help3j: freemode/allowato は、/uts activate true の前に実行する必要があります。
-help3k: 0 km/h の信号を通過した後、信号が変更された後、/uts ac を使用して確認する必要があります。
+help3k: 0 km/h の信号を通過した後、信号が変更された後、/uts ac を使用して復帰する必要があります。
 pagenotexist: このページは存在していません。正確なページ数を入力してください。
 upwandname: 上
 nwandname: 切
@@ -59,9 +59,9 @@ activatefirst: まず運転モードをオンにしてください!
 deactivatefirst: まず運転モードをオフにしてください!
 doorinfo1: '[true: ドアを開く]'
 doorinfo2: '[false: ドアを閉まる]'
-acsuccess: ATS 確認が成功しました。
-acfailed: ATS 確認が失敗しました。
-acnotneeded: ATS 確認する必要がありません。
+acsuccess: 復帰が成功しました。
+acfailed: 復帰が失敗しました。
+acnotneeded: 復帰する必要がありません。
 freemode: 'フリーモード: '
 freemodeinfo1: '[true: オン]'
 freemodeinfo2: '[false: オフ]'
@@ -87,10 +87,9 @@ speed: '速度: '
 points: '点数: '
 speeding: '速度超過 '
 signalspeeding: '信号速度超過 '
-atspb8: ATS-P 常用ブレーキ動作
-atspeb: ATS-P 非常ブレーキ動作
-atspnear: ATS-P パターン接近
-atcrun: ATC 作動
+pb8: 常用ブレーキ動作
+peb: 非常ブレーキ動作
+pnear: パターン接近
 misuseeb: '非常ブレーキ濫用 '
 stopposperfect: '停止位置: Excellent!'
 stopposgreat: '停止位置: Great!'
@@ -113,7 +112,6 @@ signalyg: 減速
 signaly: 注意
 signalyy: 警戒
 signalr: 停止
-signalatc: ATC
 speedlimitset: '速度制限: '
 speedlimitwarn: '速度制限予告: '
 speedlimitwarnover: サインが正しく設定されていません。速度は 360 km/h 未満である必要があります。

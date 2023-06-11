@@ -135,8 +135,18 @@ class motion {
         mg.setForwardForce(blockpertick);
         mg.setProperties(tprop);
         String doortxt = doorLogic(ld, tprop);
+        // Display speed
+        String speedcolor = "";
+        if (ld.isAtsping() || ld.isForcedbraking()) {
+            speedcolor += ChatColor.RED;
+        } else if (ld.isAtspnear()) {
+            speedcolor += ChatColor.GOLD;
+        } else {
+            speedcolor += ChatColor.WHITE;
+        }
+        String displaySpeed = speedcolor + df0.format(ld.getSpeed());
         // Action bar
-        String actionbarmsg = getCtrltext(ld) + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + ChatColor.WHITE + df0.format(ld.getSpeed()) + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + ld.getPoints() + " | " + ChatColor.YELLOW + getlang("door") + doortxt;
+        String actionbarmsg = getCtrltext(ld) + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + displaySpeed + ChatColor.WHITE + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + ld.getPoints() + " | " + ChatColor.YELLOW + getlang("door") + doortxt;
         ld.getP().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbarmsg));
         // Get signal update when warn (if signal speed isn't same)
         catchSignalUpdate(ld);
@@ -145,10 +155,8 @@ class motion {
         // Types of speeding
         boolean isoverspeed0 = ld.getSpeed() > minSpeedLimit(ld);
         boolean isoverspeed3 = ld.getSpeed() > minSpeedLimit(ld) + 3 || ld.getSignallimit() == 0;
-        // ATS-P
-        atsp(ld, decel, ebdecel, speedsteps, speeddrop, mg, isoverspeed0, isoverspeed3);
-        // ATC Auto Control
-        atc(ld, isoverspeed3);
+        // ATS-P or ATC
+        safetySys(ld, decel, ebdecel, speedsteps, speeddrop, mg, isoverspeed0, isoverspeed3);
         // Instant ATS / ATC if red light
         if (ld.getSignallimit() == 0) {
             ld.setForcedbraking(true);
@@ -372,87 +380,75 @@ class motion {
         }
     }
 
-    private static void atc(untenshi ld, boolean isoverspeed3) {
-        if (ld.getSignaltype().equals("atc")) {
-            if (!ld.isForcedbraking() && isoverspeed3) {
+    private static void safetySys(untenshi ld, double decel, double ebdecel, int[] speedsteps, double speeddrop, MinecartGroup mg, boolean isoverspeed0, boolean isoverspeed3) {
+        double lowerSpeed = minSpeedLimit(ld);
+        // 0.0625 from result of getting mg.head() y-location
+        Location headLoc = mg.head().getEntity().getLocation();
+        Location tailLoc = mg.tail().getEntity().getLocation();
+        double slopeaccel = 0;
+        double slopeaccelsi = 0;
+        double slopeaccelsp = 0;
+        double signaldist = Double.MAX_VALUE;
+        double signaldistdiff = Double.MAX_VALUE;
+        double speeddist = Double.MAX_VALUE;
+        double speeddistdiff = Double.MAX_VALUE;
+        double reqsidist;
+        double reqspdist;
+        double distnow = Double.MAX_VALUE;
+        // Find either signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
+        if (ld.getLastsisign() != null && ld.getLastsisp() != maxspeed) {
+            int[] getSiOffset = getSignToRailOffset(ld.getLastsisign(), mg.getWorld());
+            Location siLocForSlope = new Location(mg.getWorld(), ld.getLastsisign().getX() + getSiOffset[0], ld.getLastsisign().getY() + getSiOffset[1] + cartYPosDiff, ld.getLastsisign().getZ() + getSiOffset[2]);
+            slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
+            reqsidist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 6, speedsteps), ld.getLastsisp(), slopeaccelsi, speeddrop);
+            signaldist = distFormula(ld.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), ld.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
+            signaldistdiff = signaldist - reqsidist;
+        }
+        if (ld.getLastspsign() != null && ld.getLastspsp() != maxspeed) {
+            int[] getSpOffset = getSignToRailOffset(ld.getLastspsign(), mg.getWorld());
+            Location spLocForSlope = new Location(mg.getWorld(), ld.getLastspsign().getX() + getSpOffset[0], ld.getLastspsign().getY() + getSpOffset[1] + cartYPosDiff, ld.getLastspsign().getZ() + getSpOffset[2]);
+            slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
+            reqspdist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 6, speedsteps), ld.getLastspsp(), slopeaccelsp, speeddrop);
+            speeddist = distFormula(ld.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), ld.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
+            speeddistdiff = speeddist - reqspdist;
+        }
+        double priority = Math.min(signaldistdiff, speeddistdiff);
+        if (ld.getLastsisign() != null && ld.getLastsisp() != maxspeed && priority == signaldistdiff) {
+            lowerSpeed = ld.getLastsisp();
+            distnow = signaldist;
+            slopeaccel = slopeaccelsi;
+        }
+        if (ld.getLastspsign() != null && ld.getLastspsp() != maxspeed && priority == speeddistdiff) {
+            lowerSpeed = ld.getLastspsp();
+            distnow = speeddist;
+            slopeaccel = slopeaccelsp;
+        }
+        // Get brake distance (reqdist)
+        double[] reqdist = new double[10];
+        getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccel);
+        // Actual controlling part
+        // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
+        boolean nextredlight = ld.getLastsisp() == 0 && priority == signaldistdiff;
+        double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
+        // Pattern run
+        if (((tempdist < reqdist[8] && ld.getSpeed() > lowerSpeed + 3) || isoverspeed3) && !ld.isAtsping()) {
+            ld.setAtsping(true);
+            if (tempdist < reqdist[9]) {
+                ld.setMascon(-9);
+                pointCounter(ld, ChatColor.RED, ld.getSafetysystype().toUpperCase() + " " + getlang("peb") + " ", -5, "");
+            } else {
                 ld.setMascon(-8);
-                pointCounter(ld, ChatColor.RED, getlang("atcrun") + " ", -5, "");
+                pointCounter(ld, ChatColor.RED, ld.getSafetysystype().toUpperCase() + " " + getlang("pb8") + " ", -5, "");
             }
-            ld.setForcedbraking(isoverspeed3);
+        } else if (tempdist - reqdist[8] > 1 && !isoverspeed0 && !ld.isForcedbraking()) {
+            ld.setAtsping(false);
         }
-    }
-
-    private static void atsp(untenshi ld, double decel, double ebdecel, int[] speedsteps, double speeddrop, MinecartGroup mg, boolean isoverspeed0, boolean isoverspeed3) {
-        if (ld.getSignaltype().equals("ats")) {
-            double lowerSpeed = minSpeedLimit(ld);
-            // 0.0625 from result of getting mg.head() y-location
-            Location headLoc = mg.head().getEntity().getLocation();
-            Location tailLoc = mg.tail().getEntity().getLocation();
-            double slopeaccel = 0;
-            double slopeaccelsi = 0;
-            double slopeaccelsp = 0;
-            double signaldist = Double.MAX_VALUE;
-            double signaldistdiff = Double.MAX_VALUE;
-            double speeddist = Double.MAX_VALUE;
-            double speeddistdiff = Double.MAX_VALUE;
-            double reqsidist;
-            double reqspdist;
-            double distnow = Double.MAX_VALUE;
-            // Find either signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
-            if (ld.getLastsisign() != null && ld.getLastsisp() != maxspeed) {
-                int[] getSiOffset = getSignToRailOffset(ld.getLastsisign(), mg.getWorld());
-                Location siLocForSlope = new Location(mg.getWorld(), ld.getLastsisign().getX() + getSiOffset[0], ld.getLastsisign().getY() + getSiOffset[1] + cartYPosDiff, ld.getLastsisign().getZ() + getSiOffset[2]);
-                slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
-                reqsidist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 6, speedsteps), ld.getLastsisp(), slopeaccelsi, speeddrop);
-                signaldist = distFormula(ld.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), ld.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
-                signaldistdiff = signaldist - reqsidist;
-            }
-            if (ld.getLastspsign() != null && ld.getLastspsp() != maxspeed) {
-                int[] getSpOffset = getSignToRailOffset(ld.getLastspsign(), mg.getWorld());
-                Location spLocForSlope = new Location(mg.getWorld(), ld.getLastspsign().getX() + getSpOffset[0], ld.getLastspsign().getY() + getSpOffset[1] + cartYPosDiff, ld.getLastspsign().getZ() + getSpOffset[2]);
-                slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
-                reqspdist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 6, speedsteps), ld.getLastspsp(), slopeaccelsp, speeddrop);
-                speeddist = distFormula(ld.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), ld.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
-                speeddistdiff = speeddist - reqspdist;
-            }
-            double priority = Math.min(signaldistdiff, speeddistdiff);
-            if (ld.getLastsisign() != null && ld.getLastsisp() != maxspeed && priority == signaldistdiff) {
-                lowerSpeed = ld.getLastsisp();
-                distnow = signaldist;
-                slopeaccel = slopeaccelsi;
-            }
-            if (ld.getLastspsign() != null && ld.getLastspsp() != maxspeed && priority == speeddistdiff) {
-                lowerSpeed = ld.getLastspsp();
-                distnow = speeddist;
-                slopeaccel = slopeaccelsp;
-            }
-            // Get brake distance (reqdist)
-            double[] reqdist = new double[10];
-            getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccel);
-            // Actual controlling part
-            // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
-            boolean nextredlight = ld.getLastsisp() == 0 && priority == signaldistdiff;
-            double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
-            // Pattern run
-            if (((tempdist < reqdist[8] && ld.getSpeed() > lowerSpeed + 3) || isoverspeed3) && !ld.isAtsping()) {
-                ld.setAtsping(true);
-                if (tempdist < reqdist[9]) {
-                    ld.setMascon(-9);
-                    pointCounter(ld, ChatColor.RED, getlang("atspeb") + " ", -5, "");
-                } else {
-                    ld.setMascon(-8);
-                    pointCounter(ld, ChatColor.RED, getlang("atspb8") + " ", -5, "");
-                }
-            } else if (tempdist - reqdist[8] > 1 && !isoverspeed0 && !ld.isForcedbraking()) {
-                ld.setAtsping(false);
-            }
-            // Pattern near
-            boolean pnear = (tempdist < reqdist[8] + speed1s(ld) * 5 && ld.getSpeed() > lowerSpeed) || isoverspeed0;
-            if (!ld.isAtspnear() && pnear) {
-                generalMsg(ld.getP(), ChatColor.GOLD, getlang("atspnear"));
-            }
-            ld.setAtspnear(pnear);
+        // Pattern near
+        boolean pnear = (tempdist < reqdist[8] + speed1s(ld) * 5 && ld.getSpeed() > lowerSpeed) || isoverspeed0;
+        if (!ld.isAtspnear() && pnear) {
+            generalMsg(ld.getP(), ChatColor.GOLD, ld.getSafetysystype().toUpperCase() + " " + getlang("pnear"));
         }
+        ld.setAtspnear(pnear);
     }
 
     static double getSlopeAccel(Location endpt, Location beginpt) {
