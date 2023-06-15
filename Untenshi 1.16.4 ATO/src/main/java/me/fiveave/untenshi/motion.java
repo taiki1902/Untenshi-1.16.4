@@ -175,7 +175,7 @@ class motion {
     }
 
     private static void interlocking(untenshi ld) {
-        if (ld.getIlposlist() != null) {
+        if (ld.getIlposlist() != null && ld.getIlposlist().length > 0) {
             Location[] oldpos = ld.getIlposlist();
             // Check conditions to change signal
             int furthestoccupied = oldpos.length - 1;

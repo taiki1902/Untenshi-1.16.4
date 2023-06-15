@@ -292,7 +292,7 @@ class signalsign extends SignAction {
                                                     Location[] newilpos;
                                                     Location setloc = getFullLoc(cartevent.getWorld(), str);
                                                     // Null or not? If null just put new
-                                                    if (oldilpos == null) {
+                                                    if (oldilpos == null || oldilpos.length == 0) {
                                                         newilpos = new Location[1];
                                                         newilpos[0] = setloc;
                                                     }
