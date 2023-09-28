@@ -31,11 +31,11 @@ class motion {
     static void recursiveClock(untenshi ld) {
         if (ld.isPlaying() && ld.getP().isInsideVehicle()) {
             motionSystem(ld);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClock(ld), interval);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClock(ld), tickdelay);
         } else if (!ld.getP().isInsideVehicle() && !ld.isFrozen()) {
             restoreinit(ld);
         } else if (ld.isFrozen()) {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClock(ld), interval);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClock(ld), tickdelay);
         } else {
             ld.setMascon(-9);
             ld.setSpeed(0);
@@ -93,9 +93,9 @@ class motion {
         df0.setRoundingMode(RoundingMode.HALF_EVEN);
         // Set real current
         if (ecb < currentnow) {
-            ld.setCurrent((currentnow - ecb) > 40 / 3.0 * interval ? currentnow - 40 / 3.0 * interval : ecb);
+            ld.setCurrent((currentnow - ecb) > 40 / 3.0 * tickdelay ? currentnow - 40 / 3.0 * tickdelay : ecb);
         } else if (ecb > currentnow) {
-            ld.setCurrent((ecb - currentnow) > 40 / 3.0 * interval ? currentnow + 40 / 3.0 * interval : ecb);
+            ld.setCurrent((ecb - currentnow) > 40 / 3.0 * tickdelay ? currentnow + 40 / 3.0 * tickdelay : ecb);
         }
         // If brake cancel accel
         if (currentnow > 0 && ecb < 0) {
@@ -108,7 +108,8 @@ class motion {
         // Accel and decel
         double stopdecel = decelSwitch(ld, ld.getSpeed(), speeddrop, decel, ebdecel, currentnow, speedsteps, slopeaccel);
         if (ld.getDooropen() == 0) {
-            ld.setSpeed(ld.getSpeed() + accelSwitch(accel, (int) (currentnow * 9 / 480), ld.getSpeed(), speedsteps) / ticksin1s // Acceleration
+            ld.setSpeed(ld.getSpeed()
+                    + accelSwitch(accel, (int) (currentnow * 9 / 480), ld.getSpeed(), speedsteps) / ticksin1s // Acceleration
                     - stopdecel / ticksin1s) // Deceleration (speed drop included)
             ;
         }

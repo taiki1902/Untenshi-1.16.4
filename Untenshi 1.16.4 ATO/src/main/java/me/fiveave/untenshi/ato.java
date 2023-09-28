@@ -140,7 +140,7 @@ class ato {
     }
 
     static double getThinkingTime(untenshi ld, int a) {
-        return Math.max(0.1, 0.1 * Math.min(a, a + (ld.getCurrent() * 9 / 480)));
+        return Math.max(1.0 / ticksin1s, 1.0 / ticksin1s * Math.min(a, a + (ld.getCurrent() * 9 / 480)));
     }
 
     static double speed1s(untenshi ld) {
@@ -170,7 +170,7 @@ class ato {
             if (ld.getDooropen() == 0 && ld.isDoorconfirm() && ld.getMascon() != -9) {
                 ld.setMascon(5);
             } else {
-                Bukkit.getScheduler().runTaskLater(plugin, () -> waitDepart(ld), interval);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> waitDepart(ld), tickdelay);
                 if (ld.getMascon() != -9) {
                     ld.setMascon(-8);
                 }

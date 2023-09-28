@@ -72,8 +72,8 @@ class signalcmd implements CommandExecutor, TabCompleter {
                                 Sign sign = getSignFromLoc(getFullLoc(((BlockCommandSender) sender).getBlock().getWorld(), inputpos));
                                 if (sign != null) {
                                     updateSignals(sign, "set " + args[4] + " " + args[5]);
+                                    sender.sendMessage(utshead + getlang("signalsignchange") + " (" + args[4] + " " + args[5] + ")");
                                 }
-                                sender.sendMessage(utshead + getlang("signalsignchange") + " (" + args[4] + " " + args[5] + ")");
                                 break;
                             }
                         default:

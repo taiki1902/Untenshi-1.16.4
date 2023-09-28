@@ -7,6 +7,7 @@ import com.bergerkiller.bukkit.tc.events.SignChangeActionEvent;
 import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import com.bergerkiller.bukkit.tc.signactions.SignActionType;
 import com.bergerkiller.bukkit.tc.utils.SignBuildOptions;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -23,7 +24,6 @@ import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.cmds.absentDriver;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
-import static me.fiveave.untenshi.signalsign.signImproper;
 
 class speedsign extends SignAction {
 
@@ -72,6 +72,12 @@ class speedsign extends SignAction {
         return blkoffset;
     }
 
+    static void signImproper(SignActionEvent cartevent, Player p) {
+        String s = utshead + ChatColor.RED + getlang("signimproper") + " (" + cartevent.getLocation().getBlockX() + " " + cartevent.getLocation().getBlockY() + " " + cartevent.getLocation().getBlockZ() + ")";
+        p.sendMessage(s);
+        Bukkit.getConsoleSender().sendMessage(s);
+    }
+
     static int getLoc(String str, int i) {
         return parseInt(str.split(" ")[i]);
     }
@@ -110,22 +116,26 @@ class speedsign extends SignAction {
                     if (ld.isPlaying()) {
                         // Speed limit set
                         if (!cartevent.getLine(2).equals("warn")) {
-                            int intspeed = parseInt(speedsign);
-                            if (intspeed <= maxspeed && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
-                                ld.setSpeedlimit(intspeed);
-                                // ATC signal and speed limit min value
-                                if (ld.getSafetysystype().equals("atc")) {
-                                    intspeed = Math.min(ld.getSignallimit(), ld.getSpeedlimit());
-                                    String temp = intspeed >= maxspeed ? getlang("nolimit") : intspeed + " km/h";
-                                    generalMsg(p, ChatColor.YELLOW, getlang("signalset") + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + temp);
+                            try {
+                                int intspeed = parseInt(speedsign);
+                                if (intspeed <= maxspeed && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
+                                    ld.setSpeedlimit(intspeed);
+                                    // ATC signal and speed limit min value
+                                    if (ld.getSafetysystype().equals("atc")) {
+                                        intspeed = Math.min(ld.getSignallimit(), ld.getSpeedlimit());
+                                        String temp = intspeed >= maxspeed ? getlang("nolimit") : intspeed + " km/h";
+                                        generalMsg(p, ChatColor.YELLOW, getlang("signalset") + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + temp);
+                                    } else {
+                                        generalMsg(p, ChatColor.YELLOW, getlang("speedlimitset") + (intspeed == maxspeed ? ChatColor.GREEN + getlang("nolimit") : intspeed + " km/h"));
+                                    }
+                                    if (parseInt(speedsign) != 0) {
+                                        ld.setLastspsign(null);
+                                        ld.setLastspsp(maxspeed);
+                                    }
                                 } else {
-                                    generalMsg(p, ChatColor.YELLOW, getlang("speedlimitset") + (intspeed == maxspeed ? ChatColor.GREEN + getlang("nolimit") : intspeed + " km/h"));
+                                    signImproper(cartevent, p);
                                 }
-                                if (parseInt(speedsign) != 0) {
-                                    ld.setLastspsign(null);
-                                    ld.setLastspsp(maxspeed);
-                                }
-                            } else {
+                            } catch (NumberFormatException e) {
                                 signImproper(cartevent, p);
                             }
                         }
@@ -151,7 +161,6 @@ class speedsign extends SignAction {
                                 }
                             } catch (NumberFormatException | IndexOutOfBoundsException e) {
                                 signImproper(cartevent, p);
-                                e.printStackTrace();
                             }
                         }
                     }
@@ -191,9 +200,8 @@ class speedsign extends SignAction {
             }
             return opt.handle(e.getPlayer());
         } catch (Exception exception) {
-            e.getPlayer().sendMessage(ChatColor.RED + getlang("signimproper"));
+            p.sendMessage(ChatColor.RED + getlang("signimproper"));
             e.setCancelled(true);
-            exception.printStackTrace();
         }
         return true;
     }

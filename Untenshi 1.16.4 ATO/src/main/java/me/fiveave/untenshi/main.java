@@ -24,7 +24,7 @@ import static me.fiveave.untenshi.signalsign.resetSignals;
 public final class main extends JavaPlugin implements Listener {
 
     static final int ticksin1s = 20;
-    static final int interval = 20 / ticksin1s;
+    static final int tickdelay = 20 / ticksin1s;
     static final int maxspeed = 360;
     static final double cartYPosDiff = 0.0625;
     public static HashMap<Player, untenshi> driver = new HashMap<>();
@@ -36,11 +36,11 @@ public final class main extends JavaPlugin implements Listener {
     static abstractfile signalorder;
     static String pureutstitle = ChatColor.YELLOW + "[========== " + ChatColor.GREEN + "Untenshi " + ChatColor.YELLOW + "==========]\n";
     static String utshead = "[" + ChatColor.GREEN + "Untenshi" + ChatColor.WHITE + "] ";
-    stoppos v1 = new stoppos();
-    speedsign v2 = new speedsign();
-    signalsign v3 = new signalsign();
-    atosign v4 = new atosign();
-    utstrain v5 = new utstrain();
+    stoppos sign1 = new stoppos();
+    speedsign sign2 = new speedsign();
+    signalsign sign3 = new signalsign();
+    atosign sign4 = new atosign();
+    utstrain sign5 = new utstrain();
 
     static String getlang(String path) {
         langdata.reloadConfig();
@@ -138,11 +138,11 @@ public final class main extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         // Plugin startup logic
-        SignAction.register(v1);
-        SignAction.register(v2);
-        SignAction.register(v3);
-        SignAction.register(v4);
-        SignAction.register(v5);
+        SignAction.register(sign1);
+        SignAction.register(sign2);
+        SignAction.register(sign3);
+        SignAction.register(sign4);
+        SignAction.register(sign5);
         plugin = this;
         // If langdata not init twice will cause UTF-8 characters not formatted properly
         config = new abstractfile(this, "config.yml");
@@ -168,10 +168,10 @@ public final class main extends JavaPlugin implements Listener {
             // Prevent plugin shutdown affecting playing status
             restoreinit(driver.get(p));
         }
-        SignAction.unregister(v1);
-        SignAction.unregister(v2);
-        SignAction.unregister(v3);
-        SignAction.unregister(v4);
-        SignAction.unregister(v5);
+        SignAction.unregister(sign1);
+        SignAction.unregister(sign2);
+        SignAction.unregister(sign3);
+        SignAction.unregister(sign4);
+        SignAction.unregister(sign5);
     }
 }

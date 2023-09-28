@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static me.fiveave.untenshi.main.utshead;
+
 class abstractfile {
     protected final main plugin;
     private File file;
@@ -60,7 +62,7 @@ class abstractfile {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                Bukkit.getLogger().info(file.getName() + " has been updated due to missing content");
+                Bukkit.getConsoleSender().sendMessage(utshead + file.getName() + " has been updated due to missing content");
             }
         }
     }

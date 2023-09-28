@@ -91,7 +91,6 @@ class atosign extends SignAction {
             return opt.handle(p);
         } catch (Exception exception) {
             p.sendMessage(ChatColor.RED + "The number is not valid!");
-            exception.printStackTrace();
             e.setCancelled(true);
         }
         return true;

@@ -147,7 +147,7 @@ class cmds implements CommandExecutor, TabCompleter {
                                             //noinspection rawtypes
                                             MinecartMember mem = (MinecartMember) CommonEntity.get(selcart).getController();
                                             if (!selcart.getPassengers().isEmpty() && selcart.getPassengers().get(0) instanceof Player) {
-                                                Bukkit.getScheduler().runTaskLater(plugin, () -> CartProperties.setEditing((Player) selcart.getPassengers().get(0), mem.getProperties()), interval);
+                                                Bukkit.getScheduler().runTaskLater(plugin, () -> CartProperties.setEditing((Player) selcart.getPassengers().get(0), mem.getProperties()), tickdelay);
                                             }
                                             ld.setTrain(mem.getGroup());
                                         }
@@ -242,8 +242,8 @@ class cmds implements CommandExecutor, TabCompleter {
                                                 finalMm.addPassengerForced(ld.getP());
                                                 generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sesuccess"));
                                                 ld.setFrozen(false);
-                                            }, interval);
-                                        }, interval);
+                                            }, tickdelay);
+                                        }, tickdelay);
                                         break;
                                     }
                                 }

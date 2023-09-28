@@ -31,8 +31,10 @@ import static me.fiveave.untenshi.speedsign.*;
 class signalsign extends SignAction {
 
     static void updateSignals(Sign sign, String str) {
-        sign.setLine(2, str);
-        sign.update();
+        if (sign.getLine(1).equals("signalsign")) {
+            sign.setLine(2, str);
+            sign.update();
+        }
     }
 
     static void resetSignals(World world, Location[] locs) {
@@ -48,12 +50,6 @@ class signalsign extends SignAction {
             }
         } catch (Exception ignored) {
         }
-    }
-
-    static void signImproper(SignActionEvent cartevent, Player p) {
-        String s = utshead + ChatColor.RED + getlang("signimproper") + " (" + cartevent.getLocation().getBlockX() + " " + cartevent.getLocation().getBlockY() + " " + cartevent.getLocation().getBlockZ() + ")";
-        p.sendMessage(s);
-        System.out.println(s);
     }
 
     static String signalName(String warnsi) {
@@ -111,6 +107,10 @@ class signalsign extends SignAction {
                 }
             }
         }
+    }
+
+    boolean checkType(SignActionEvent e) {
+        return l1(e).equals("warn") || l1(e).equals("interlock") || (l1(e).equals("set") && isSignalType(l2(e)));
     }
 
     @Override
@@ -399,13 +399,8 @@ class signalsign extends SignAction {
             return opt.handle(p);
         } catch (Exception exception) {
             p.sendMessage(ChatColor.RED + getlang("signimproper"));
-            exception.printStackTrace();
             e.setCancelled(true);
         }
         return true;
-    }
-
-    boolean checkType(SignActionEvent e) {
-        return l1(e).equals("warn") || l1(e).equals("interlock") || (l1(e).equals("set") && isSignalType(l2(e)));
     }
 }
