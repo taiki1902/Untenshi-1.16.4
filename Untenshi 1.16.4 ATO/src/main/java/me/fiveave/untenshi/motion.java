@@ -491,7 +491,7 @@ class motion {
     }
 
     static double getReqdist(untenshi ld, double decel, double lowerSpeed, double slopeaccel, double speeddrop) {
-        return (Math.pow(ld.getSpeed() + slopeaccel / ticksin1s, 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop));
+        return (Math.pow(ld.getSpeed() + Math.max(slopeaccel - decel, 0) / 2, 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop));
     }
 
     static double accelSwitch(double accel, int dcurrent, double cspd, int[] sec) {

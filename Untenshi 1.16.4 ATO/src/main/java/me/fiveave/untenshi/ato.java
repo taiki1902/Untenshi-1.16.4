@@ -24,10 +24,11 @@ class ato {
             Location headLoc = mg.head().getEntity().getLocation();
             Location tailLoc = mg.tail().getEntity().getLocation();
             Location atoLocForSlope = new Location(mg.getWorld(), ld.getAtodest()[0] + 0.5, ld.getAtodest()[1] + cartYPosDiff, ld.getAtodest()[2] + 0.5);
-            double slopeaccel = getSlopeAccel(atoLocForSlope, tailLoc);
+            double slopeaccelnow = getSlopeAccel(headLoc, tailLoc);
+            double slopeaccelsel = getSlopeAccel(atoLocForSlope, tailLoc);
             double slopeaccelsi = 0;
             double slopeaccelsp = 0;
-            double reqatodist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 7, speedsteps), ld.getAtospeed(), slopeaccel, speeddrop);
+            double reqatodist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 7, speedsteps), ld.getAtospeed(), slopeaccelsel, speeddrop);
             double signaldist = Double.MAX_VALUE;
             double signaldistdiff = Double.MAX_VALUE;
             double speeddist = Double.MAX_VALUE;
@@ -60,28 +61,28 @@ class ato {
             if (ld.getLastsisign() != null && ld.getLastsisp() != maxspeed && priority == signaldistdiff) {
                 lowerSpeed = ld.getLastsisp();
                 distnow = signaldist;
-                slopeaccel = slopeaccelsi;
+                slopeaccelsel = slopeaccelsi;
             }
             if (ld.getLastspsign() != null && ld.getLastspsp() != maxspeed && priority == speeddistdiff) {
                 lowerSpeed = ld.getLastspsp();
                 distnow = speeddist;
-                slopeaccel = slopeaccelsp;
+                slopeaccelsel = slopeaccelsp;
             }
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
-            getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccel);
-            double potentialaccel = accelSwitch(accel, 5, ld.getSpeed(), speedsteps) + slopeaccel;
+            getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccelsel);
+            double potentialaccel = accelSwitch(accel, 5, ld.getSpeed(), speedsteps) + slopeaccelsel;
             boolean allowaccel = ((currentlimit - ld.getSpeed() > 5 && ld.getMascon() == 0) || ld.getMascon() > 0) && ld.getSpeed() + potentialaccel / 2 <= currentlimit && !ld.isOverrun();
             // Actual controlling part
             // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
             boolean nextredlight = ld.getLastsisp() == 0 && priority == signaldistdiff;
             double tempdist = nextredlight ? (distnow - 5 < 0 ? 0 : distnow - 5) : distnow;
             // Require accel? (no need to prepare for braking yet + additional thinking time)
-            if (tempdist - reqdist[6] > speed1s(ld) * (getThinkingTime(ld, 6) + 2) && allowaccel && !(nextredlight && tempdist < 10)) {
+            if (tempdist - reqdist[6] > speed1s(ld) * (getThinkingTime(ld, 6) / 2 + 2) && allowaccel && !(nextredlight && tempdist < 10)) {
                 finalmascon = 5;
             }
             // Require braking? (additional thinking time to prevent braking too hard)
-            if (tempdist < reqdist[6] + speed1s(ld) * getThinkingTime(ld, 6)) {
+            if (tempdist < reqdist[6] + speed1s(ld) * getThinkingTime(ld, 6) / 2) {
                 ld.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
@@ -104,9 +105,9 @@ class ato {
                 waitDepart(ld);
             }
             // Slightly speeding auto braking (not related to ATS-P or ATC)
-            if (ld.getSpeed() > currentlimit) {
+            if (ld.getSpeed() + slopeaccelnow > currentlimit) {
                 // Redefine reqdist (here for braking distance to speed limit)
-                getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, currentlimit, reqdist, getSlopeAccel(headLoc, tailLoc));
+                getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, currentlimit, reqdist, slopeaccelnow);
                 int finalbrake = -8;
                 for (int a = 8; a >= 1; a--) {
                     // If braking distance is greater than distance in 1 s and if the brake is greater, then use the value
@@ -140,7 +141,7 @@ class ato {
     }
 
     static double getThinkingTime(untenshi ld, int a) {
-        return Math.max(1.0 / ticksin1s, 1.0 / ticksin1s * Math.min(a, a + (ld.getCurrent() * 9 / 480)));
+        return Math.max(1.0 / ticksin1s, Math.min(a * 0.2, (a + (ld.getCurrent() * 9 / 480)) * 0.2));
     }
 
     static double speed1s(untenshi ld) {
