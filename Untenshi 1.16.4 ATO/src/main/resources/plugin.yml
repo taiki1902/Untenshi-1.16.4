@@ -1,5 +1,5 @@
 name: Untenshi
-version: 1.9.5_04-ATO
+version: 1.9.6-ATO
 main: me.fiveave.untenshi.main
 api-version: 1.15
 description: Untenshi Plugin
@@ -12,6 +12,9 @@ commands:
   utssignal:
     description: Untenshi Signal Commands (for Command Block)
     usage: /utssignal <x> <y> <z> <mode> <signal> <speed>
+  utslogger:
+    description: Untenshi Logger
+    usage: /utslogger <player>
 permissions:
   uts.*:
     description: All Untenshi Perms

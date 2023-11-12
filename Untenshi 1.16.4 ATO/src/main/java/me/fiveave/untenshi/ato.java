@@ -78,11 +78,11 @@ class ato {
             boolean nextredlight = ld.getLastsisp() == 0 && priority == signaldistdiff;
             double tempdist = nextredlight ? (distnow - 5 < 0 ? 0 : distnow - 5) : distnow;
             // Require accel? (no need to prepare for braking yet + additional thinking time)
-            if (tempdist - reqdist[6] > speed1s(ld) * (getThinkingTime(ld, 6) / 2 + 2) && allowaccel && !(nextredlight && tempdist < 10)) {
+            if (tempdist - reqdist[6] > speed1s(ld) * (getThinkingTime(ld, 6) + 2) && allowaccel && !(nextredlight && tempdist < 10)) {
                 finalmascon = 5;
             }
             // Require braking? (additional thinking time to prevent braking too hard)
-            if (tempdist < reqdist[6] + speed1s(ld) * getThinkingTime(ld, 6) / 2) {
+            if (tempdist < reqdist[6] + speed1s(ld) * getThinkingTime(ld, 6)) {
                 ld.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
@@ -129,14 +129,13 @@ class ato {
     }
 
     static void getAllReqdist(untenshi ld, double decel, double ebdecel, double speeddrop, int[] speedsteps, double lowerSpeed, double[] reqdist, double slopeaccel) {
-        double speedlater = ld.getSpeed() + slopeaccel;
-        // Consider normal case or else EB will be too common
+        // Consider normal case or else EB will be too common (decelfr = 7 because no multiplier)
         reqdist[9] = getReqdist(ld, globalDecel(ebdecel, ld.getSpeed(), 7, speedsteps), lowerSpeed, slopeaccel, speeddrop);
         // Get speed drop distance
         reqdist[0] = getReqdist(ld, speeddrop, lowerSpeed, slopeaccel, speeddrop);
         for (int a = 1; a <= 8; a++) {
             // Plus reaction time + consider speed after adding slopeaccel to prevent reaction lag
-            reqdist[a] = getReqdist(ld, globalDecel(decel, speedlater, a + 1, speedsteps), lowerSpeed, slopeaccel, speeddrop) + speedlater / 3.6 * getThinkingTime(ld, a);
+            reqdist[a] = getReqdist(ld, globalDecel(decel, ld.getSpeed(), a + 1, speedsteps), lowerSpeed, slopeaccel, speeddrop) + ld.getSpeed() / 3.6 * getThinkingTime(ld, a) / 2;
         }
     }
 

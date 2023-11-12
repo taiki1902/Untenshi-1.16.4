@@ -160,12 +160,8 @@ class events implements Listener {
                     event.setCancelled(true);
                 }
                 if (downWand().equals(item)) {
-                    if (!ld.isAtsping() && !ld.isForcedbraking() && (ld.getDooropen() == 0 || ld.getDooropen() > 0 && ld.getMascon() < 0)) {
-                        if (ld.getMascon() < 5) {
-                            ld.setMascon(ld.getMascon() + 1);
-                        }
-                    } else {
-                        ld.setMascon(-9);
+                    if (!ld.isAtsping() && !ld.isForcedbraking() && (ld.getDooropen() == 0 || ld.getDooropen() > 0 && ld.getMascon() < 0) && ld.getMascon() < 5) {
+                        ld.setMascon(ld.getMascon() + 1);
                     }
                     event.setCancelled(true);
                 }

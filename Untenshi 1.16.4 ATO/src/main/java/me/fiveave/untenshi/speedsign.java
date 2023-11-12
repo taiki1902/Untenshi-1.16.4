@@ -171,7 +171,7 @@ class speedsign extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (noPerm(e)) return true;
+        if (noSignPerm(e)) return true;
         Player p = e.getPlayer();
         try {
             int intspeed;

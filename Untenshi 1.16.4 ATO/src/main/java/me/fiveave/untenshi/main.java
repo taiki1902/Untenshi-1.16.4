@@ -47,7 +47,7 @@ public final class main extends JavaPlugin implements Listener {
         return Objects.requireNonNull(langdata.dataconfig.getString(path));
     }
 
-    static boolean noPerm(SignChangeActionEvent e) {
+    static boolean noSignPerm(SignChangeActionEvent e) {
         if (!e.getPlayer().hasPermission("uts.sign")) {
             e.getPlayer().sendMessage(ChatColor.RED + getlang("noperm"));
             e.setCancelled(true);
@@ -158,6 +158,8 @@ public final class main extends JavaPlugin implements Listener {
         Objects.requireNonNull(this.getCommand("uts")).setTabCompleter(new cmds());
         Objects.requireNonNull(this.getCommand("utssignal")).setExecutor(new signalcmd());
         Objects.requireNonNull(this.getCommand("utssignal")).setTabCompleter(new signalcmd());
+        Objects.requireNonNull(this.getCommand("utslogger")).setExecutor(new driverlog());
+        Objects.requireNonNull(this.getCommand("utslogger")).setTabCompleter(new driverlog());
         pm.registerEvents(new events(), this);
     }
 

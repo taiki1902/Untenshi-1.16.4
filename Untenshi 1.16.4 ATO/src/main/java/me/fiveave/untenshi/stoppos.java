@@ -65,7 +65,7 @@ class stoppos extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (noPerm(e)) return true;
+        if (noSignPerm(e)) return true;
         String[] loc = e.getLine(2).split(" ");
         String[] loc2 = e.getLine(3).split(" ");
         try {

@@ -336,7 +336,7 @@ class cmds implements CommandExecutor, TabCompleter {
         return false;
     }
 
-    void noPerm(CommandSender sender) {
+    static void noPerm(CommandSender sender) {
         sender.sendMessage(utshead + ChatColor.RED + getlang("noperm"));
     }
 

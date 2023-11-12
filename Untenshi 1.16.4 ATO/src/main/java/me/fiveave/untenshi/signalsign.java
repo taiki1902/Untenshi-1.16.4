@@ -331,7 +331,7 @@ class signalsign extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (noPerm(e)) return true;
+        if (noSignPerm(e)) return true;
         Player p = e.getPlayer();
         try {
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Signal sign");

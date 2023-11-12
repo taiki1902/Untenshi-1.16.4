@@ -14,7 +14,7 @@ import java.util.List;
 
 import static me.fiveave.untenshi.cmds.absentDriver;
 import static me.fiveave.untenshi.main.driver;
-import static me.fiveave.untenshi.main.noPerm;
+import static me.fiveave.untenshi.main.noSignPerm;
 
 class utstrain extends SignAction {
 
@@ -52,7 +52,7 @@ class utstrain extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent e) {
-        if (noPerm(e)) return true;
+        if (noSignPerm(e)) return true;
         try {
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Untenshi Train Detector");
             opt.setDescription("detect if the train is a Untenshi train");
