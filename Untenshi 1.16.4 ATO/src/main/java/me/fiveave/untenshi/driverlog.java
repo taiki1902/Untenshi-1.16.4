@@ -32,7 +32,7 @@ class driverlog implements CommandExecutor, TabCompleter {
                     DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss:SS");
                     String timestamp = myDateObj.format(myFormatObj);
                     if (ld != null) {
-                        startlog(p, ld, timestamp);
+                        startlog(sender, ld, timestamp);
                     } else {
                         sender.sendMessage(utshead + ChatColor.RED + "Driver does not exist or is not driving.");
                     }
@@ -69,15 +69,15 @@ class driverlog implements CommandExecutor, TabCompleter {
         return result;
     }
 
-    public void startlog(Player p, untenshi ld, String timestamp) throws IOException {
+    public void startlog(CommandSender sender, untenshi ld, String timestamp) throws IOException {
         if (ld.isPlaying()) {
             create(ld, timestamp);
-            logging(p, ld, timestamp);
-            p.sendMessage(utshead + ChatColor.GREEN + "Starting logging " + ld.getP().getName());
+            logging(sender, ld, timestamp);
+            sender.sendMessage(utshead + ChatColor.GREEN + "Starting logging " + ld.getP().getName());
         }
     }
 
-    public void logging(Player p, untenshi ld, String timestamp) {
+    public void logging(CommandSender sender, untenshi ld, String timestamp) {
         if (ld.isPlaying()) {
             LocalDateTime myDateObj = LocalDateTime.now();
             DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("HH:mm:ss.SS");
@@ -85,13 +85,13 @@ class driverlog implements CommandExecutor, TabCompleter {
             String s = String.format("%s,%1.2f,%d,%d,%d,%d", timestampnow, ld.getSpeed(), ld.getMascon(), ld.getSpeedlimit(), ld.getSignallimit(), ld.getPoints());
             try {
                 write(ld, timestamp, s);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> logging(p, ld, timestamp), tickdelay);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> logging(sender, ld, timestamp), tickdelay);
             } catch (Exception e) {
-                p.sendMessage(utshead + ChatColor.RED + "Ending logging " + ld.getP().getName());
+                sender.sendMessage(utshead + ChatColor.RED + "Ending logging " + ld.getP().getName());
                 throw new RuntimeException(e);
             }
         } else {
-            p.sendMessage(utshead + ChatColor.RED + "Ending logging " + ld.getP().getName());
+            sender.sendMessage(utshead + ChatColor.RED + "Ending logging " + ld.getP().getName());
         }
     }
 
