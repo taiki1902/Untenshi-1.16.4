@@ -401,7 +401,7 @@ class motion {
             int[] getSiOffset = getSignToRailOffset(ld.getLastsisign(), mg.getWorld());
             Location siLocForSlope = new Location(mg.getWorld(), ld.getLastsisign().getX() + getSiOffset[0], ld.getLastsisign().getY() + getSiOffset[1] + cartYPosDiff, ld.getLastsisign().getZ() + getSiOffset[2]);
             slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
-            reqsidist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 6, speedsteps), ld.getLastsisp(), slopeaccelsi, speeddrop);
+            reqsidist = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), ld.getLastsisp(), 6, speedsteps), ld.getLastsisp(), slopeaccelsi, speeddrop);
             signaldist = distFormula(ld.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), ld.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
             signaldistdiff = signaldist - reqsidist;
         }
@@ -409,7 +409,7 @@ class motion {
             int[] getSpOffset = getSignToRailOffset(ld.getLastspsign(), mg.getWorld());
             Location spLocForSlope = new Location(mg.getWorld(), ld.getLastspsign().getX() + getSpOffset[0], ld.getLastspsign().getY() + getSpOffset[1] + cartYPosDiff, ld.getLastspsign().getZ() + getSpOffset[2]);
             slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
-            reqspdist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 6, speedsteps), ld.getLastspsp(), slopeaccelsp, speeddrop);
+            reqspdist = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), ld.getLastspsp(), 6, speedsteps), ld.getLastspsp(), slopeaccelsp, speeddrop);
             speeddist = distFormula(ld.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), ld.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
             speeddistdiff = speeddist - reqspdist;
         }
@@ -508,15 +508,15 @@ class motion {
         return retaccel;
     }
 
-    static double decelSwitch(untenshi ld, double speednow, double speeddrop, double decel, double ebdecel, double current, int[] speedsteps, double slopeaccel) {
+    static double decelSwitch(untenshi ld, double cspd, double speeddrop, double decel, double ebdecel, double current, int[] speedsteps, double slopeaccel) {
         double retdecel = 0;
         if (current == 0) {
             retdecel = speeddrop;
         } else if (current < 0 && current > -480) {
-            retdecel = globalDecel(decel, speednow, Math.abs(current * 9 / 480) + 1, speedsteps);
+            retdecel = globalDecel(decel, cspd, Math.abs(current * 9 / 480) + 1, speedsteps);
         } else if (current == -480) {
             if (!ld.isForcedbraking() && ld.getSignallimit() != 0) {
-                retdecel = globalDecel(ebdecel, speednow, 7, speedsteps);
+                retdecel = globalDecel(ebdecel, cspd, 7, speedsteps);
             } else {
                 // SPAD ATS EB (-35 km/h/s)
                 ld.setAtsforced(2);
@@ -525,11 +525,15 @@ class motion {
         return retdecel - slopeaccel;
     }
 
-    static double globalDecel(double decel, double speednow, double decelfr, int[] speedsteps) {
+    static double globalDecel(double decel, double cspd, double decelfr, int[] speedsteps) {
         // (1 / 98) = (1 / 7 / 14)
-        return (speednow >= speedsteps[0]) ? (decel * decelfr * (15 - 4 * (speednow - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * decelfr * 15 / 98);
+        return (cspd >= speedsteps[0]) ? (decel * decelfr * (15 - 4 * (cspd - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * decelfr * 15 / 98);
     }
 
+    static double avgRangeDecel(double decel, double upperspd, double lowerspd, double decelfr, int[] speedsteps) {
+        // (1 / 98) = (1 / 7 / 14)
+        return (globalDecel(decel, upperspd, decelfr, speedsteps) + globalDecel(decel, lowerspd, decelfr, speedsteps)) / 2;
+    }
 
     static int minSpeedLimit(untenshi ld) {
         return Math.min(ld.getSpeedlimit(), ld.getSignallimit());

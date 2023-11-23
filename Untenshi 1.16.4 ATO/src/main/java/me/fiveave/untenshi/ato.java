@@ -28,7 +28,7 @@ class ato {
             double slopeaccelsel = getSlopeAccel(atoLocForSlope, tailLoc);
             double slopeaccelsi = 0;
             double slopeaccelsp = 0;
-            double reqatodist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 7, speedsteps), ld.getAtospeed(), slopeaccelsel, speeddrop);
+            double reqatodist = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), ld.getAtospeed(), 7, speedsteps), ld.getAtospeed(), slopeaccelsel, speeddrop);
             double signaldist = Double.MAX_VALUE;
             double signaldistdiff = Double.MAX_VALUE;
             double speeddist = Double.MAX_VALUE;
@@ -45,7 +45,7 @@ class ato {
                 int[] getSiOffset = getSignToRailOffset(ld.getLastsisign(), mg.getWorld());
                 Location siLocForSlope = new Location(mg.getWorld(), ld.getLastsisign().getX() + getSiOffset[0], ld.getLastsisign().getY() + getSiOffset[1] + cartYPosDiff, ld.getLastsisign().getZ() + getSiOffset[2]);
                 slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
-                reqsidist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 6, speedsteps), ld.getLastsisp(), slopeaccelsi, speeddrop);
+                reqsidist = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), ld.getLastsisp(), 6, speedsteps), ld.getLastsisp(), slopeaccelsi, speeddrop);
                 signaldist = distFormula(ld.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), ld.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
                 signaldistdiff = signaldist - reqsidist;
             }
@@ -53,7 +53,7 @@ class ato {
                 int[] getSpOffset = getSignToRailOffset(ld.getLastspsign(), mg.getWorld());
                 Location spLocForSlope = new Location(mg.getWorld(), ld.getLastspsign().getX() + getSpOffset[0], ld.getLastspsign().getY() + getSpOffset[1] + cartYPosDiff, ld.getLastspsign().getZ() + getSpOffset[2]);
                 slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
-                reqspdist = getReqdist(ld, globalDecel(decel, ld.getSpeed(), 6, speedsteps), ld.getLastspsp(), slopeaccelsp, speeddrop);
+                reqspdist = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), ld.getLastspsp(), 6, speedsteps), ld.getLastspsp(), slopeaccelsp, speeddrop);
                 speeddist = distFormula(ld.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), ld.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
                 speeddistdiff = speeddist - reqspdist;
             }
@@ -130,12 +130,12 @@ class ato {
 
     static void getAllReqdist(untenshi ld, double decel, double ebdecel, double speeddrop, int[] speedsteps, double lowerSpeed, double[] reqdist, double slopeaccel) {
         // Consider normal case or else EB will be too common (decelfr = 7 because no multiplier)
-        reqdist[9] = getReqdist(ld, globalDecel(ebdecel, ld.getSpeed(), 7, speedsteps), lowerSpeed, slopeaccel, speeddrop);
+        reqdist[9] = getReqdist(ld, avgRangeDecel(ebdecel, ld.getSpeed(), lowerSpeed, 7, speedsteps), lowerSpeed, slopeaccel, speeddrop);
         // Get speed drop distance
         reqdist[0] = getReqdist(ld, speeddrop, lowerSpeed, slopeaccel, speeddrop);
         for (int a = 1; a <= 8; a++) {
             // Plus reaction time + consider speed after adding slopeaccel to prevent reaction lag
-            reqdist[a] = getReqdist(ld, globalDecel(decel, ld.getSpeed(), a + 1, speedsteps), lowerSpeed, slopeaccel, speeddrop) + ld.getSpeed() / 3.6 * getThinkingTime(ld, a) / 2;
+            reqdist[a] = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), lowerSpeed, a + 1, speedsteps), lowerSpeed, slopeaccel, speeddrop) + ld.getSpeed() / 3.6 * getThinkingTime(ld, a) / 2;
         }
     }
 
