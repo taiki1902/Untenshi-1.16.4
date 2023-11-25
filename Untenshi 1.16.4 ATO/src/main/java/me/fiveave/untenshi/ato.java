@@ -16,7 +16,7 @@ class ato {
         if (ld.getAtodest() != null && ld.getAtospeed() != -1 && !ld.isForcedbraking() && !ld.isAtsping() && ld.getAtsforced() == 0 && ld.isAllowatousage()) {
             /*
              Get distances (distnow: smaller value of atodist and signaldist)
-             reqatodist decelfr must be higher than others to prevent ATS-P or ATC run
+             reqatodist rate must be higher than others to prevent ATS-P or ATC run
              allowaccel is for N to accel when difference is at least 5, or already accelerating
             */
             double lowerSpeed = ld.getAtospeed();
@@ -71,6 +71,7 @@ class ato {
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
             getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccelsel);
+            // Potential acceleration (acceleration after P5 to N)
             double potentialaccel = accelSwitch(accel, 5, ld.getSpeed(), speedsteps) + slopeaccelsel;
             boolean allowaccel = ((currentlimit - ld.getSpeed() > 5 && ld.getMascon() == 0) || ld.getMascon() > 0) && ld.getSpeed() + potentialaccel / 2 <= currentlimit && !ld.isOverrun();
             // Actual controlling part

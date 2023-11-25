@@ -430,18 +430,26 @@ class motion {
         // Actual controlling part
         // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
         boolean nextredlight = ld.getLastsisp() == 0 && priority == signaldistdiff;
+        // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
         double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
+        // Find minimum brake needed
+        int reqbrake = 9;
+        for (int b = 8; b >= 0; b--) {
+            if (tempdist >= reqdist[b]) {
+                reqbrake = b + 1;
+            }
+        }
         // Pattern run
-        if (((tempdist < reqdist[8] && ld.getSpeed() > lowerSpeed + 3) || isoverspeed3) && !ld.isAtsping()) {
+        if (((reqbrake > 8 && ld.getSpeed() > lowerSpeed + 3) || isoverspeed3) && !ld.isAtsping()) {
             ld.setAtsping(true);
-            if (tempdist < reqdist[9]) {
+            if (reqbrake > 9) {
                 ld.setMascon(-9);
                 pointCounter(ld, ChatColor.RED, ld.getSafetysystype().toUpperCase() + " " + getlang("peb") + " ", -5, "");
             } else {
                 ld.setMascon(-8);
                 pointCounter(ld, ChatColor.RED, ld.getSafetysystype().toUpperCase() + " " + getlang("pb8") + " ", -5, "");
             }
-        } else if (tempdist - reqdist[8] > 1 && !isoverspeed0 && !ld.isForcedbraking()) {
+        } else if (ld.getSpeed() <= lowerSpeed + 3 && !isoverspeed0 && !ld.isForcedbraking()) {
             ld.setAtsping(false);
         }
         // Pattern near
@@ -525,14 +533,14 @@ class motion {
         return retdecel - slopeaccel;
     }
 
-    static double globalDecel(double decel, double cspd, double decelfr, int[] speedsteps) {
+    static double globalDecel(double decel, double cspd, double rate, int[] speedsteps) {
         // (1 / 98) = (1 / 7 / 14)
-        return (cspd >= speedsteps[0]) ? (decel * decelfr * (15 - 4 * (cspd - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * decelfr * 15 / 98);
+        return (cspd >= speedsteps[0]) ? (decel * rate * (15 - 4 * (cspd - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * rate * 15 / 98);
     }
 
-    static double avgRangeDecel(double decel, double upperspd, double lowerspd, double decelfr, int[] speedsteps) {
+    static double avgRangeDecel(double decel, double upperspd, double lowerspd, double rate, int[] speedsteps) {
         // (1 / 98) = (1 / 7 / 14)
-        return (globalDecel(decel, upperspd, decelfr, speedsteps) + globalDecel(decel, lowerspd, decelfr, speedsteps)) / 2;
+        return (globalDecel(decel, upperspd, rate, speedsteps) + globalDecel(decel, lowerspd, rate, speedsteps)) / 2;
     }
 
     static int minSpeedLimit(untenshi ld) {

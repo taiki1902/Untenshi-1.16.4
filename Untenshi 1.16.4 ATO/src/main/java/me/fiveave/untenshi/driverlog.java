@@ -31,7 +31,7 @@ class driverlog implements CommandExecutor, TabCompleter {
                     LocalDateTime myDateObj = LocalDateTime.now();
                     DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss:SS");
                     String timestamp = myDateObj.format(myFormatObj);
-                    if (ld != null) {
+                    if (ld != null && ld.isPlaying()) {
                         startlog(sender, ld, timestamp);
                     } else {
                         sender.sendMessage(utshead + ChatColor.RED + "Driver does not exist or is not driving.");
@@ -70,11 +70,9 @@ class driverlog implements CommandExecutor, TabCompleter {
     }
 
     public void startlog(CommandSender sender, untenshi ld, String timestamp) throws IOException {
-        if (ld.isPlaying()) {
-            create(ld, timestamp);
-            logging(sender, ld, timestamp);
-            sender.sendMessage(utshead + ChatColor.GREEN + "Starting logging " + ld.getP().getName());
-        }
+        create(ld, timestamp);
+        logging(sender, ld, timestamp);
+        sender.sendMessage(utshead + ChatColor.GREEN + "Starting logging " + ld.getP().getName());
     }
 
     public void logging(CommandSender sender, untenshi ld, String timestamp) {
@@ -115,7 +113,7 @@ class driverlog implements CommandExecutor, TabCompleter {
             File file = new File(dir, ld.getP().getUniqueId() + "_" + timestamp.replaceAll(":", "_") + ".csv");
             if (file.exists()) {
                 try {
-                    BufferedWriter bw = new BufferedWriter(new FileWriter(file,true));
+                    BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
                     bw.newLine();
                     bw.write(s);
                     bw.close();
