@@ -49,6 +49,10 @@ class cmds implements CommandExecutor, TabCompleter {
         return playerdata.dataconfig;
     }
 
+    static void noPerm(CommandSender sender) {
+        sender.sendMessage(utshead + ChatColor.RED + getlang("noperm"));
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
@@ -168,7 +172,7 @@ class cmds implements CommandExecutor, TabCompleter {
                                         ld.setPlaying(true);
                                         motion.recursiveClock(ld);
                                         generalMsg(ld.getP(), ChatColor.YELLOW, getlang("trainset"));
-                                        generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + ChatColor.GREEN + getlang("enable"));
+                                        generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + " " + ChatColor.GREEN + getlang("enable"));
                                     } else {
                                         generalMsg(ld.getP(), ChatColor.RED, getlang("notowner"));
                                     }
@@ -182,11 +186,11 @@ class cmds implements CommandExecutor, TabCompleter {
                                     break label;
                             }
                         }
-                        sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts activate <true/false>" + ChatColor.YELLOW + "]\n" + getlang("activateinfo1") + "\n" + getlang("activateinfo2"));
+                        sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + " " + ChatColor.GOLD + "/uts activate <true/false>" + ChatColor.YELLOW + "]\n" + getlang("activateinfo1") + "\n" + getlang("activateinfo2"));
                         break;
                     case "ac":
-                        if (ld.getSignallimit() != 0 && ld.isForcedbraking()) {
-                            ld.setForcedbraking(false);
+                        if (ld.getSignallimit() != 0 && ld.getAtsforced() == 2) {
+                            ld.setAtsforced(1);
                             sender.sendMessage(utshead + ChatColor.GOLD + ld.getSafetysystype().toUpperCase() + " " + getlang("acsuccess"));
                         } else if (ld.getSignallimit() == 0) {
                             sender.sendMessage(utshead + ChatColor.RED + ld.getSafetysystype().toUpperCase() + " " + getlang("acfailed"));
@@ -198,19 +202,19 @@ class cmds implements CommandExecutor, TabCompleter {
                         if (cannotSetTrain(args, ld)) break;
                         if (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
                             ld.setFreemode(Boolean.parseBoolean(args[1].toLowerCase()));
-                            sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("freemode") + (ld.isFreemode() ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
+                            sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("freemode") + " " + (ld.isFreemode() ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
                             break;
                         }
-                        sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts freemode <true/false>" + ChatColor.YELLOW + "]\n" + getlang("freemodeinfo1") + "\n" + getlang("freemodeinfo2"));
+                        sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + " " + ChatColor.GOLD + "/uts freemode <true/false>" + ChatColor.YELLOW + "]\n" + getlang("freemodeinfo1") + "\n" + getlang("freemodeinfo2"));
                         break;
                     case "allowato":
                         if (cannotSetTrain(args, ld)) break;
                         if (args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
                             ld.setAllowatousage(Boolean.parseBoolean(args[1].toLowerCase()));
-                            sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("ato") + (ld.isAllowatousage() ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
+                            sender.sendMessage(pureutstitle + ChatColor.YELLOW + getlang("ato") + " " + (ld.isAllowatousage() ? ChatColor.GREEN + getlang("enable") : ChatColor.RED + getlang("disable")));
                             break;
                         }
-                        sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/uts allowato <true/false>" + ChatColor.YELLOW + "]\n" + getlang("atoinfo1") + "\n" + getlang("atoinfo2"));
+                        sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + " " + ChatColor.GOLD + "/uts allowato <true/false>" + ChatColor.YELLOW + "]\n" + getlang("atoinfo1") + "\n" + getlang("atoinfo2"));
                         break;
                     case "switchends":
                     case "se":
@@ -334,10 +338,6 @@ class cmds implements CommandExecutor, TabCompleter {
             return true;
         }
         return false;
-    }
-
-    static void noPerm(CommandSender sender) {
-        sender.sendMessage(utshead + ChatColor.RED + getlang("noperm"));
     }
 
     void helpDesc(CommandSender sender, String s) {

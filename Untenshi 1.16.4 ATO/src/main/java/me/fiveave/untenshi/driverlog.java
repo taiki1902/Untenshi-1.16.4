@@ -37,7 +37,7 @@ class driverlog implements CommandExecutor, TabCompleter {
                         sender.sendMessage(utshead + ChatColor.RED + "Driver does not exist or is not driving.");
                     }
                 } else {
-                    sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + ChatColor.GOLD + "/utslogger <player>" + ChatColor.YELLOW + "]");
+                    sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + " " + ChatColor.GOLD + "/utslogger <player>" + ChatColor.YELLOW + "]");
                 }
             } else {
                 cmds.noPerm(sender);

@@ -34,23 +34,23 @@ doorbuttonname: Door Control
 sblevername: Switchback
 ebbuttonname: Emergency Stop
 trainset: Your train has been set.
-activate: 'Drive mode: '
+activate: 'Drive mode:'
 enable: enabled
 disable: disabled
 notowner: You are not the owner of this train!
 sitincart: Please sit in a minecart!
 activatedalready: You have enabled the drive mode already!
 deactivatedalready: You have disabled the drive mode already!
-usage: 'Usage: '
+usage: 'Usage:'
 activateinfo1: '[true: Enable]'
 activateinfo2: '[false: Disable and reset]'
-door: 'Door: '
+door: 'Door:'
 opening: Opening
 closing: Closing
 opened: Opened
 closed: Closed
-ebstop: 'Stopping using EB '
-reaccel: 'Re-accelerating in station '
+ebstop: Stopping using EB
+reaccel: Re-accelerating in station
 dooropeninmotion: Do not open the doors in motion!
 openedalready: The doors has been opened already!
 closedalready: The doors has been closed already!
@@ -62,10 +62,10 @@ doorinfo2: '[false: Close doors]'
 aconfirmsuccess: Reset Successful
 acfailed: Reset Failed
 acnotneeded: Reset is not needed
-freemode: 'Free mode: '
+freemode: 'Free mode:'
 freemodeinfo1: '[true: Enable]'
 freemodeinfo2: '[false: Disable]'
-ato: 'Usage of ATO: '
+ato: 'Usage of ATO:'
 atoinfo1: '[true: Enable usage of ATO]'
 atoinfo2: '[false: Disable usage of ATO]'
 atodetectpattern: ATO Driving Pattern Detected.
@@ -83,23 +83,21 @@ playeronlycmd: Only players can type this command!
 cmdblkonlycmd: Only command blocks can type this command!
 error: An error occurred.
 noperm: You do not have permission!
-speed: 'Speed: '
-points: 'Points: '
-speeding: 'Speeding '
-signalspeeding: 'Signal Speeding '
+speed: 'Speed:'
+points: 'Points:'
 pb8: Service Brake Run
 peb: Emergency Brake Run
 pnear: Pattern Approaching
-misuseeb: 'Misuse of EB '
+misuseeb: Misuse of EB
 stopposperfect: 'Stop position: Excellent!'
 stopposgreat: 'Stop position: Great!'
 stopposgood: 'Stop position: Good!'
-stopposover: 'Overrun '
+stopposover: Overrun
 stopposseriousover: Due to a serious overrun, your drive mode will be disabled soon.
 nopoints: Having not enough points, your drive mode has been disabled.
-signalset: 'Signal: '
-signalwarn: 'Signal warning: '
-signalchange: 'Signal change: '
+signalset: 'Signal:'
+signalwarn: 'Signal warning:'
+signalchange: 'Signal change:'
 nolimit: No Limit
 signalsignchange: Sign change successful.
 signaltypewrong: Incorrect signal type. (R / YY / Y / YG / G / ATC)
@@ -112,10 +110,11 @@ signalyg: Reduced
 signaly: Caution
 signalyy: Restricted
 signalr: Stop
-speedlimitset: 'Speed limit: '
-speedlimitwarn: 'Speed limit warning: '
+speedlimitset: 'Speed limit:'
+speedlimitwarn: 'Speed limit warning:'
 speedlimitwarnover: The sign is set incorrectly. The speed should be less than 360 km/h.
 speedlimitdiv5: The sign is set incorrectly. The speed should be less than 360 km/h and divisible by 5.
 nextstop: Stopping at next station!
-collidebuffer: 'Collided with buffer '
+collidebuffer: Collided with buffer
 signimproper: This sign is set incorrectly.
+tcblocking: A TrainCarts object is blocking in front.

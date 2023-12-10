@@ -113,14 +113,6 @@ class motion {
                     - stopdecel / ticksin1s) // Deceleration (speed drop included)
             ;
         }
-        // ATS Forced Controls
-        if (ld.getMascon() == -9) {
-            if (ld.getAtsforced() == 2) {
-                ld.setSpeed(ld.getSpeed() - ebdecel / ticksin1s * 45 / 7);
-            }
-        } else {
-            ld.setAtsforced(0);
-        }
         // Anti-negative speed and force stop when door is open
         if (ld.getSpeed() < 0 || ld.getDooropen() > 0) {
             ld.setSpeed(0.0);
@@ -138,7 +130,7 @@ class motion {
         String doortxt = doorLogic(ld, tprop);
         // Display speed
         String speedcolor = "";
-        if (ld.isAtsping() || ld.isForcedbraking()) {
+        if (ld.isAtsping() || ld.getAtsforced() == 2) {
             speedcolor += ChatColor.RED;
         } else if (ld.isAtspnear()) {
             speedcolor += ChatColor.GOLD;
@@ -147,7 +139,7 @@ class motion {
         }
         String displaySpeed = speedcolor + df0.format(ld.getSpeed());
         // Action bar
-        String actionbarmsg = getCtrltext(ld) + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + displaySpeed + ChatColor.WHITE + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + ChatColor.WHITE + ld.getPoints() + " | " + ChatColor.YELLOW + getlang("door") + doortxt;
+        String actionbarmsg = getCtrltext(ld) + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + " " + displaySpeed + ChatColor.WHITE + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + " " + ChatColor.WHITE + ld.getPoints() + " | " + ChatColor.YELLOW + getlang("door") + " " + doortxt;
         ld.getP().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbarmsg));
         // Get signal update when warn (if signal speed isn't same)
         catchSignalUpdate(ld);
@@ -158,12 +150,6 @@ class motion {
         boolean isoverspeed3 = ld.getSpeed() > minSpeedLimit(ld) + 3 || ld.getSignallimit() == 0;
         // ATS-P or ATC
         safetySys(ld, decel, ebdecel, speedsteps, speeddrop, mg, isoverspeed0, isoverspeed3);
-        // Instant ATS / ATC if red light
-        if (ld.getSignallimit() == 0) {
-            ld.setForcedbraking(true);
-            ld.setMascon(-9);
-            ld.setCurrent(-480.0);
-        }
         // ATO (Must be placed after actions)
         atosys(ld, accel, decel, ebdecel, speeddrop, speedsteps, mg);
         // Stop position
@@ -318,9 +304,9 @@ class motion {
                 ld.setFixstoppos(true);
                 ld.setStaaccel(false);
                 if (freemodeNoATO(ld)) {
-                    pointCounter(ld, ChatColor.YELLOW, getlang("stopposover"), Math.toIntExact(-Math.round(stopdist)), shock);
+                    pointCounter(ld, ChatColor.YELLOW, getlang("stopposover") + " ", Math.toIntExact(-Math.round(stopdist)), shock);
                 } else {
-                    generalMsg(ld.getP(), ChatColor.YELLOW, getlang("stopposover") + ChatColor.RED + Math.round(stopdist) + " m" + shock);
+                    generalMsg(ld.getP(), ChatColor.YELLOW, getlang("stopposover") + " " + ChatColor.RED + Math.round(stopdist) + " m" + shock);
                 }
             }
             // Cho-heta-dane!
@@ -369,14 +355,14 @@ class motion {
                 ld.setLastsisp(warnsp);
                 String signalmsg = signalName(warnsi);
                 // If red light
-                if (ld.isForcedbraking() && ld.getSignallimit() == 0) {
+                if (ld.getAtsforced() == 2 && ld.getSignallimit() == 0) {
                     // Remove lastsisign and lastsisp as need to detect further signal warnings
                     ld.setSignallimit(warnsp);
                     ld.setLastsisign(null);
                     ld.setLastsisp(maxspeed);
                 }
                 String speedlimittxt = warnsp >= maxspeed ? getlang("nolimit") : warnsp + " km/h";
-                generalMsg(ld.getP(), ChatColor.YELLOW, getlang("signalchange") + signalmsg + ChatColor.GRAY + " " + speedlimittxt);
+                generalMsg(ld.getP(), ChatColor.YELLOW, getlang("signalchange") + " " + signalmsg + ChatColor.GRAY + " " + speedlimittxt);
             }
         }
     }
@@ -396,6 +382,19 @@ class motion {
         double reqsidist;
         double reqspdist;
         double distnow = Double.MAX_VALUE;
+        // TC forced stop (e.g. wait distance)
+        double[] reqdist = new double[10];
+        getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, 0, reqdist, slopeaccel);
+        if (mg.isObstacleAhead(reqdist[8] + mg.getProperties().getWaitDistance(), true, true) && !ld.isAtsping() && ld.getAtsforced() != -1) {
+            ld.setAtsping(true);
+            ld.setAtsforced(-1);
+            ld.setMascon(-8);
+            generalMsg(ld.getP(), ChatColor.RED, getlang("tcblocking"));
+        }
+        // If no obstacle need braking in 2s then release
+        if (ld.getAtsforced() == -1 && !mg.isObstacleAhead(reqdist[8] + mg.getProperties().getWaitDistance() + getThinkingTime(ld, 8) * speed1s(ld) * 2, true, true)) {
+            ld.setAtsforced(0);
+        }
         // Find either signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
         if (ld.getLastsisign() != null && ld.getLastsisp() != maxspeed) {
             int[] getSiOffset = getSignToRailOffset(ld.getLastsisign(), mg.getWorld());
@@ -425,7 +424,7 @@ class motion {
             slopeaccel = slopeaccelsp;
         }
         // Get brake distance (reqdist)
-        double[] reqdist = new double[10];
+        reqdist = new double[10];
         getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccel);
         // Actual controlling part
         // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
@@ -449,7 +448,7 @@ class motion {
                 ld.setMascon(-8);
                 pointCounter(ld, ChatColor.RED, ld.getSafetysystype().toUpperCase() + " " + getlang("pb8") + " ", -5, "");
             }
-        } else if (ld.getSpeed() <= lowerSpeed + 3 && !isoverspeed0 && !ld.isForcedbraking()) {
+        } else if (ld.getSpeed() <= lowerSpeed + 3 && !isoverspeed0 && !isoverspeed3 && ld.getAtsforced() != 2 && ld.getAtsforced() != -1) {
             ld.setAtsping(false);
         }
         // Pattern near
@@ -523,11 +522,12 @@ class motion {
         } else if (current < 0 && current > -480) {
             retdecel = globalDecel(decel, cspd, Math.abs(current * 9 / 480) + 1, speedsteps);
         } else if (current == -480) {
-            if (!ld.isForcedbraking() && ld.getSignallimit() != 0) {
+            if (ld.getAtsforced() != 2 && ld.getSignallimit() != 0) {
                 retdecel = globalDecel(ebdecel, cspd, 7, speedsteps);
             } else {
                 // SPAD ATS EB (-35 km/h/s)
                 ld.setAtsforced(2);
+                ld.setSpeed(ld.getSpeed() - ebdecel / ticksin1s * 45 / 7);
             }
         }
         return retdecel - slopeaccel;

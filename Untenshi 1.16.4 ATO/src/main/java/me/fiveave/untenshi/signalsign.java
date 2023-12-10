@@ -183,7 +183,7 @@ class signalsign extends SignAction {
                                             shownspeed = Math.min(ld.getSignallimit(), ld.getSpeedlimit());
                                         }
                                         String temp = shownspeed >= maxspeed ? getlang("nolimit") : shownspeed + " km/h";
-                                        generalMsg(p, ChatColor.YELLOW, getlang("signalset") + signalmsg + ChatColor.GRAY + " " + temp);
+                                        generalMsg(p, ChatColor.YELLOW, getlang("signalset") + " " + signalmsg + ChatColor.GRAY + " " + temp);
                                         // If red light need to wait signal change, if not then delete variable
                                         if (signalspeed != 0) {
                                             // Get signal order
@@ -245,7 +245,7 @@ class signalsign extends SignAction {
                                     break;
                                 // Signal speed limit warn
                                 case "warn":
-                                    if (!ld.isForcedbraking() && (ld.getSafetysystype().equals("ats-p") || ld.getSafetysystype().equals("atc"))) {
+                                    if (ld.getAtsforced() != 2 && (ld.getSafetysystype().equals("ats-p") || ld.getSafetysystype().equals("atc"))) {
                                         Sign warn = getSignFromLoc(getFullLoc(cartevent.getWorld(), cartevent.getLine(3)));
                                         if (warn != null && warn.getLine(1).equals("signalsign")) {
                                             // lastsisign and lastsisp are for detecting signal change
@@ -264,7 +264,7 @@ class signalsign extends SignAction {
                                                 warnsp = Math.min(Math.min(ld.getLastsisp(), ld.getLastspsp()), ld.getSpeedlimit());
                                             }
                                             String temp2 = warnsp >= maxspeed ? getlang("nolimit") : warnsp + " km/h";
-                                            generalMsg(p, ChatColor.YELLOW, getlang("signalwarn") + signalmsg + ChatColor.GRAY + " " + temp2);
+                                            generalMsg(p, ChatColor.YELLOW, getlang("signalwarn") + " " + signalmsg + ChatColor.GRAY + " " + temp2);
                                         } else {
                                             signImproper(cartevent, p);
                                         }

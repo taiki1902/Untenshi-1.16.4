@@ -124,9 +124,9 @@ class speedsign extends SignAction {
                                     if (ld.getSafetysystype().equals("atc")) {
                                         intspeed = Math.min(ld.getSignallimit(), ld.getSpeedlimit());
                                         String temp = intspeed >= maxspeed ? getlang("nolimit") : intspeed + " km/h";
-                                        generalMsg(p, ChatColor.YELLOW, getlang("signalset") + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + temp);
+                                        generalMsg(p, ChatColor.YELLOW, getlang("signalset") + " " + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + temp);
                                     } else {
-                                        generalMsg(p, ChatColor.YELLOW, getlang("speedlimitset") + (intspeed == maxspeed ? ChatColor.GREEN + getlang("nolimit") : intspeed + " km/h"));
+                                        generalMsg(p, ChatColor.YELLOW, getlang("speedlimitset") + " " + (intspeed == maxspeed ? ChatColor.GREEN + getlang("nolimit") : intspeed + " km/h"));
                                     }
                                     if (parseInt(speedsign) != 0) {
                                         ld.setLastspsign(null);
@@ -152,7 +152,7 @@ class speedsign extends SignAction {
                                         if (ld.getSafetysystype().equals("atc")) {
                                             warnsp = Math.min(Math.min(ld.getLastsisp(), ld.getLastspsp()), ld.getSignallimit());
                                         }
-                                        generalMsg(p, ChatColor.YELLOW, getlang("speedlimitwarn") + warnsp + " km/h");
+                                        generalMsg(p, ChatColor.YELLOW, getlang("speedlimitwarn") + " " + warnsp + " km/h");
                                     } else {
                                         signImproper(cartevent, p);
                                     }

@@ -33,9 +33,9 @@ import static me.fiveave.untenshi.motion.freemodeNoATO;
 class events implements Listener {
 
     static void toEB(untenshi ld) {
-        if (freemodeNoATO(ld) && ld.getMascon() != -9 && ld.getSpeed() > 20 && !ld.isForcedbraking() && !ld.isAtsping()) {
+        if (freemodeNoATO(ld) && ld.getMascon() != -9 && ld.getSpeed() > 20 && ld.getAtsforced() != 2 && !ld.isAtsping()) {
             // Misuse EB
-            pointCounter(ld, ChatColor.YELLOW, getlang("misuseeb"), -5, "");
+            pointCounter(ld, ChatColor.YELLOW, getlang("misuseeb") + " ", -5, "");
         }
         ld.setMascon(-9);
         ld.setAtsforced(1);
@@ -82,12 +82,12 @@ class events implements Listener {
                 // In station EB
                 if (ld.isStaeb()) {
                     ld.setStaeb(false);
-                    pointCounter(ld, ChatColor.YELLOW, getlang("ebstop"), -5, "");
+                    pointCounter(ld, ChatColor.YELLOW, getlang("ebstop") + " ", -5, "");
                 }
                 // In station accel
                 if (ld.isStaaccel()) {
                     ld.setStaaccel(false);
-                    pointCounter(ld, ChatColor.YELLOW, getlang("reaccel"), -5, "");
+                    pointCounter(ld, ChatColor.YELLOW, getlang("reaccel") + " ", -5, "");
                 }
             }
             // ATO Stop Time Countdown, cancelled if door is closed
@@ -144,7 +144,8 @@ class events implements Listener {
         untenshi ld = driver.get(p);
         // Main Part
         if ((ac.equals(Action.LEFT_CLICK_AIR) || ac.equals(Action.LEFT_CLICK_BLOCK) || ac.equals(Action.RIGHT_CLICK_AIR) || ac.equals(Action.RIGHT_CLICK_BLOCK)) && item != null && ld.isPlaying() && !ld.isFrozen()) {
-            if (ld.getAtodest() == null || ld.getAtsforced() == 1) {
+            // Either not in ATO mode, or ATO mode with EB
+            if ((ld.getAtodest() == null || ld.getAtsforced() == 1) && ld.getAtsforced() != 2) {
                 if (upWand().equals(item)) {
                     if (ld.getMascon() > -8) {
                         ld.setMascon(ld.getMascon() - 1);
@@ -154,14 +155,16 @@ class events implements Listener {
                     event.setCancelled(true);
                 }
                 if (nWand().equals(item)) {
-                    if (!ld.isAtsping() && !ld.isForcedbraking()) {
+                    if (!ld.isAtsping()) {
                         ld.setMascon(0);
+                        ld.setAtsforced(0);
                     }
                     event.setCancelled(true);
                 }
                 if (downWand().equals(item)) {
-                    if (!ld.isAtsping() && !ld.isForcedbraking() && (ld.getDooropen() == 0 || ld.getDooropen() > 0 && ld.getMascon() < 0) && ld.getMascon() < 5) {
+                    if (!ld.isAtsping() && (ld.getDooropen() == 0 || ld.getDooropen() > 0 && ld.getMascon() < 0) && ld.getMascon() < 5) {
                         ld.setMascon(ld.getMascon() + 1);
+                        ld.setAtsforced(0);
                     }
                     event.setCancelled(true);
                 }
@@ -175,7 +178,7 @@ class events implements Listener {
                 switchBack(ld);
                 event.setCancelled(true);
             }
-            if (ebButton().equals(item)) {
+            if (ebButton().equals(item) && ld.getAtsforced() != 2) {
                 toEB(ld);
                 event.setCancelled(true);
             }
@@ -197,7 +200,7 @@ class events implements Listener {
                     toEB(ld);
                     ld.setCurrent(-480);
                     ld.setSpeed(0);
-                    pointCounter(ld, ChatColor.YELLOW, getlang("collidebuffer"), -10, " " + sp + " km/h");
+                    pointCounter(ld, ChatColor.YELLOW, getlang("collidebuffer") + " ", -10, " " + sp + " km/h");
                 }
             }
         } catch (Exception ignored) {

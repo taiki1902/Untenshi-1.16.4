@@ -39,7 +39,6 @@ class untenshi {
     private boolean fixstoppos;
     private boolean staaccel;
     private boolean staeb;
-    private boolean forcedbraking;
     private boolean atsping;
     private boolean atspnear;
     private boolean doordiropen;
@@ -70,7 +69,6 @@ class untenshi {
         this.setMascon(-9);
         this.setCurrent(-480.0);
         this.setPoints(30);
-        this.setForcedbraking(false);
         this.setAtsping(false);
         this.setAtspnear(false);
         this.setOverrun(false);
@@ -123,6 +121,7 @@ class untenshi {
         this.points = points;
     }
 
+    // -1: TC intervention; 0: normal; 1: EB (ATO pause); 2: EB (SPAD)
     public int getAtsforced() {
         return atsforced;
     }
@@ -307,15 +306,7 @@ class untenshi {
         this.staeb = staeb;
     }
 
-    public boolean isForcedbraking() {
-        return forcedbraking;
-    }
-
-    public void setForcedbraking(boolean forcedbraking) {
-        this.forcedbraking = forcedbraking;
-    }
-
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    // ATS-P or ATC Pattern run
     public boolean isAtsping() {
         return atsping;
     }
@@ -324,6 +315,7 @@ class untenshi {
         this.atsping = atsping;
     }
 
+    // ATS-P or ATC Pattern near
     public boolean isAtspnear() {
         return atspnear;
     }

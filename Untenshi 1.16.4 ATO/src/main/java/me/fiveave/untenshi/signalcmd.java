@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static java.lang.Integer.parseInt;
+import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.*;
 import static me.fiveave.untenshi.speedsign.getFullLoc;
@@ -63,7 +64,7 @@ class signalcmd implements CommandExecutor, TabCompleter {
                                     sender.sendMessage(utshead + ChatColor.RED + getlang("signaltypewrong"));
                                 }
                                 String showspeed = parseInt(warnsp) >= maxspeed ? getlang("nolimit") : warnsp + " km/h";
-                                sender.sendMessage(utshead + ChatColor.YELLOW + getlang("signalwarn") + signalmsg + ChatColor.GRAY + " " + showspeed);
+                                generalMsg(sender, ChatColor.YELLOW, getlang("signalwarn") + " " + signalmsg + ChatColor.GRAY + " " + showspeed);
                             }
                             break;
                         // Set line 4 of sign at (line 3 of this sign) to turn signal

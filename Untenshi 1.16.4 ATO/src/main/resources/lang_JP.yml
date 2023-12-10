@@ -34,23 +34,23 @@ doorbuttonname: ドアスイッチ
 sblevername: 方向切替
 ebbuttonname: 緊急停車
 trainset: 電車が設定しました。
-activate: '運転モード: '
+activate: '運転モード:'
 enable: オン
 disable: オフ
 notowner: 電車の所有者ではありません!
 sitincart: まず電車に座ってください!
 activatedalready: 運転モードがオンにしました!
 deactivatedalready: 運転モードがオフにしました!
-usage: '使い方: '
+usage: '使い方:'
 activateinfo1: '[true: オン]'
 activateinfo2: '[false: オフとリセット]'
-door: 'ドア: '
+door: 'ドア:'
 opening: 開きます
 closing: 閉まります
 opened: 開いています
 closed: 閉まっています
-ebstop: '非常制動停車 '
-reaccel: '駅構内再加速 '
+ebstop: 非常制動停車
+reaccel: 駅構内再加速
 dooropeninmotion: 運転中にドアを開けないでください!
 openedalready: ドアが開いています!
 closedalready: ドアが閉まっています!
@@ -62,10 +62,10 @@ doorinfo2: '[false: ドアを閉まる]'
 acsuccess: 復帰が成功しました。
 acfailed: 復帰が失敗しました。
 acnotneeded: 復帰する必要がありません。
-freemode: 'フリーモード: '
+freemode: 'フリーモード:'
 freemodeinfo1: '[true: オン]'
 freemodeinfo2: '[false: オフ]'
-ato: 'ATO 使用許可: '
+ato: 'ATO 使用許可:'
 atoinfo1: '[true: ATO 使用許可オン]'
 atoinfo2: '[false: ATO 使用許可オフ]'
 atodetectpattern: ATO 運転パターン 発見しました。
@@ -83,23 +83,21 @@ playeronlycmd: このコマンドを入力できるのはプレイヤーだけ�
 cmdblkonlycmd: このコマンドを入力できるのはコマンドブロックだけです!
 error: エラーが発生しました。
 noperm: 権限不足!
-speed: '速度: '
-points: '点数: '
-speeding: '速度超過 '
-signalspeeding: '信号速度超過 '
+speed: '速度:'
+points: '点数:'
 pb8: 常用ブレーキ動作
 peb: 非常ブレーキ動作
 pnear: パターン接近
-misuseeb: '非常ブレーキ濫用 '
+misuseeb: 非常ブレーキ濫用
 stopposperfect: '停止位置: Excellent!'
 stopposgreat: '停止位置: Great!'
 stopposgood: '停止位置: Good!'
-stopposover: 'オーバーラン '
+stopposover: オーバーラン
 stopposseriousover: 停止範囲を大幅に超えると運転を終了します。
 nopoints: 点数不足、運転終了。
-signalset: '閉塞: '
-signalwarn: '閉塞予告: '
-signalchange: '閉塞変更: '
+signalset: '閉塞:'
+signalwarn: '閉塞予告:'
+signalchange: '閉塞変更:'
 nolimit: 解除
 signalsignchange: サインの変更に成功しました。
 signaltypewrong: 信号の種類は正確ではありません。(R / YY / Y / YG / G / ATC)
@@ -112,10 +110,11 @@ signalyg: 減速
 signaly: 注意
 signalyy: 警戒
 signalr: 停止
-speedlimitset: '速度制限: '
-speedlimitwarn: '速度制限予告: '
+speedlimitset: '速度制限:'
+speedlimitwarn: '速度制限予告:'
 speedlimitwarnover: サインが正しく設定されていません。速度は 360 km/h 未満である必要があります。
 speedlimitdiv5: サインが正しく設定されていません。速度は 360 km/h 以下で、5で割り切れる必要があります。
 nextstop: 次は、停車!
-collidebuffer: '車止め激突 '
+collidebuffer: 車止め激突
 signimproper: このサインが正しく設定されていません。
+tcblocking: 前に塞いでいる TrainCarts のオブジェクトがあります。

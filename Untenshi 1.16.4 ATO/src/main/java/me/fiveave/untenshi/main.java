@@ -93,7 +93,6 @@ public final class main extends JavaPlugin implements Listener {
             ld.setMascon(-9);
             ld.setCurrent(-480.0);
             ld.setPoints(30);
-            ld.setForcedbraking(false);
             ld.setAtsping(false);
             ld.setAtspnear(false);
             ld.setOverrun(false);
@@ -120,7 +119,7 @@ public final class main extends JavaPlugin implements Listener {
             // Reset inventory
             ld.getP().getInventory().setContents(ld.getInv());
             ld.getP().updateInventory();
-            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + ChatColor.RED + getlang("disable"));
+            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + " " + ChatColor.RED + getlang("disable"));
             // Reset signals (resettablesign)
             final Location[] locs = ld.getResettablesisign();
             resetSignals(ld.getP().getWorld(), locs);

@@ -16,9 +16,9 @@ import static me.fiveave.untenshi.main.utshead;
 
 class abstractfile {
     protected final main plugin;
-    private File file;
     FileConfiguration dataconfig;
     FileConfiguration oldconfig;
+    private File file;
 
     abstractfile(main plugin, String fileName) {
         this.plugin = plugin;
