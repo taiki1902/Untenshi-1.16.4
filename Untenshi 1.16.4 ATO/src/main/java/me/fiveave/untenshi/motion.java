@@ -432,8 +432,8 @@ class motion {
         boolean nextredlight = ld.getLastsisp() == 0 && priority == signaldistdiff;
         // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
         double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
-        // Find minimum brake needed
-        int reqbrake = 9;
+        // Find minimum brake needed (default 10: even EB cannot brake in time)
+        int reqbrake = 10;
         for (int b = 8; b >= 0; b--) {
             if (tempdist >= reqdist[b]) {
                 reqbrake = b + 1;
