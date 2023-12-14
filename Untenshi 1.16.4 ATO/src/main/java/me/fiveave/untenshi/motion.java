@@ -1,6 +1,7 @@
 package me.fiveave.untenshi;
 
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
+import com.bergerkiller.bukkit.tc.controller.MinecartGroupStore;
 import com.bergerkiller.bukkit.tc.properties.TrainProperties;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -30,7 +31,14 @@ class motion {
 
     static void recursiveClock(untenshi ld) {
         if (ld.isPlaying() && ld.getP().isInsideVehicle()) {
-            motionSystem(ld);
+            try {
+                motionSystem(ld);
+            } catch (Exception e) {
+                restoreinit(ld);
+                MinecartGroup mg = MinecartGroupStore.get(ld.getP().getVehicle());
+                mg.setForwardForce(0);
+                mg.getProperties().setSpeedLimit(0);
+            }
             Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClock(ld), tickdelay);
         } else if (!ld.getP().isInsideVehicle() && !ld.isFrozen()) {
             restoreinit(ld);
@@ -101,7 +109,7 @@ class motion {
         if (currentnow > 0 && ecb < 0) {
             ld.setCurrent(0);
         }
-        // Slope speed adjust (new physics testing in progress)
+        // Slope speed adjust
         Location headLoc = mg.head().getEntity().getLocation();
         Location tailLoc = mg.tail().getEntity().getLocation();
         double slopeaccel = getSlopeAccel(headLoc, tailLoc);
@@ -383,16 +391,22 @@ class motion {
         double reqspdist;
         double distnow = Double.MAX_VALUE;
         // TC forced stop (e.g. wait distance)
-        double[] reqdist = new double[10];
-        getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, 0, reqdist, slopeaccel);
-        if (mg.isObstacleAhead(reqdist[8] + mg.getProperties().getWaitDistance(), true, true) && !ld.isAtsping() && ld.getAtsforced() != -1) {
+        double[] reqtcdist = new double[10];
+        getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, 0, reqtcdist, slopeaccel);
+        double shortesttcbdist = reqtcdist[8];
+        for (int b = 8; b >= 0; b--) {
+            if (reqtcdist[b] <= shortesttcbdist) {
+                shortesttcbdist = reqtcdist[b];
+            }
+        }
+        if (mg.isObstacleAhead(reqtcdist[8] + Math.max(mg.getProperties().getWaitDistance(), 0), true, true) && !ld.isAtsping() && ld.getAtsforced() != -1 && shortesttcbdist == reqtcdist[8]) {
             ld.setAtsping(true);
             ld.setAtsforced(-1);
             ld.setMascon(-8);
             generalMsg(ld.getP(), ChatColor.RED, getlang("tcblocking"));
         }
         // If no obstacle need braking in 2s then release
-        if (ld.getAtsforced() == -1 && !mg.isObstacleAhead(reqdist[8] + mg.getProperties().getWaitDistance() + getThinkingTime(ld, 8) * speed1s(ld) * 2, true, true)) {
+        if (ld.getAtsforced() == -1 && !mg.isObstacleAhead(reqtcdist[8] + mg.getProperties().getWaitDistance() + getThinkingTime(ld, 8) * speed1s(ld) * 2, true, true)) {
             ld.setAtsforced(0);
         }
         // Find either signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
@@ -424,7 +438,7 @@ class motion {
             slopeaccel = slopeaccelsp;
         }
         // Get brake distance (reqdist)
-        reqdist = new double[10];
+        double[] reqdist = new double[10];
         getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccel);
         // Actual controlling part
         // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal

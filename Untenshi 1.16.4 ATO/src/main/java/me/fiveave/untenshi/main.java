@@ -74,11 +74,11 @@ public final class main extends JavaPlugin implements Listener {
         // Get train group and stop train and open doors
         if (ld.isPlaying()) {
             MinecartGroup mg = ld.getTrain();
-            TrainProperties trainprop = mg.getProperties();
-            trainprop.setSpeedLimit(0);
+            TrainProperties tprop = mg.getProperties();
+            tprop.setSpeedLimit(0);
             mg.setForwardForce(0);
-            trainprop.setPlayersEnter(true);
-            trainprop.setPlayersExit(true);
+            tprop.setPlayersEnter(true);
+            tprop.setPlayersExit(true);
             ld.setPlaying(false);
             ld.setSpeed(0.0);
             ld.setSignallimit(maxspeed);
@@ -111,15 +111,11 @@ public final class main extends JavaPlugin implements Listener {
             ld.setLastsisp(maxspeed);
             ld.setLastspsp(maxspeed);
             // Delete owners
-            trainprop.clearOwners();
+            tprop.clearOwners();
             // Clear Inventory
             for (int i = 0; i < 41; i++) {
                 ld.getP().getInventory().setItem(i, new ItemStack(Material.AIR));
             }
-            // Reset inventory
-            ld.getP().getInventory().setContents(ld.getInv());
-            ld.getP().updateInventory();
-            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + " " + ChatColor.RED + getlang("disable"));
             // Reset signals (resettablesign)
             final Location[] locs = ld.getResettablesisign();
             resetSignals(ld.getP().getWorld(), locs);
@@ -131,6 +127,13 @@ public final class main extends JavaPlugin implements Listener {
             ld.setIlposlist(null);
             ld.setIlposoccupied(null);
             ld.setIlenterqueuetime(0);
+            // Reset doors
+            tprop.setPlayersEnter(true);
+            tprop.setPlayersExit(true);
+            // Reset inventory
+            ld.getP().getInventory().setContents(ld.getInv());
+            ld.getP().updateInventory();
+            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + " " + ChatColor.RED + getlang("disable"));
         }
     }
 
