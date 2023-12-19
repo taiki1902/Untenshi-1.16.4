@@ -392,7 +392,7 @@ class motion {
         double distnow = Double.MAX_VALUE;
         // TC forced stop (e.g. wait distance)
         double[] reqtcdist = new double[10];
-        getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, 0, reqtcdist, slopeaccel);
+        getAllReqdist(ld, ld.getSpeed(), 0, ebdecel, decel, speedsteps, speeddrop, reqtcdist, slopeaccel);
         double shortesttcbdist = reqtcdist[8];
         for (int b = 8; b >= 0; b--) {
             if (reqtcdist[b] <= shortesttcbdist) {
@@ -414,7 +414,7 @@ class motion {
             int[] getSiOffset = getSignToRailOffset(ld.getLastsisign(), mg.getWorld());
             Location siLocForSlope = new Location(mg.getWorld(), ld.getLastsisign().getX() + getSiOffset[0], ld.getLastsisign().getY() + getSiOffset[1] + cartYPosDiff, ld.getLastsisign().getZ() + getSiOffset[2]);
             slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
-            reqsidist = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), ld.getLastsisp(), 6, speedsteps), ld.getLastsisp(), slopeaccelsi, speeddrop);
+            reqsidist = getReqdist(ld.getSpeed(), ld.getLastsisp(), avgRangeDecel(decel, ld.getSpeed(), ld.getLastsisp(), 6, speedsteps), slopeaccelsi, speeddrop);
             signaldist = distFormula(ld.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), ld.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
             signaldistdiff = signaldist - reqsidist;
         }
@@ -422,7 +422,7 @@ class motion {
             int[] getSpOffset = getSignToRailOffset(ld.getLastspsign(), mg.getWorld());
             Location spLocForSlope = new Location(mg.getWorld(), ld.getLastspsign().getX() + getSpOffset[0], ld.getLastspsign().getY() + getSpOffset[1] + cartYPosDiff, ld.getLastspsign().getZ() + getSpOffset[2]);
             slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
-            reqspdist = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), ld.getLastspsp(), 6, speedsteps), ld.getLastspsp(), slopeaccelsp, speeddrop);
+            reqspdist = getReqdist(ld.getSpeed(), ld.getLastspsp(), avgRangeDecel(decel, ld.getSpeed(), ld.getLastspsp(), 6, speedsteps), slopeaccelsp, speeddrop);
             speeddist = distFormula(ld.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), ld.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
             speeddistdiff = speeddist - reqspdist;
         }
@@ -439,7 +439,7 @@ class motion {
         }
         // Get brake distance (reqdist)
         double[] reqdist = new double[10];
-        getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccel);
+        getAllReqdist(ld, ld.getSpeed(), lowerSpeed, ebdecel, decel, speedsteps, speeddrop, reqdist, slopeaccel);
         // Actual controlling part
         // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
         boolean nextredlight = ld.getLastsisp() == 0 && priority == signaldistdiff;
@@ -511,8 +511,8 @@ class motion {
         ld.setAtospeed(-1);
     }
 
-    static double getReqdist(untenshi ld, double decel, double lowerSpeed, double slopeaccel, double speeddrop) {
-        return (Math.pow(ld.getSpeed() + Math.max(slopeaccel - decel, 0) / 2, 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop));
+    static double getReqdist(double upperSpeed, double lowerSpeed, double decel, double slopeaccel, double speeddrop) {
+        return (Math.pow(upperSpeed + Math.max(slopeaccel - decel, 0) / 2, 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop));
     }
 
     static double accelSwitch(double accel, int dcurrent, double cspd, int[] sec) {

@@ -28,7 +28,7 @@ class ato {
             double slopeaccelsel = getSlopeAccel(atoLocForSlope, tailLoc);
             double slopeaccelsi = 0;
             double slopeaccelsp = 0;
-            double reqatodist = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), ld.getAtospeed(), 7, speedsteps), ld.getAtospeed(), slopeaccelsel, speeddrop);
+            double reqatodist = getReqdist(ld.getSpeed(), ld.getAtospeed(), avgRangeDecel(decel, ld.getSpeed(), ld.getAtospeed(), 7, speedsteps), slopeaccelsel, speeddrop);
             double signaldist = Double.MAX_VALUE;
             double signaldistdiff = Double.MAX_VALUE;
             double speeddist = Double.MAX_VALUE;
@@ -45,7 +45,7 @@ class ato {
                 int[] getSiOffset = getSignToRailOffset(ld.getLastsisign(), mg.getWorld());
                 Location siLocForSlope = new Location(mg.getWorld(), ld.getLastsisign().getX() + getSiOffset[0], ld.getLastsisign().getY() + getSiOffset[1] + cartYPosDiff, ld.getLastsisign().getZ() + getSiOffset[2]);
                 slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
-                reqsidist = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), ld.getLastsisp(), 6, speedsteps), ld.getLastsisp(), slopeaccelsi, speeddrop);
+                reqsidist = getReqdist(ld.getSpeed(), ld.getLastsisp(), avgRangeDecel(decel, ld.getSpeed(), ld.getLastsisp(), 6, speedsteps), slopeaccelsi, speeddrop);
                 signaldist = distFormula(ld.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), ld.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
                 signaldistdiff = signaldist - reqsidist;
             }
@@ -53,7 +53,7 @@ class ato {
                 int[] getSpOffset = getSignToRailOffset(ld.getLastspsign(), mg.getWorld());
                 Location spLocForSlope = new Location(mg.getWorld(), ld.getLastspsign().getX() + getSpOffset[0], ld.getLastspsign().getY() + getSpOffset[1] + cartYPosDiff, ld.getLastspsign().getZ() + getSpOffset[2]);
                 slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
-                reqspdist = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), ld.getLastspsp(), 6, speedsteps), ld.getLastspsp(), slopeaccelsp, speeddrop);
+                reqspdist = getReqdist(ld.getSpeed(), ld.getLastspsp(), avgRangeDecel(decel, ld.getSpeed(), ld.getLastspsp(), 6, speedsteps), slopeaccelsp, speeddrop);
                 speeddist = distFormula(ld.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), ld.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
                 speeddistdiff = speeddist - reqspdist;
             }
@@ -70,10 +70,10 @@ class ato {
             }
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
-            getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, lowerSpeed, reqdist, slopeaccelsel);
-            // Potential acceleration (acceleration after P5 to N)
-            double potentialaccel = accelSwitch(accel, 5, ld.getSpeed(), speedsteps) + slopeaccelsel;
-            boolean allowaccel = ((currentlimit - ld.getSpeed() > 5 && ld.getMascon() == 0) || ld.getMascon() > 0) && ld.getSpeed() + potentialaccel / 2 <= currentlimit && !ld.isOverrun();
+            getAllReqdist(ld, ld.getSpeed(), lowerSpeed, ebdecel, decel, speedsteps, speeddrop, reqdist, slopeaccelsel);
+            // Potential acceleration (acceleration after P5 to N) (0.75 from result of average accel of P1-P5 divided by P5 accel + delay)
+            double potentialaccel = accelSwitch(accel, 5, ld.getSpeed(), speedsteps) * 0.75 + slopeaccelsel;
+            boolean allowaccel = ((currentlimit - ld.getSpeed() > 5 && ld.getMascon() == 0) || ld.getMascon() > 0) && ld.getSpeed() + potentialaccel <= currentlimit && !ld.isOverrun();
             // Actual controlling part
             // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
             boolean nextredlight = ld.getLastsisp() == 0 && priority == signaldistdiff;
@@ -108,7 +108,7 @@ class ato {
             // Slightly speeding auto braking (not related to ATS-P or ATC)
             if (ld.getSpeed() + slopeaccelnow > currentlimit) {
                 // Redefine reqdist (here for braking distance to speed limit)
-                getAllReqdist(ld, decel, ebdecel, speeddrop, speedsteps, currentlimit, reqdist, slopeaccelnow);
+                getAllReqdist(ld, ld.getSpeed() + slopeaccelnow, currentlimit, ebdecel, decel, speedsteps, speeddrop, reqdist, slopeaccelnow);
                 int finalbrake = -8;
                 for (int a = 8; a >= 1; a--) {
                     // If braking distance is greater than distance in 1 s and if the brake is greater, then use the value
@@ -129,14 +129,14 @@ class ato {
         }
     }
 
-    static void getAllReqdist(untenshi ld, double decel, double ebdecel, double speeddrop, int[] speedsteps, double lowerSpeed, double[] reqdist, double slopeaccel) {
+    static void getAllReqdist(untenshi ld, double upperSpeed, double lowerSpeed, double ebdecel, double decel, int[] speedsteps, double speeddrop, double[] reqdist, double slopeaccel) {
         // Consider normal case or else EB will be too common (decelfr = 7 because no multiplier)
-        reqdist[9] = getReqdist(ld, avgRangeDecel(ebdecel, ld.getSpeed(), lowerSpeed, 7, speedsteps), lowerSpeed, slopeaccel, speeddrop);
+        reqdist[9] = getReqdist(upperSpeed, lowerSpeed, avgRangeDecel(ebdecel, upperSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
         // Get speed drop distance
-        reqdist[0] = getReqdist(ld, speeddrop, lowerSpeed, slopeaccel, speeddrop);
+        reqdist[0] = getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
         for (int a = 1; a <= 8; a++) {
             // Plus reaction time + consider speed after adding slopeaccel to prevent reaction lag
-            reqdist[a] = getReqdist(ld, avgRangeDecel(decel, ld.getSpeed(), lowerSpeed, a + 1, speedsteps), lowerSpeed, slopeaccel, speeddrop) + ld.getSpeed() / 3.6 * getThinkingTime(ld, a) / 2;
+            reqdist[a] = getReqdist(upperSpeed, lowerSpeed, avgRangeDecel(decel, upperSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop) + upperSpeed / 3.6 * getThinkingTime(ld, a) / 2;
         }
     }
 
