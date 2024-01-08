@@ -164,8 +164,7 @@ class motion {
         stopPos(ld, shock);
         // Catch point <= 0 and end game
         if (freemodeNoATO(ld) && ld.getPoints() <= 0) {
-            generalMsg(ld.getP(), ChatColor.RED, getlang("nopoints"));
-            restoreinit(ld);
+            ebUntilRestoreInit(ld, getlang("nopoints"));
         }
     }
 
@@ -320,18 +319,24 @@ class motion {
             // Cho-heta-dane!
             else if (stopdist >= 50 && ld.isOverrun()) {
                 if (freemodeNoATO(ld)) {
-                    if (ld.getSpeed() > 0) {
-                        ld.setAtsforced(2);
-                        ld.setMascon(-9);
-                    } else {
-                        generalMsg(ld.getP(), ChatColor.RED, getlang("stopposseriousover"));
-                        restoreinit(ld);
-                    }
+                    ebUntilRestoreInit(ld, getlang("stopposseriousover"));
                 } else {
                     ld.setReqstopping(false);
                     ld.setOverrun(false);
                 }
             }
+        }
+    }
+
+    private static void ebUntilRestoreInit(untenshi ld, String s) {
+        if (ld.getSpeed() > 0) {
+            if (ld.getAtsforced() != 2) {
+                generalMsg(ld.getP(), ChatColor.RED, s);
+            }
+            ld.setAtsforced(2);
+            ld.setMascon(-9);
+        } else {
+            restoreinit(ld);
         }
     }
 
@@ -391,22 +396,17 @@ class motion {
         double reqspdist;
         double distnow = Double.MAX_VALUE;
         // TC forced stop (e.g. wait distance)
-        double[] reqtcdist = new double[10];
-        getAllReqdist(ld, ld.getSpeed(), 0, ebdecel, decel, speedsteps, speeddrop, reqtcdist, slopeaccel);
-        double shortesttcbdist = reqtcdist[8];
-        for (int b = 8; b >= 0; b--) {
-            if (reqtcdist[b] <= shortesttcbdist) {
-                shortesttcbdist = reqtcdist[b];
-            }
-        }
-        if (mg.isObstacleAhead(reqtcdist[8] + Math.max(mg.getProperties().getWaitDistance(), 0), true, true) && !ld.isAtsping() && ld.getAtsforced() != -1 && shortesttcbdist == reqtcdist[8]) {
+        if (mg.isObstacleAhead(Math.max(mg.getProperties().getWaitDistance(), 0), true, true) && !ld.isAtsping() && ld.getAtsforced() != -1) {
             ld.setAtsping(true);
             ld.setAtsforced(-1);
-            ld.setMascon(-8);
+            ld.setMascon(-9);
             generalMsg(ld.getP(), ChatColor.RED, getlang("tcblocking"));
         }
+        if (ld.getAtsforced() == -1 && ld.isAtsping() && ld.getMascon() == -9) {
+            ld.setSpeed(Math.max(ld.getSpeed() - ebdecel / ticksin1s * 45 / 7, 0));
+        }
         // If no obstacle need braking in 2s then release
-        if (ld.getAtsforced() == -1 && !mg.isObstacleAhead(reqtcdist[8] + mg.getProperties().getWaitDistance() + getThinkingTime(ld, 8) * speed1s(ld) * 2, true, true)) {
+        if (ld.getAtsforced() == -1 && !mg.isObstacleAhead(mg.getProperties().getWaitDistance() + getThinkingTime(ld, 8) * speed1s(ld) * 2, true, true)) {
             ld.setAtsforced(0);
         }
         // Find either signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
