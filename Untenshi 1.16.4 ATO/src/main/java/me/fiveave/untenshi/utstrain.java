@@ -1,20 +1,14 @@
 package me.fiveave.untenshi;
 
-import com.bergerkiller.bukkit.common.entity.CommonEntity;
-import com.bergerkiller.bukkit.tc.controller.MinecartMember;
 import com.bergerkiller.bukkit.tc.events.SignActionEvent;
 import com.bergerkiller.bukkit.tc.events.SignChangeActionEvent;
 import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import com.bergerkiller.bukkit.tc.signactions.SignActionType;
 import com.bergerkiller.bukkit.tc.utils.SignBuildOptions;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
 
-import java.util.List;
-
-import static me.fiveave.untenshi.cmds.absentDriver;
-import static me.fiveave.untenshi.main.driver;
 import static me.fiveave.untenshi.main.noSignPerm;
+import static me.fiveave.untenshi.main.vehicle;
 
 class utstrain extends SignAction {
 
@@ -26,21 +20,8 @@ class utstrain extends SignAction {
     @Override
     public void execute(SignActionEvent cartevent) {
         if (cartevent.hasRailedMember() && cartevent.isPowered()) {
-            //noinspection rawtypes
-            for (MinecartMember cart : cartevent.getMembers()) {
-                // For each passenger on cart
-                //noinspection rawtypes
-                CommonEntity cart2 = cart.getEntity();
-                //noinspection rawtypes
-                List cartps = cart2.getPassengers();
-                for (Object cartobject : cartps) {
-                    Player p = (Player) cartobject;
-                    absentDriver(p);
-                    untenshi localdriver = driver.get(p);
-                    if (localdriver.isPlaying()) {
-                        cartevent.setLevers(true);
-                    }
-                }
+            if (vehicle.get(cartevent.getGroup()) != null) {
+                cartevent.setLevers(true);
             }
             if (cartevent.isAction(SignActionType.GROUP_LEAVE)) {
                 cartevent.setLevers(false);

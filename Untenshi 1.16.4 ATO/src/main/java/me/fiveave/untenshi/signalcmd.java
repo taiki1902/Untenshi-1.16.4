@@ -40,12 +40,8 @@ class signalcmd implements CommandExecutor, TabCompleter {
                     sender.sendMessage(getSpeedMax());
                     return true;
                 }
-                if (signalspeed < 0) {
-                    sender.sendMessage(utshead + getlang("speedmin0"));
-                    return true;
-                }
-                if (Math.floorMod(signalspeed, 5) != 0) {
-                    sender.sendMessage(utshead + getlang("speeddiv5"));
+                if (signalspeed < 0 || Math.floorMod(signalspeed, 5) != 0) {
+                    generalMsg(sender, ChatColor.RESET, getlang("argwrong"));
                     return true;
                 }
                 assert e != null;
@@ -61,10 +57,10 @@ class signalcmd implements CommandExecutor, TabCompleter {
                                 String warnsp = warn.getLine(2).split(" ")[2];
                                 signalmsg = signalName(warnsi);
                                 if (signalmsg.equals("")) {
-                                    sender.sendMessage(utshead + ChatColor.RED + getlang("signaltypewrong"));
+                                    generalMsg(sender, ChatColor.RESET, ChatColor.RED + getlang("signal_typewrong"));
                                 }
-                                String showspeed = parseInt(warnsp) >= maxspeed ? getlang("nolimit") : warnsp + " km/h";
-                                generalMsg(sender, ChatColor.YELLOW, getlang("signalwarn") + " " + signalmsg + ChatColor.GRAY + " " + showspeed);
+                                String showspeed = parseInt(warnsp) >= maxspeed ? getlang("speedlimit_del") : warnsp + " km/h";
+                                generalMsg(sender, ChatColor.YELLOW, getlang("signal_warn") + " " + signalmsg + ChatColor.GRAY + " " + showspeed);
                             }
                             break;
                         // Set line 4 of sign at (line 3 of this sign) to turn signal
@@ -73,17 +69,17 @@ class signalcmd implements CommandExecutor, TabCompleter {
                                 Sign sign = getSignFromLoc(getFullLoc(((BlockCommandSender) sender).getBlock().getWorld(), inputpos));
                                 if (sign != null) {
                                     updateSignals(sign, "set " + args[4] + " " + args[5]);
-                                    sender.sendMessage(utshead + getlang("signalsignchange") + " (" + args[4] + " " + args[5] + ")");
+                                    generalMsg(sender, ChatColor.RESET, getlang("signal_signchange") + " (" + args[4] + " " + args[5] + ")");
                                 }
                                 break;
                             }
                         default:
-                            sender.sendMessage(utshead + getlang("signalargwrong"));
+                            generalMsg(sender, ChatColor.RESET, getlang("argwrong"));
                             break;
                     }
                 }
             } else {
-                sender.sendMessage(utshead + getlang("cmdblkonlycmd"));
+                generalMsg(sender, ChatColor.RESET, getlang("cmdblkonlycmd"));
             }
         } catch (Exception e) {
             e.printStackTrace();

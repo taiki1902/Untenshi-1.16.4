@@ -25,78 +25,82 @@ import java.text.DecimalFormat;
 import java.util.Objects;
 
 import static me.fiveave.untenshi.ato.atoDepartCountdown;
-import static me.fiveave.untenshi.cmds.absentDriver;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
-import static me.fiveave.untenshi.motion.freemodeNoATO;
+import static me.fiveave.untenshi.motion.noFreemodeOrATO;
+import static me.fiveave.untenshi.utsdriver.initDriver;
 
 class events implements Listener {
 
-    static void toEB(untenshi ld) {
-        if (freemodeNoATO(ld) && ld.getMascon() != -9 && ld.getSpeed() > 20 && ld.getAtsforced() != 2 && !ld.isAtsping()) {
+    static void toEB(utsdriver ld) {
+        if (noFreemodeOrATO(ld) && ld.getLv().getMascon() != -9 && ld.getLv().getSpeed() > 20 && ld.getLv().getAtsforced() != 2 && !ld.getLv().isAtsping()) {
             // Misuse EB
-            pointCounter(ld, ChatColor.YELLOW, getlang("misuseeb") + " ", -5, "");
+            pointCounter(ld, ChatColor.YELLOW, getlang("eb_misuse") + " ", -5, "");
         }
-        ld.setMascon(-9);
-        ld.setAtsforced(1);
+        ld.getLv().setMascon(-9);
+        ld.getLv().setAtsforced(1);
     }
 
-    static void switchBack(untenshi ld) {
-        if (ld.getSpeed() == 0) {
-            ld.getTrain().reverse();
-            if (ld.getAtodest() != null && ld.getAtospeed() != -1) {
-                ld.setAtodest(null);
-                ld.setAtospeed(-1);
-                generalMsg(ld.getP(), ChatColor.GOLD, getlang("atopatterncancel"));
+    static void switchBack(utsvehicle lv) {
+        utsdriver ld = lv.getLd();
+        if (lv.getSpeed() == 0) {
+            MinecartGroup mg = lv.getTrain();
+            mg.reverse();
+            if (lv.getAtodest() != null && lv.getAtospeed() != -1) {
+                lv.setAtodest(null);
+                lv.setAtospeed(-1);
+                generalMsg(ld.getP(), ChatColor.GOLD, getlang("ato_patterncancel"));
             }
-            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sbsuccess") + ChatColor.GRAY + " (" + Objects.requireNonNull(ld.getTrain().head()).getDirection() + ")");
+            String dirtext = lv.getTrain().head().equals(lv.getDriverseat()) ? getlang("dir_front") : getlang("dir_back");
+            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sb_success") + ChatColor.GRAY + " (" + dirtext + " / " + getlang("dir_" + mg.head().getDirection().toString().toLowerCase()) + ")");
         } else {
-            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sbinmotion"));
+            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sb_inmotion"));
         }
     }
 
-    static void doorControls(untenshi ld, Boolean open) {
+    static void doorControls(utsvehicle lv, Boolean open) {
+        utsdriver ld = lv.getLd();
         if (open) {
-            if (ld.getSpeed() > 0.0) {
-                generalMsg(ld.getP(), ChatColor.YELLOW, getlang("dooropeninmotion"));
+            if (lv.getSpeed() > 0.0) {
+                generalMsg(ld, ChatColor.YELLOW, getlang("door_openinmotion"));
                 return;
             }
-            if (ld.isFixstoppos() || ld.isReqstopping()) {
-                generalMsg(ld.getP(), ChatColor.YELLOW, getlang("fixstoppos"));
+            if (lv.isFixstoppos() || lv.isReqstopping()) {
+                generalMsg(ld, ChatColor.YELLOW, getlang("stoppos_reqfix"));
                 return;
             }
-            ld.setDoordiropen(true);
-            ld.setDoorconfirm(false);
+            lv.setDoordiropen(true);
+            lv.setDoorconfirm(false);
             // Provide output when open door
-            if (ld.getStopoutput() != null) {
-                Block b = ld.getP().getWorld().getBlockAt(ld.getStopoutput()[0], ld.getStopoutput()[1], ld.getStopoutput()[2]);
+            if (lv.getStopoutput() != null) {
+                Block b = lv.getTrain().getWorld().getBlockAt(lv.getStopoutput()[0], lv.getStopoutput()[1], lv.getStopoutput()[2]);
                 b.getChunk().load();
                 b.setType(Material.REDSTONE_BLOCK);
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     b.setType(Material.AIR);
-                    ld.setStopoutput(null);
+                    lv.setStopoutput(null);
                 }, 4);
             }
             // Stop penalties (If have)
-            if (freemodeNoATO(ld)) {
+            if (noFreemodeOrATO(ld)) {
                 // In station EB
-                if (ld.isStaeb()) {
-                    ld.setStaeb(false);
-                    pointCounter(ld, ChatColor.YELLOW, getlang("ebstop") + " ", -5, "");
+                if (lv.isStaeb()) {
+                    pointCounter(ld, ChatColor.YELLOW, getlang("eb_stop") + " ", -5, "");
                 }
                 // In station accel
-                if (ld.isStaaccel()) {
-                    ld.setStaaccel(false);
+                if (lv.isStaaccel()) {
                     pointCounter(ld, ChatColor.YELLOW, getlang("reaccel") + " ", -5, "");
                 }
             }
+            lv.setStaeb(false);
+            lv.setStaaccel(false);
             // ATO Stop Time Countdown, cancelled if door is closed
-            atoDepartCountdown(ld);
+            atoDepartCountdown(lv);
         } else {
-            ld.setDoordiropen(false);
-            ld.setReqstopping(false);
-            ld.setOverrun(false);
-            ld.setDoorconfirm(false);
+            lv.setDoordiropen(false);
+            lv.setReqstopping(false);
+            lv.setOverrun(false);
+            lv.setDoorconfirm(false);
         }
     }
 
@@ -111,74 +115,75 @@ class events implements Listener {
     }
 
     static ItemStack upWand() {
-        return getItem(Material.STONE_AXE, ChatColor.RED, getlang("upwandname"));
+        return getItem(Material.STONE_AXE, ChatColor.RED, getlang("item_upwand"));
     }
 
     protected static ItemStack nWand() {
-        return getItem(Material.IRON_AXE, ChatColor.YELLOW, getlang("nwandname"));
+        return getItem(Material.IRON_AXE, ChatColor.YELLOW, getlang("item_nwand"));
     }
 
     protected static ItemStack downWand() {
-        return getItem(Material.DIAMOND_AXE, ChatColor.GREEN, getlang("downwandname"));
+        return getItem(Material.DIAMOND_AXE, ChatColor.GREEN, getlang("item_downwand"));
     }
 
     protected static ItemStack doorButton() {
-        return getItem(Material.IRON_TRAPDOOR, ChatColor.GOLD, getlang("doorbuttonname"));
+        return getItem(Material.IRON_TRAPDOOR, ChatColor.GOLD, getlang("item_doorbutton"));
     }
 
     protected static ItemStack sbLever() {
-        return getItem(Material.LEVER, ChatColor.YELLOW, getlang("sblevername"));
+        return getItem(Material.LEVER, ChatColor.YELLOW, getlang("item_sblever"));
     }
 
     protected static ItemStack ebButton() {
-        return getItem(Material.STONE_BUTTON, ChatColor.DARK_RED, getlang("ebbuttonname"));
+        return getItem(Material.STONE_BUTTON, ChatColor.DARK_RED, getlang("item_ebbutton"));
     }
 
     @EventHandler
     void onPlayerClicks(PlayerInteractEvent event) {
         // Init
         Player p = event.getPlayer();
+        initDriver(p);
         Action ac = event.getAction();
         ItemStack item = event.getItem();
-        absentDriver(p);
-        untenshi ld = driver.get(p);
+        utsdriver ld = driver.get(p);
+        utsvehicle lv = ld.getLv();
         // Main Part
         if ((ac.equals(Action.LEFT_CLICK_AIR) || ac.equals(Action.LEFT_CLICK_BLOCK) || ac.equals(Action.RIGHT_CLICK_AIR) || ac.equals(Action.RIGHT_CLICK_BLOCK)) && item != null && ld.isPlaying() && !ld.isFrozen()) {
             // Either not in ATO mode, or ATO mode with EB
-            if ((ld.getAtodest() == null || ld.getAtsforced() == 1) && ld.getAtsforced() != 2) {
+            if ((lv.getAtodest() == null || lv.getAtsforced() == 1) && lv.getAtsforced() != 2) {
                 if (upWand().equals(item)) {
-                    if (ld.getMascon() > -8) {
-                        ld.setMascon(ld.getMascon() - 1);
-                    } else if (ld.getMascon() == -8) {
+                    if (lv.getMascon() > -8) {
+                        lv.setMascon(lv.getMascon() - 1);
+                    } else if (lv.getMascon() == -8) {
                         toEB(ld);
                     }
                     event.setCancelled(true);
                 }
                 if (nWand().equals(item)) {
-                    if (!ld.isAtsping()) {
-                        ld.setMascon(0);
-                        ld.setAtsforced(0);
+                    if (!lv.isAtsping()) {
+                        lv.setMascon(0);
+                        lv.setAtsforced(0);
                     }
                     event.setCancelled(true);
                 }
                 if (downWand().equals(item)) {
-                    if (!ld.isAtsping() && (ld.getDooropen() == 0 || ld.getDooropen() > 0 && ld.getMascon() < 0) && ld.getMascon() < 5) {
-                        ld.setMascon(ld.getMascon() + 1);
-                        ld.setAtsforced(0);
+                    if (!lv.isAtsping() && (lv.getDooropen() == 0 || lv.getDooropen() > 0 && lv.getMascon() < 0) && lv.getMascon() < 5) {
+                        lv.setMascon(lv.getMascon() + 1);
+                        lv.setAtsforced(0);
                     }
                     event.setCancelled(true);
                 }
             }
             if (doorButton().equals(item)) {
                 event.setCancelled(true);
-                boolean rev = ld.isDoordiropen();
-                doorControls(ld, !rev);
+                boolean rev = lv.isDoordiropen();
+                doorControls(lv, !rev);
             }
             if (sbLever().equals(item)) {
-                switchBack(ld);
+                switchBack(lv);
                 event.setCancelled(true);
             }
-            if (ebButton().equals(item) && ld.getAtsforced() != 2) {
+            if (ebButton().equals(item) && lv.getAtsforced() != 2) {
                 toEB(ld);
                 event.setCancelled(true);
             }
@@ -191,15 +196,15 @@ class events implements Listener {
             MinecartGroup mg = MinecartGroupStore.get(event.getVehicle());
             for (String s : mg.getProperties().getOwners()) {
                 Player p = Bukkit.getPlayer(s);
-                cmds.absentDriver(p);
-                untenshi ld = driver.get(p);
-                if (ld != null && ld.isPlaying() && ld.getSpeed() != 0) {
+                utsdriver ld = driver.get(p);
+                utsvehicle lv = ld.getLv();
+                if (lv != null && ld.isPlaying() && lv.getSpeed() != 0) {
                     DecimalFormat df0 = new DecimalFormat("#");
-                    double spd = ld.getSpeed();
+                    double spd = lv.getSpeed();
                     String sp = df0.format(spd);
                     toEB(ld);
-                    ld.setCurrent(-480);
-                    ld.setSpeed(0);
+                    lv.setCurrent(-480);
+                    lv.setSpeed(0);
                     pointCounter(ld, ChatColor.YELLOW, getlang("collidebuffer") + " ", -10, " " + sp + " km/h");
                 }
             }
@@ -218,8 +223,8 @@ class events implements Listener {
     @EventHandler
     void onClickItem(InventoryClickEvent event) {
         Player p = (Player) event.getWhoClicked();
-        cmds.absentDriver(p);
-        untenshi ld = driver.get(p);
+        initDriver(p);
+        utsdriver ld = driver.get(p);
         if (ld.isPlaying()) {
             event.setCancelled(true);
         }
@@ -249,10 +254,10 @@ class events implements Listener {
         // Prevent player leaving affecting playing status
     void onLeave(PlayerQuitEvent event) {
         Player p = event.getPlayer();
-        absentDriver(p);
-        untenshi ld = driver.get(p);
+        initDriver(p);
+        utsdriver ld = driver.get(p);
         if (ld.isPlaying()) {
-            restoreinit(ld);
+            restoreinitld(ld);
         }
     }
 }

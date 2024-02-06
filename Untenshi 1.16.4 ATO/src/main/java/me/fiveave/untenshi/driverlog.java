@@ -1,12 +1,13 @@
 package me.fiveave.untenshi;
 
+import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
+import com.bergerkiller.bukkit.tc.properties.TrainProperties;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,6 +18,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
 
 class driverlog implements CommandExecutor, TabCompleter {
@@ -25,25 +27,31 @@ class driverlog implements CommandExecutor, TabCompleter {
         try {
             if (sender.isOp()) {
                 if (args.length == 1) {
-                    String drivername = args[0];
-                    Player p = Bukkit.getPlayer(drivername);
-                    untenshi ld = driver.get(p);
+                    String trainname = args[0];
+                    utsvehicle lv = null;
+                    try {
+                        lv = vehicle.get(TrainProperties.get(trainname).getHolder());
+                    } catch (Exception ignored) {
+                    }
                     LocalDateTime myDateObj = LocalDateTime.now();
                     DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH:mm:ss:SS");
                     String timestamp = myDateObj.format(myFormatObj);
-                    if (ld != null && ld.isPlaying()) {
-                        startlog(sender, ld, timestamp);
+                    if (lv != null && !lv.isBeinglogged()) {
+                        lv.setBeinglogged(true);
+                        startlog(sender, lv, timestamp);
+                    } else if (lv != null && lv.isBeinglogged()) {
+                        lv.setBeinglogged(false);
                     } else {
-                        sender.sendMessage(utshead + ChatColor.RED + "Driver does not exist or is not driving.");
+                        generalMsg(sender, ChatColor.RED, getlang("driverlog_notuts"));
                     }
                 } else {
-                    sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("usage") + " " + ChatColor.GOLD + "/utslogger <player>" + ChatColor.YELLOW + "]");
+                    sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("help_usage") + " " + ChatColor.GOLD + "/utslogger <vehicle>" + ChatColor.YELLOW + "]");
                 }
             } else {
                 cmds.noPerm(sender);
             }
         } catch (Exception e) {
-            sender.sendMessage(utshead + ChatColor.RED + getlang("error"));
+            generalMsg(sender, ChatColor.RED, getlang("error"));
             e.printStackTrace();
         }
         return true;
@@ -52,12 +60,12 @@ class driverlog implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> ta = new ArrayList<>();
         List<String> result = new ArrayList<>();
-        List<String> driverlist = new ArrayList<>();
-        for (Player p : driver.keySet()) {
-            driverlist.add(p.getName());
+        List<String> vehiclelist = new ArrayList<>();
+        for (MinecartGroup mg : vehicle.keySet()) {
+            vehiclelist.add(mg.getProperties().getTrainName());
         }
         if (args.length == 1) {
-            ta.addAll(driverlist);
+            ta.addAll(vehiclelist);
         } else {
             ta.add("");
         }
@@ -69,48 +77,50 @@ class driverlog implements CommandExecutor, TabCompleter {
         return result;
     }
 
-    public void startlog(CommandSender sender, untenshi ld, String timestamp) throws IOException {
-        create(ld, timestamp);
-        logging(sender, ld, timestamp);
-        sender.sendMessage(utshead + ChatColor.GREEN + "Starting logging " + ld.getP().getName());
+    public void startlog(CommandSender sender, utsvehicle lv, String timestamp) throws IOException {
+        create(lv, timestamp);
+        logging(sender, lv, timestamp);
+        generalMsg(sender, ChatColor.GREEN, getlang("driverlog_on") + ChatColor.GRAY + " (" + lv.getTrain().getProperties().getTrainName() + ")");
     }
 
-    public void logging(CommandSender sender, untenshi ld, String timestamp) {
-        if (ld.isPlaying()) {
+    public void logging(CommandSender sender, utsvehicle lv, String timestamp) {
+        if (lv.getTrain() != null && lv.isBeinglogged()) {
             LocalDateTime myDateObj = LocalDateTime.now();
             DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("HH:mm:ss.SS");
             String timestampnow = myDateObj.format(myFormatObj);
-            String s = String.format("%s,%1.2f,%d,%d,%d,%d", timestampnow, ld.getSpeed(), ld.getMascon(), ld.getSpeedlimit(), ld.getSignallimit(), ld.getPoints());
+            String s = String.format("%s,%1.2f,%d,%d,%d", timestampnow, lv.getSpeed(), lv.getMascon(), lv.getSpeedlimit(), lv.getSignallimit());
             try {
-                write(ld, timestamp, s);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> logging(sender, ld, timestamp), tickdelay);
+                write(lv, timestamp, s);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> logging(sender, lv, timestamp), tickdelay);
             } catch (Exception e) {
-                sender.sendMessage(utshead + ChatColor.RED + "Ending logging " + ld.getP().getName());
+                lv.setBeinglogged(false);
+                generalMsg(sender, ChatColor.RED, getlang("driverlog_off") + ChatColor.GRAY + " (" + lv.getTrain().getProperties().getTrainName() + ")");
                 throw new RuntimeException(e);
             }
         } else {
-            sender.sendMessage(utshead + ChatColor.RED + "Ending logging " + ld.getP().getName());
+            lv.setBeinglogged(false);
+            generalMsg(sender, ChatColor.RED, getlang("driverlog_off") + ChatColor.GRAY + " (" + lv.getTrain().getProperties().getTrainName() + ")");
         }
     }
 
-    public void create(untenshi ld, String timestamp) throws IOException {
+    public void create(utsvehicle lv, String timestamp) throws IOException {
         File dir = new File(plugin.getDataFolder().getPath() + "/driverlogs");
         if (!dir.exists()) {
             //noinspection ResultOfMethodCallIgnored
             dir.mkdirs();
         }
-        File file = new File(dir, ld.getP().getUniqueId() + "_" + timestamp.replaceAll(":", "_") + ".csv");
+        File file = new File(dir, lv.getTrain().getProperties().getTrainName() + "_" + timestamp.replaceAll(":", "_") + ".csv");
         if (!file.exists() && file.createNewFile()) {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-            bw.write("t,v,notch,splim,silim,pts");
+            bw.write("t,v,notch,splim,silim");
             bw.close();
         }
     }
 
-    public void write(untenshi ld, String timestamp, String s) {
+    public void write(utsvehicle lv, String timestamp, String s) {
         File dir = new File(plugin.getDataFolder().getPath() + "/driverlogs");
         if (dir.exists()) {
-            File file = new File(dir, ld.getP().getUniqueId() + "_" + timestamp.replaceAll(":", "_") + ".csv");
+            File file = new File(dir, lv.getTrain().getProperties().getTrainName() + "_" + timestamp.replaceAll(":", "_") + ".csv");
             if (file.exists()) {
                 try {
                     BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));

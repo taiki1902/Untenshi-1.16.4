@@ -1,120 +1,112 @@
-help1title: 基本指令 1/3 頁
-help2title: 列車設定 2/3 頁
-help3title: 駕駛說明 3/3 頁
-cmdlist: '指令列表:'
-help1a: 顯示幫助
-help1b: 駕駛模式切換
-help1c: 車門控制
-help1d: 緊急停車
-help1e: ATS / ATC 復歸
-help1f: 列車轉向
-help1g: 輸入指令以獲得更多資訊。
-help1h: 轉換駕駛座位
-help1i: 車内廣播
-help2a: 重新載入設定檔
-help2b: 設定列車變速
-help2c: 設定自由模式
-help2d: 允許使用 ATO
-help3a: '開始:'
-help3b: 1. 坐在列車裡
-help3c: 2. 向著開車的方向，輸入 /uts activate true
-help3d: '* 你身上的物品會被儲存 *'
-help3e: '終止:'
-help3f: 1. 輸入 /uts activate false
-help3g: 2. 你身上的操控桿會被清除
-help3h: '* 你身上的物品會被還原 *'
-help3i: '注意:'
-help3j: freemode/allowato 必須在 /uts activate true 前執行。
-help3k: 超越 0 km/h 的信號之後，必須在信號改變後使用 /uts ac 復歸。
-pagenotexist: 該頁面不存在。請輸入正確的頁數。
-upwandname: 上
-nwandname: 切
-downwandname: 下
-doorbuttonname: 車門控制
-sblevername: 轉向
-ebbuttonname: 緊急停車
-trainset: 列車設定完畢。
+help_1title: 基本指令 1/3 頁
+help_2title: 列車設定 2/3 頁
+help_3title: 駕駛說明 3/3 頁
+help_cmdlist: '指令列表:'
+help_show: 顯示幫助
+help_activateinfo: 駕駛模式切換
+help_acinfo: ATS / ATC 復歸
+help_showdetails: 輸入指令以獲得更多資訊。
+help_seinfo: 切換駕駛座位
+help_painfo: 車内廣播
+help_reloadinfo: 重新載入設定檔
+help_freemodeinfo: 設定自由模式
+help_allowatoinfo: 允許使用 ATO
+help_usermanuallink: '使用說明書連結:'
+help_pagenotexist: 該頁面不存在。請輸入正確的頁數。
+help_usage: '用法:'
+item_upwand: 上
+item_nwand: 切
+item_downwand: 下
+item_doorbutton: 車門按鈕
+item_sblever: 轉向
+item_ebbutton: 緊急停車
 activate: '駕駛模式:'
-enable: 啟動
-disable: 關閉
-notowner: 你不是該列車的擁有人!
-sitincart: 請先坐在礦車裡!
-activatedalready: 你已經啟動駕駛模式!
-deactivatedalready: 你已經關閉駕駛模式!
-usage: '用法:'
-activateinfo1: '[true: 啟用]'
-activateinfo2: '[false: 停用並重設]'
+activate_on: 啟動
+activate_off: 關閉
+activate_set: 列車設定完成。
+activate_onalready: 你已經啟動駕駛模式!
+activate_offalready: 你已經關閉駕駛模式!
+activate_onfirst: 請先啟動駕駛模式!
+activate_offfirst: 請先停用駕駛模式!
+activate_info1: '[true: 啟用]'
+activate_info2: '[false: 停用]'
+activate_notowner: 你不是該列車的擁有人!
+activate_sitincart: 請先坐在列車裡!
 door: '車門:'
-opening: 開啟中
-closing: 關閉中
-opened: 已開啟
-closed: 已關閉
-ebstop: 緊急煞車停車
+door_opening: 開啟中
+door_closing: 關閉中
+door_opened: 已開啟
+door_closed: 已關閉
+door_openinmotion: 行車時不能開門!
+eb_stop: 緊急煞車停車
+eb_misuse: 使用緊急煞車
 reaccel: 車站內再加速
-dooropeninmotion: 行車時不能開門!
-openedalready: 車門已經開啟!
-closedalready: 車門已經關閉!
-fixstoppos: 請修正你的停車位置!
-activatefirst: 請先啟動駕駛模式!
-deactivatefirst: 請先停用駕駛模式!
-doorinfo1: '[true: 開門]'
-doorinfo2: '[false: 關門]'
-acsuccess: 復歸成功。
-acfailed: 復歸失敗。
-acnotneeded: 不需復歸。
+ac_success: 復歸成功。
+ac_failed: 復歸失敗。
+ac_noneed: 不需復歸。
 freemode: '自由模式:'
-freemodeinfo1: '[true: 啟用]'
-freemodeinfo2: '[false: 停用]'
+freemode_info1: '[true: 啟用]'
+freemode_info2: '[false: 停用]'
 ato: '允許使用 ATO:'
-atoinfo1: '[true: 啟用允許使用 ATO]'
-atoinfo2: '[false: 停用允許使用 ATO]'
-atodetectpattern: 發現了 ATO 駕駛 Pattern
-atodetectstoptime: 已設定 ATO 停車時間
-atopatterncancel: 已取消 ATO Pattern
-panoempty: 文字不可以是空白的!
-sbsuccess: 轉向成功。
-sbinmotion: 行車時不能轉向!
-sesuccess: 換位成功。
-sefailed: 換位失敗。
-seinmotion: 行車時不能換位!
+ato_info1: '[true: 啟用允許使用 ATO]'
+ato_info2: '[false: 停用允許使用 ATO]'
+ato_detectpattern: 發現了 ATO 駕駛 Pattern。
+ato_detectstoptime: 已設定 ATO 停車時間。
+ato_patterncancel: 已取消 ATO Pattern。
+sb_success: 轉向成功。
+sb_inmotion: 行車時不能轉向!
+se_success: 換位成功。
+se_failed: 換位失敗。
+se_inmotion: 行車時不能換位!
+p_b8: 常用煞車動作
+p_eb: 緊急煞車動作
+p_near: Pattern 接近
+stoppos_next: 下一站，停車!
+stoppos_perfect: '停車位置: 完美!'
+stoppos_great: '停車位置: 很好!'
+stoppos_good: '停車位置: 不錯!'
+stoppos_over: 超過停車範圍
+stoppos_seriousover: 嚴重超過停車範圍，駕駛將會終止。
+stoppos_reqfix: 請修正你的停車位置!
+signal_set: '信號:'
+signal_warn: '信號預告:'
+signal_change: '信號變更:'
+signal_signchange: 改變告示牌成功。
+signal_typewrong: 信號種類不正確。(R / YY / Y / YG / G / ATC)
+signal_g: 進行
+signal_yg: 減速
+signal_y: 注意
+signal_yy: 警戒
+signal_r: 停止
+speedlimit_del: 解除
+speedlimit_set: '速度限制:'
+speedlimit_warn: '速度限制預告:'
+dir_front: 前
+dir_back: 後
+dir_info: '駕駛方向:'
+dir_north: 北
+dir_south: 南
+dir_east: 東
+dir_west: 西
+dir_north_east: 東北
+dir_north_west: 西北
+dir_south_east: 東南
+dir_south_west: 西南
+dir_notexist: 該方向不存在。
+driverlog_notuts: 列車不屬於 Untenshi 類型。
+driverlog_on: 測定開始。
+driverlog_off: 測定完成。
 reloaded: 重新載入設定檔完成。
 cmdnotexist: 該指令不存在。請輸入正確的指令。
 playeronlycmd: 玩家才能輸入該指令!
 cmdblkonlycmd: 命令方塊才能輸入該指令!
 error: 發生錯誤。
-noperm: 你沒有權限!
+noperm: 權限不足!
 speed: '速度:'
 points: '分數:'
-pb8: 常用煞車動作
-peb: 非常煞車動作
-pnear: Pattern 接近
-misuseeb: 誤用緊急煞車
-stopposperfect: '停止位置: 完美!'
-stopposgreat: '停止位置: 很好!'
-stopposgood: '停止位置: 不錯!'
-stopposover: 超過停止範圍
-stopposseriousover: 嚴重超過停止範圍，駕駛將會終止。
-nopoints: 分數不足，駕駛結束。
-signalset: '閉塞:'
-signalwarn: '閉塞預告:'
-signalchange: '閉塞變更:'
-nolimit: 解除
-signalsignchange: 改變告示牌成功。
-signaltypewrong: 信號種類不正確。(R / YY / Y / YG / G / ATC)
-signalargwrong: 參數不正確。
-signalmax: 速度應該等於或小於 360 km/h。
-signalmin0: 速度不應該是負數。
-signaldiv5: 速度應該可以被 5 整除。
-signalg: 進行
-signalyg: 減速
-signaly: 注意
-signalyy: 警戒
-signalr: 停止
-speedlimitset: '速度限制:'
-speedlimitwarn: '速度限制預告:'
-speedlimitwarnover: 告示牌設定錯誤。速度應在 360 km/h 以下。
-speedlimitdiv5: 告示牌設定錯誤。速度應在 360 km/h 或以下，及可以被5整除。
-nextstop: 下一站，停車!
+panoempty: 文字不可以是空白的!
 collidebuffer: 撞上止衝擋
+argwrong: 參數不正確。
 signimproper: 本告示牌設定錯誤。
 tcblocking: 有 TrainCarts 物件在堵塞前方。
+nopoints: 分數不足，駕駛結束。

@@ -1,20 +1,23 @@
 package me.fiveave.untenshi;
 
-import com.bergerkiller.bukkit.common.entity.CommonEntity;
+import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
 import com.bergerkiller.bukkit.tc.controller.MinecartMember;
 import com.bergerkiller.bukkit.tc.events.SignActionEvent;
 import com.bergerkiller.bukkit.tc.events.SignChangeActionEvent;
 import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import com.bergerkiller.bukkit.tc.signactions.SignActionType;
 import com.bergerkiller.bukkit.tc.utils.SignBuildOptions;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
-import java.util.List;
+import java.util.Arrays;
 
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
+import static me.fiveave.untenshi.utsvehicle.initVehicle;
 
 class atosign extends SignAction {
 
@@ -24,39 +27,53 @@ class atosign extends SignAction {
     }
 
     @Override
-    // Format: line 3: stoptime / speed
     public void execute(SignActionEvent cartevent) {
         try {
-            if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
-                for (@SuppressWarnings("rawtypes") MinecartMember cart : cartevent.getMembers()) {
-                    // For each passenger on cart
-                    //noinspection rawtypes
-                    CommonEntity cart2 = cart.getEntity();
-                    //noinspection rawtypes
-                    List cartpassengers = cart2.getPassengers();
-                    for (Object cartobj : cartpassengers) {
-                        Player p = (Player) cartobj;
-                        cmds.absentDriver(p);
-                        untenshi localdriver = driver.get(p);
-                        if (localdriver.isPlaying() && localdriver.isAllowatousage()) {
-                            if (cartevent.getLine(2).equals("stoptime")) {
-                                localdriver.setAtostoptime(parseInt(cartevent.getLine(3)));
-                                generalMsg(p, ChatColor.GOLD, getlang("atodetectstoptime"));
-                            } else {
+            if (cartevent.hasRailedMember() && cartevent.isPowered()) {
+                // For each passenger on cart
+                MinecartGroup mg = cartevent.getGroup();
+                MinecartMember<?> mm = cartevent.getMember();
+                utsvehicle lv = vehicle.get(mg);
+                if (cartevent.getLine(2).equals("reg")) {
+                    initVehicle(mg);
+                    utsvehicle lv2 = vehicle.get(mg);
+                    lv2.setMascon(-8);
+                } else if (lv != null && lv.getTrain() != null && (lv.getLd() == null || lv.getLd().isAllowatousage())) {
+                    switch (cartevent.getLine(2)) {
+                        case "stoptime":
+                            if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON)) {
+                                lv.setAtostoptime(parseInt(cartevent.getLine(3)));
+                                generalMsg(lv.getLd(), ChatColor.GOLD, getlang("ato_detectstoptime"));
+                            }
+                            break;
+                        case "dir":
+                            if (lv.getSpeed() == 0) {
+                                BlockFace bf = BlockFace.valueOf(cartevent.getLine(3).toUpperCase());
+                                if (mm.getDirection().getOppositeFace().equals(bf)) {
+                                    mg.reverse();
+                                    lv.setDriverseat(mg.head());
+                                    generalMsg(lv.getLd(), ChatColor.GOLD, getlang("dir_info") + " " + getlang(mg.head().getDirection().toString().toLowerCase()));
+                                    cartevent.setLevers(true);
+                                    Bukkit.getScheduler().runTaskLater(plugin, () -> cartevent.setLevers(false), 4);
+                                }
+                            }
+                            break;
+                        default:
+                            if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON)) {
                                 int[] loc = new int[3];
                                 String[] sloc = cartevent.getLine(3).split(" ");
                                 for (int a = 0; a <= 2; a++) {
                                     loc[a] = Integer.parseInt(sloc[a]);
                                 }
-                                localdriver.setOverrun(false);
+                                lv.setOverrun(false);
                                 double val = Double.parseDouble(cartevent.getLine(2));
                                 // Direct or indirect pattern?
-                                localdriver.setAtopisdirect(val < 0);
-                                localdriver.setAtospeed(Math.abs(val));
-                                localdriver.setAtodest(loc);
-                                generalMsg(p, ChatColor.GOLD, getlang("atodetectpattern"));
+                                lv.setAtopisdirect(val < 0);
+                                lv.setAtospeed(Math.abs(val));
+                                lv.setAtodest(loc);
+                                generalMsg(lv.getLd(), ChatColor.GOLD, getlang("ato_detectpattern"));
+                                break;
                             }
-                        }
                     }
                 }
             }
@@ -71,22 +88,36 @@ class atosign extends SignAction {
         Player p = e.getPlayer();
         try {
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "ATO sign");
-            if (e.getLine(2).equals("stoptime")) {
-                opt.setDescription("set ATO station stopping time for train");
-                if (parseInt(e.getLine(3)) < 1) {
-                    p.sendMessage(ChatColor.RED + getlang("speedpositive"));
-                    e.setCancelled(true);
-                }
-            } else {
-                double val = parseInt(e.getLine(2));
-                opt.setDescription(val >= 0 ? "set ATO indirect pattern for train" : "set ATO direct pattern for train");
-                if (val > maxspeed) {
-                    p.sendMessage(getSpeedMax());
-                    e.setCancelled(true);
-                }
-                for (String i : e.getLine(3).split(" ")) {
-                    parseInt(i);
-                }
+            switch (e.getLine(2)) {
+                case "stoptime":
+                    opt.setDescription("set ATO station stopping time for train");
+                    if (parseInt(e.getLine(3)) < 1) {
+                        p.sendMessage(ChatColor.RED + getlang("signimproper"));
+                        e.setCancelled(true);
+                    }
+                    break;
+                case "dir":
+                    opt.setDescription("set direction for train");
+                    boolean match = Arrays.asList("north", "south", "east", "west", "north_east", "north_west", "south_east", "south_west").contains(e.getLine(3).toLowerCase());
+                    if (!match) {
+                        p.sendMessage(ChatColor.RED + getlang("dir_notexist"));
+                        e.setCancelled(true);
+                    }
+                    break;
+                case "reg":
+                    opt.setDescription("register vehicle as Untenshi vehicle");
+                    break;
+                default:
+                    double val = parseInt(e.getLine(2));
+                    opt.setDescription(val >= 0 ? "set ATO indirect pattern for train" : "set ATO direct pattern for train");
+                    if (val > maxspeed) {
+                        p.sendMessage(getSpeedMax());
+                        e.setCancelled(true);
+                    }
+                    for (String i : e.getLine(3).split(" ")) {
+                        parseInt(i);
+                    }
+                    break;
             }
             return opt.handle(p);
         } catch (Exception exception) {
