@@ -244,7 +244,7 @@ class motion {
             if (ispriority) {
                 // Occupy and set signals when ok
                 signalOrderPtnResult result = getSignalOrderPtnResult(lv);
-                int orderno = 1;
+                int orderno = 0;
                 // Set signs with new signal and speed
                 for (int signno = furthestoccupied; signno >= 0; signno--) {
                     // settable: Sign to be set

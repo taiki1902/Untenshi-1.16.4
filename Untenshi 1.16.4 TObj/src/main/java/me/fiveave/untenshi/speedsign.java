@@ -70,7 +70,7 @@ class speedsign extends SignAction {
 
     static void signImproper(SignActionEvent cartevent, utsdriver ld) {
         String s = utshead + ChatColor.RED + getlang("signimproper") + " (" + cartevent.getLocation().getBlockX() + " " + cartevent.getLocation().getBlockY() + " " + cartevent.getLocation().getBlockZ() + ")";
-        if (ld.getP() != null) {
+        if (ld != null && ld.getP() != null) {
             ld.getP().sendMessage(s);
         }
         Bukkit.getConsoleSender().sendMessage(s);

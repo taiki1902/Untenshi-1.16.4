@@ -73,7 +73,11 @@ class ato {
             double[] reqdist = new double[10];
             getAllReqdist(lv, lv.getSpeed(), lowerSpeed, ebdecel, decel, speedsteps, speeddrop, reqdist, slopeaccelsel);
             // Potential acceleration (acceleration after P5 to N) (0.75 from result of average accel of P1-P5 divided by P5 accel + delay)
-            double potentialaccel = accelSwitch(accel, 5, lv.getSpeed(), speedsteps) * 0.75 + slopeaccelsel;
+            double sumallaccel = 0;
+            for (int i = 1; i <= 5; i++) {
+                sumallaccel += accelSwitch(accel, i, lv.getSpeed(), speedsteps);
+            }
+            double potentialaccel = sumallaccel / 5 + slopeaccelsel;
             boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && lv.getMascon() == 0) || lv.getMascon() > 0) && lv.getSpeed() + potentialaccel <= currentlimit && !lv.isOverrun() && (lowerSpeed > 0 || distnow > 1);
             // Actual controlling part
             // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
@@ -84,7 +88,7 @@ class ato {
                 finalmascon = 5;
             }
             // Require braking? (additional thinking time to prevent braking too hard)
-            if (tempdist < reqdist[6] + speed1s(lv) * getThinkingTime(lv, 6)) {
+            if (tempdist < reqdist[6] + speed1s(lv) * getThinkingTime(lv, 6) / 2) {
                 lv.setAtoforcebrake(true);
             }
             // Direct pattern or forced?

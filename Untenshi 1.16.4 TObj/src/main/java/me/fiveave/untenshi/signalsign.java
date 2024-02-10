@@ -127,18 +127,6 @@ class signalsign extends SignAction {
         return new signalOrderPtnResult(halfptnlen, ptnsisi, ptnsisp);
     }
 
-    static class signalOrderPtnResult {
-        public final int halfptnlen;
-        public final String[] ptnsisi;
-        public final int[] ptnsisp;
-
-        public signalOrderPtnResult(int halfptnlen, String[] ptnsisi, int[] ptnsisp) {
-            this.halfptnlen = halfptnlen;
-            this.ptnsisi = ptnsisi;
-            this.ptnsisp = ptnsisp;
-        }
-    }
-
     boolean checkType(SignActionEvent e) {
         return l1(e).equals("warn") || l1(e).equals("interlock") || (l1(e).equals("set") && isSignalType(l2(e)));
     }
@@ -154,7 +142,7 @@ class signalsign extends SignAction {
         try {
             MinecartGroup mg = cartevent.getGroup();
             utsvehicle lv = vehicle.get(mg);
-            if (lv != null && cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
+            if (lv != null) {
                 int signalspeed = l1(cartevent).equals("set") ? parseInt(l3(cartevent)) : 0;
                 // Main content starts here
                 if ((!(l1(cartevent).equals("warn") || l1(cartevent).equals("interlock")) && l2(cartevent).equals("del")) || (signalspeed <= maxspeed && signalspeed >= 0 && Math.floorMod(signalspeed, 5) == 0 && (checkType(cartevent)))) {
@@ -163,170 +151,192 @@ class signalsign extends SignAction {
                     switch (l1(cartevent)) {
                         // Set signal speed limit
                         case "set":
-                            if (lv.getResettablesisign() == null) {
-                                lv.setResettablesisign(new Location[1]);
-                            }
-                            lv.setSignalorderptn(cartevent.getLine(3).split(" ")[0]);
-                            // Prevent stepping on same signal causing ATS run
-                            if (lv.getResettablesisign()[0] == null || !lv.getResettablesisign()[0].equals(cartevent.getLocation())) {
-                                // Except red light, signal must get reset first
-                                if (signalspeed != 0) {
-                                    Location currentloc = cartevent.getLocation();
-                                    // Check if that location exists in any other train, then delete that record
-                                    for (MinecartGroup mg2 : vehicle.keySet()) {
-                                        initVehicle(mg2);
-                                        utsvehicle ld2 = vehicle.get(mg2);
-                                        if (ld2.getResettablesisign() != null) {
-                                            Location[] locs = ld2.getResettablesisign();
-                                            for (int i1 = 0; i1 < locs.length; i1++) {
-                                                if (locs[i1] != null && currentloc.equals(locs[i1])) {
-                                                    locs[i1] = null;
+                            // Train enters, add location into resettablesign
+                            if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
+                                if (lv.getResettablesisign() == null) {
+                                    lv.setResettablesisign(new Location[0]);
+                                }
+                                lv.setSignalorderptn(cartevent.getLine(3).split(" ")[0]);
+                                // Prevent stepping on same signal causing ATS run
+                                if (lv.getResettablesisign().length == 0 || !lv.getResettablesisign()[0].equals(cartevent.getLocation())) {
+                                    // Except red light, signal must get reset first
+                                    if (signalspeed != 0) {
+                                        Location currentloc = cartevent.getLocation();
+                                        // Suzhoushi: If in 3 trains middle train disappears, back train will receive ALL green lights (r, 0 (front), g, 360 (back), g, 360 (back), ...)
+                                        // Check if that location exists in any other train, then delete that record
+                                        for (MinecartGroup mg2 : vehicle.keySet()) {
+                                            initVehicle(mg2);
+                                            utsvehicle lv2 = vehicle.get(mg2);
+                                            if (lv2.getResettablesisign() != null && lv2 != lv) {
+                                                Location[] locs = lv2.getResettablesisign();
+                                                for (int i1 = 0; i1 < locs.length; i1++) {
+                                                    if (locs[i1] != null && currentloc.equals(locs[i1])) {
+                                                        locs[i1] = null;
+                                                    }
                                                 }
+                                                lv2.setResettablesisign(locs);
                                             }
-                                            ld2.setResettablesisign(locs);
                                         }
+                                        // If location is in interlocking list, then remove location and shift list
+                                        removeIlShift(lv, currentloc);
                                     }
-                                    // If location is in interlocking list, then remove location and shift list
-                                    removeIlShift(lv, currentloc);
-                                }
-                                // Set values and signal name
-                                lv.setSignallimit(signalspeed);
-                                lv.setSafetysystype(l2(cartevent).equals("atc") ? "atc" : "ats-p");
-                                signalmsg = signalName(l2(cartevent));
-                                if (signalmsg.equals("")) {
-                                    signImproper(cartevent, lv.getLd());
-                                    break;
-                                }
-                                int shownspeed = signalspeed;
-                                // ATC signal and speed limit min value
-                                if (lv.getSafetysystype().equals("atc")) {
-                                    shownspeed = Math.min(lv.getSignallimit(), lv.getSpeedlimit());
-                                }
-                                String temp = shownspeed >= maxspeed ? getlang("speedlimit_del") : shownspeed + " km/h";
-                                if (lv.getLd() != null) {
-                                    generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("signal_set") + " " + signalmsg + ChatColor.GRAY + " " + temp);
-                                }
-                                // If red light need to wait signal change, if not then delete variable
-                                if (signalspeed != 0) {
-                                    signalOrderPtnResult result = getSignalOrderPtnResult(lv);
-                                    // Array copy (move passed signals to the back)
-                                    Location[] oldloc = lv.getResettablesisign();
-                                    Location[] newloc = new Location[result.halfptnlen];
-                                    for (int i1 = 0; i1 < oldloc.length; i1++) {
-                                        if (i1 + 1 < newloc.length) {
-                                            newloc[i1 + 1] = oldloc[i1];
+                                    // Set values and signal name
+                                    lv.setSignallimit(signalspeed);
+                                    lv.setSafetysystype(l2(cartevent).equals("atc") ? "atc" : "ats-p");
+                                    signalmsg = signalName(l2(cartevent));
+                                    if (signalmsg.equals("")) {
+                                        signImproper(cartevent, lv.getLd());
+                                        break;
+                                    }
+                                    int shownspeed = signalspeed;
+                                    // ATC signal and speed limit min value
+                                    if (lv.getSafetysystype().equals("atc")) {
+                                        shownspeed = Math.min(lv.getSignallimit(), lv.getSpeedlimit());
+                                    }
+                                    String temp = shownspeed >= maxspeed ? getlang("speedlimit_del") : shownspeed + " km/h";
+                                    if (lv.getLd() != null) {
+                                        generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("signal_set") + " " + signalmsg + ChatColor.GRAY + " " + temp);
+                                    }
+                                    // If red light need to wait signal change, if not then delete variable
+                                    if (signalspeed != 0) {
+                                        signalOrderPtnResult result = getSignalOrderPtnResult(lv);
+                                        // Array copy (move passed signals to the back)
+                                        Location[] oldloc = lv.getResettablesisign();
+                                        Location[] newloc;
+                                        // Expand oldloc into newloc by 1 index
+                                        newloc = new Location[oldloc.length + 1];
+                                        // Length > 0 then copy from n to n + 1
+                                        if (oldloc.length != 0) {
+                                            System.arraycopy(oldloc, 0, newloc, 1, oldloc.length);
                                         }
-                                    }
-                                    newloc[0] = cartevent.getLocation();
-                                    // Remove variables
-                                    lv.setLastsisign(null);
-                                    lv.setLastsisp(maxspeed);
-                                    // Reset signals if too much (oldloc.length > newloc.length)
-                                    if (oldloc.length > newloc.length) {
-                                        for (int i1 = newloc.length + 1; i1 < oldloc.length; i1++) {
-                                            // Get resettable signs
-                                            resetSignals(cartevent.getWorld(), oldloc);
-                                        }
-                                    }
-                                    lv.setResettablesisign(newloc);
-                                    // Set signs with new signal and speed
-                                    for (int i1 = 0; i1 < result.halfptnlen; i1++) {
+                                        newloc[0] = cartevent.getLocation();
+                                        // Remove variables
+                                        lv.setLastsisign(null);
+                                        lv.setLastsisp(maxspeed);
+                                        lv.setResettablesisign(newloc);
+                                        // Set 0th (this) sign with new signal and speed
                                         // settable: Sign to be set
                                         Sign settable;
                                         try {
-                                            settable = getSignFromLoc(newloc[i1]);
+                                            settable = getSignFromLoc(newloc[0]);
                                             if (settable != null) {
                                                 String defaultsi = settable.getLine(3).split(" ")[1];
                                                 int defaultsp = parseInt(settable.getLine(3).split(" ")[2]);
                                                 // Check if new speed to be set is larger than default, if yes choose default instead
-                                                String str = result.ptnsisp[i1] > defaultsp ? defaultsi + " " + defaultsp : result.ptnsisi[i1] + " " + result.ptnsisp[i1];
+                                                String str = result.ptnsisp[0] > defaultsp ? defaultsi + " " + defaultsp : result.ptnsisi[0] + " " + result.ptnsisp[0];
                                                 Bukkit.getScheduler().runTaskLater(plugin, () -> updateSignals(settable, "set " + str), 1);
                                             }
                                         } catch (Exception ignored) {
                                         }
                                     }
+                                    // Prevent non-resettable ATS Run caused by red light but without receiving warning
+                                    else if (lv.getLastsisign() == null) {
+                                        lv.setLastsisign(cartevent.getLocation());
+                                        lv.setLastsisp(signalspeed);
+                                    }
                                 }
-                                // Prevent non-resettable ATS Run caused by red light but without receiving warning
-                                else if (lv.getLastsisign() == null) {
-                                    lv.setLastsisign(cartevent.getLocation());
-                                    lv.setLastsisp(signalspeed);
+                            }
+                            // Train leaves, but in many ways (group leave, destroyed, etc), delete location from resettablesign
+                            else if ((cartevent.isAction(SignActionType.GROUP_LEAVE, SignActionType.REDSTONE_OFF) || !cartevent.hasRailedMember() || !cartevent.isPowered()) && lv.getResettablesisign() != null && lv.getResettablesisign().length > 1) {
+                                Location[] oldloc = lv.getResettablesisign();
+                                signalOrderPtnResult result = getSignalOrderPtnResult(lv);
+                                for (int i1 = 0; i1 < oldloc.length; i1++) {
+                                    // settable: Sign to be set
+                                    Sign settable;
+                                    try {
+                                        settable = getSignFromLoc(oldloc[i1]);
+                                        if (settable != null) {
+                                            String defaultsi = settable.getLine(3).split(" ")[1];
+                                            int defaultsp = parseInt(settable.getLine(3).split(" ")[2]);
+                                            // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
+                                            int minno = Math.min(result.halfptnlen - 1, i1);
+                                            // Check if new speed to be set is larger than default, if yes choose default instead
+                                            String str = result.ptnsisp[minno] > defaultsp ? defaultsi + " " + defaultsp : result.ptnsisi[minno] + " " + result.ptnsisp[minno];
+                                            Bukkit.getScheduler().runTaskLater(plugin, () -> updateSignals(settable, "set " + str), 1);
+                                        }
+                                    } catch (Exception ignored) {
+                                    }
                                 }
                             }
                             break;
                         // Signal speed limit warn
                         case "warn":
-                            if (lv.getAtsforced() != 2 && (lv.getSafetysystype().equals("ats-p") || lv.getSafetysystype().equals("atc"))) {
-                                Sign warn = getSignFromLoc(getFullLoc(cartevent.getWorld(), cartevent.getLine(3)));
-                                if (warn != null && warn.getLine(1).equals("signalsign")) {
-                                    // lastsisign and lastsisp are for detecting signal change
-                                    lv.setLastsisign(warn.getLocation());
-                                    String warnsi = warn.getLine(2).split(" ")[1];
-                                    int warnsp = Integer.parseInt(warn.getLine(2).split(" ")[2]);
-                                    lv.setLastsisp(warnsp);
-                                    signalmsg = signalName(warnsi);
-                                    if (signalmsg.equals("")) {
-                                        signImproper(cartevent, lv.getLd());
-                                        break;
-                                    }
+                            if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
+                                if (lv.getAtsforced() != 2 && (lv.getSafetysystype().equals("ats-p") || lv.getSafetysystype().equals("atc"))) {
+                                    Sign warn = getSignFromLoc(getFullLoc(cartevent.getWorld(), cartevent.getLine(3)));
+                                    if (warn != null && warn.getLine(1).equals("signalsign")) {
+                                        // lastsisign and lastsisp are for detecting signal change
+                                        lv.setLastsisign(warn.getLocation());
+                                        String warnsi = warn.getLine(2).split(" ")[1];
+                                        int warnsp = Integer.parseInt(warn.getLine(2).split(" ")[2]);
+                                        lv.setLastsisp(warnsp);
+                                        signalmsg = signalName(warnsi);
+                                        if (signalmsg.equals("")) {
+                                            signImproper(cartevent, lv.getLd());
+                                            break;
+                                        }
 
-                                    // ATC signal and speed limit min value
-                                    if (lv.getSafetysystype().equals("atc")) {
-                                        warnsp = Math.min(Math.min(lv.getLastsisp(), lv.getLastspsp()), lv.getSpeedlimit());
+                                        // ATC signal and speed limit min value
+                                        if (lv.getSafetysystype().equals("atc")) {
+                                            warnsp = Math.min(Math.min(lv.getLastsisp(), lv.getLastspsp()), lv.getSpeedlimit());
+                                        }
+                                        String temp2 = warnsp >= maxspeed ? getlang("speedlimit_del") : warnsp + " km/h";
+                                        generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("signal_warn") + " " + signalmsg + ChatColor.GRAY + " " + temp2);
+                                    } else {
+                                        signImproper(cartevent, lv.getLd());
                                     }
-                                    String temp2 = warnsp >= maxspeed ? getlang("speedlimit_del") : warnsp + " km/h";
-                                    generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("signal_warn") + " " + signalmsg + ChatColor.GRAY + " " + temp2);
-                                } else {
-                                    signImproper(cartevent, lv.getLd());
                                 }
                             }
                             break;
                         case "interlock":
-                            Location fullloc = getFullLoc(cartevent.getWorld(), cartevent.getLine(3));
-                            String[] l2 = cartevent.getLine(2).split(" ");
-                            Chest refchest = getChestFromLoc(fullloc);
-                            if (l2.length == 3 && l2[2].equals("del")) {
-                                removeIlShift(lv, fullloc);
-                            } else if ((l2.length == 2 || l2.length == 3) && refchest != null) {
-                                for (int itemno = 0; itemno < 27; itemno++) {
-                                    ItemMeta mat = null;
-                                    try {
-                                        mat = Objects.requireNonNull(refchest.getBlockInventory().getItem(itemno)).getItemMeta();
-                                    } catch (Exception ignored) {
-                                    }
-                                    if (mat instanceof BookMeta) {
-                                        BookMeta bk = (BookMeta) mat;
-                                        int pgcount = bk.getPageCount();
-                                        for (int pgno = 1; pgno <= pgcount; pgno++) {
-                                            String str = bk.getPage(pgno);
-                                            Location[] oldilpos = lv.getIlposlist();
-                                            Location[] newilpos;
-                                            Location setloc = getFullLoc(cartevent.getWorld(), str);
-                                            // Null or not? If null just put new
-                                            if (oldilpos == null || oldilpos.length == 0) {
-                                                newilpos = new Location[1];
-                                                newilpos[0] = setloc;
-                                            }
-                                            // If not add new ones in if not duplicated
-                                            else if (!setloc.equals(oldilpos[oldilpos.length - 1])) {
-                                                int oldilposlen = oldilpos.length;
-                                                newilpos = new Location[oldilposlen + 1];
-                                                // Array copy and set new positions
-                                                System.arraycopy(oldilpos, 0, newilpos, 0, oldilposlen);
-                                                newilpos[oldilposlen] = getFullLoc(cartevent.getWorld(), str);
-                                            }
-                                            // If duplicated just copy old to new
-                                            else {
-                                                newilpos = oldilpos;
-                                            }
-                                            lv.setIlposlist(newilpos);
-                                            lv.setIlenterqueuetime(System.currentTimeMillis());
-                                            if (l2.length == 3) {
-                                                lv.setIlpriority(Integer.parseInt(l2[2]));
-                                            } else {
-                                                lv.setIlpriority(0);
-                                            }
+                            if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
+                                Location fullloc = getFullLoc(cartevent.getWorld(), cartevent.getLine(3));
+                                String[] l2 = cartevent.getLine(2).split(" ");
+                                Chest refchest = getChestFromLoc(fullloc);
+                                if (l2.length == 3 && l2[2].equals("del")) {
+                                    removeIlShift(lv, fullloc);
+                                } else if ((l2.length == 2 || l2.length == 3) && refchest != null) {
+                                    for (int itemno = 0; itemno < 27; itemno++) {
+                                        ItemMeta mat = null;
+                                        try {
+                                            mat = Objects.requireNonNull(refchest.getBlockInventory().getItem(itemno)).getItemMeta();
+                                        } catch (Exception ignored) {
                                         }
-                                        lv.setSignalorderptn(cartevent.getLine(2).split(" ")[1]);
+                                        if (mat instanceof BookMeta) {
+                                            BookMeta bk = (BookMeta) mat;
+                                            int pgcount = bk.getPageCount();
+                                            for (int pgno = 1; pgno <= pgcount; pgno++) {
+                                                String str = bk.getPage(pgno);
+                                                Location[] oldilpos = lv.getIlposlist();
+                                                Location[] newilpos;
+                                                Location setloc = getFullLoc(cartevent.getWorld(), str);
+                                                // Null or not? If null just put new
+                                                if (oldilpos == null || oldilpos.length == 0) {
+                                                    newilpos = new Location[1];
+                                                    newilpos[0] = setloc;
+                                                }
+                                                // If not add new ones in if not duplicated
+                                                else if (!setloc.equals(oldilpos[oldilpos.length - 1])) {
+                                                    int oldilposlen = oldilpos.length;
+                                                    newilpos = new Location[oldilposlen + 1];
+                                                    // Array copy and set new positions
+                                                    System.arraycopy(oldilpos, 0, newilpos, 0, oldilposlen);
+                                                    newilpos[oldilposlen] = getFullLoc(cartevent.getWorld(), str);
+                                                }
+                                                // If duplicated just copy old to new
+                                                else {
+                                                    newilpos = oldilpos;
+                                                }
+                                                lv.setIlposlist(newilpos);
+                                                lv.setIlenterqueuetime(System.currentTimeMillis());
+                                                if (l2.length == 3) {
+                                                    lv.setIlpriority(Integer.parseInt(l2[2]));
+                                                } else {
+                                                    lv.setIlpriority(0);
+                                                }
+                                            }
+                                            lv.setSignalorderptn(cartevent.getLine(2).split(" ")[1]);
+                                        }
                                     }
                                 }
                             }
@@ -412,5 +422,17 @@ class signalsign extends SignAction {
             e.setCancelled(true);
         }
         return true;
+    }
+
+    static class signalOrderPtnResult {
+        public final int halfptnlen;
+        public final String[] ptnsisi;
+        public final int[] ptnsisp;
+
+        public signalOrderPtnResult(int halfptnlen, String[] ptnsisi, int[] ptnsisp) {
+            this.halfptnlen = halfptnlen;
+            this.ptnsisi = ptnsisi;
+            this.ptnsisp = ptnsisp;
+        }
     }
 }

@@ -52,7 +52,7 @@ class atosign extends SignAction {
                                 if (mm.getDirection().getOppositeFace().equals(bf)) {
                                     mg.reverse();
                                     lv.setDriverseat(mg.head());
-                                    generalMsg(lv.getLd(), ChatColor.GOLD, getlang("dir_info") + " " + getlang(mg.head().getDirection().toString().toLowerCase()));
+                                    generalMsg(lv.getLd(), ChatColor.GOLD, getlang("dir_info") + " " + getlang("dir_" + mg.head().getDirection().toString().toLowerCase()));
                                     cartevent.setLevers(true);
                                     Bukkit.getScheduler().runTaskLater(plugin, () -> cartevent.setLevers(false), 4);
                                 }
