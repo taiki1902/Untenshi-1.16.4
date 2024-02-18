@@ -209,6 +209,9 @@ class cmds implements CommandExecutor, TabCompleter {
                         }
                         break;
                     case "freemode":
+                        if (reqDeactivate(ld)) {
+                            break;
+                        }
                         if (cannotSetTrain(args, ld) || !args[1].equalsIgnoreCase("true") && !args[1].equalsIgnoreCase("false")) {
                             sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("help_usage") + " " + ChatColor.GOLD + "/uts freemode <true/false>" + ChatColor.YELLOW + "]\n" + getlang("freemode_info1") + "\n" + getlang("freemode_info2"));
                         } else {
@@ -217,6 +220,9 @@ class cmds implements CommandExecutor, TabCompleter {
                         }
                         break;
                     case "allowato":
+                        if (reqDeactivate(ld)) {
+                            break;
+                        }
                         if (cannotSetTrain(args, ld) || !args[1].equalsIgnoreCase("true") && !args[1].equalsIgnoreCase("false")) {
                             sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("help_usage") + " " + ChatColor.GOLD + "/uts allowato <true/false>" + ChatColor.YELLOW + "]\n" + getlang("ato_info1") + "\n" + getlang("ato_info2"));
                         } else {
@@ -330,7 +336,7 @@ class cmds implements CommandExecutor, TabCompleter {
     }
 
     private boolean cannotSetTrain(String[] args, utsdriver ld) {
-        return checkPerm(ld.getP(), "uts." + args[0].toLowerCase()) || reqDeactivate(ld) || args.length != 2;
+        return checkPerm(ld.getP(), "uts." + args[0].toLowerCase()) || args.length != 2;
     }
 
     private boolean reqDeactivate(utsdriver ld) {

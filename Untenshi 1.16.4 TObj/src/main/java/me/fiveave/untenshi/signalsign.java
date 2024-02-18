@@ -83,25 +83,25 @@ class signalsign extends SignAction {
         return false;
     }
 
-    private static void removeIlShift(utsvehicle ld, Location targetloc) {
-        if (ld.getIlposlist() != null) {
-            Location[] oldpos = ld.getIlposlist();
+    private static void removeIlShift(utsvehicle lv, Location targetloc) {
+        if (lv.getIlposlist() != null) {
+            Location[] oldpos = lv.getIlposlist();
             // Interlocking list
             for (int i1 = 0; i1 < oldpos.length; i1++) {
                 if (targetloc.equals(oldpos[i1])) {
                     Location[] newpos = new Location[oldpos.length - (1 + i1)];
                     System.arraycopy(oldpos, 1 + i1, newpos, 0, newpos.length);
-                    ld.setIlposlist(newpos);
+                    lv.setIlposlist(newpos);
                     break;
                 }
             }
             // Occupied list
-            Location[] oldoccupied = ld.getIlposoccupied();
+            Location[] oldoccupied = lv.getIlposoccupied();
             for (int i2 = 0; i2 < oldoccupied.length; i2++) {
                 if (targetloc.equals(oldoccupied[i2])) {
                     Location[] newoccupied = new Location[oldoccupied.length - (1 + i2)];
                     System.arraycopy(oldoccupied, 1 + i2, newoccupied, 0, newoccupied.length);
-                    ld.setIlposoccupied(newoccupied);
+                    lv.setIlposoccupied(newoccupied);
                     break;
                 }
             }
@@ -125,6 +125,25 @@ class signalsign extends SignAction {
             }
         }
         return new signalOrderPtnResult(halfptnlen, ptnsisi, ptnsisp);
+    }
+
+    static void deleteOthersResettablesign(utsvehicle lv, Location currentloc) {
+        for (MinecartGroup mg2 : vehicle.keySet()) {
+            initVehicle(mg2);
+            utsvehicle lv2 = vehicle.get(mg2);
+            if (lv2.getResettablesisign() != null && lv2 != lv) {
+                Location[] oldloc = lv2.getResettablesisign();
+                Location[] newloc = oldloc;
+                for (int i1 = 0; i1 < oldloc.length; i1++) {
+                    if (oldloc[i1] != null && currentloc.equals(oldloc[i1])) {
+                        newloc = new Location[i1];
+                        System.arraycopy(oldloc, 0, newloc, 0, newloc.length);
+                        break;
+                    }
+                }
+                lv2.setResettablesisign(newloc);
+            }
+        }
     }
 
     boolean checkType(SignActionEvent e) {
@@ -164,19 +183,7 @@ class signalsign extends SignAction {
                                         Location currentloc = cartevent.getLocation();
                                         // Suzhoushi: If in 3 trains middle train disappears, back train will receive ALL green lights (r, 0 (front), g, 360 (back), g, 360 (back), ...)
                                         // Check if that location exists in any other train, then delete that record
-                                        for (MinecartGroup mg2 : vehicle.keySet()) {
-                                            initVehicle(mg2);
-                                            utsvehicle lv2 = vehicle.get(mg2);
-                                            if (lv2.getResettablesisign() != null && lv2 != lv) {
-                                                Location[] locs = lv2.getResettablesisign();
-                                                for (int i1 = 0; i1 < locs.length; i1++) {
-                                                    if (locs[i1] != null && currentloc.equals(locs[i1])) {
-                                                        locs[i1] = null;
-                                                    }
-                                                }
-                                                lv2.setResettablesisign(locs);
-                                            }
-                                        }
+                                        deleteOthersResettablesign(lv, currentloc);
                                         // If location is in interlocking list, then remove location and shift list
                                         removeIlShift(lv, currentloc);
                                     }
@@ -184,7 +191,7 @@ class signalsign extends SignAction {
                                     lv.setSignallimit(signalspeed);
                                     lv.setSafetysystype(l2(cartevent).equals("atc") ? "atc" : "ats-p");
                                     signalmsg = signalName(l2(cartevent));
-                                    if (signalmsg.equals("")) {
+                                    if (signalmsg.isEmpty()) {
                                         signImproper(cartevent, lv.getLd());
                                         break;
                                     }
@@ -271,7 +278,7 @@ class signalsign extends SignAction {
                                         int warnsp = Integer.parseInt(warn.getLine(2).split(" ")[2]);
                                         lv.setLastsisp(warnsp);
                                         signalmsg = signalName(warnsi);
-                                        if (signalmsg.equals("")) {
+                                        if (signalmsg.isEmpty()) {
                                             signImproper(cartevent, lv.getLd());
                                             break;
                                         }

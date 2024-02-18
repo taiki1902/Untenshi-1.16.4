@@ -5,10 +5,17 @@ import com.bergerkiller.bukkit.tc.controller.MinecartMember;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-import static me.fiveave.untenshi.main.maxspeed;
-import static me.fiveave.untenshi.main.vehicle;
+import java.util.Objects;
+import java.util.Set;
+
+import static me.fiveave.untenshi.main.*;
 
 class utsvehicle {
+    private double accel;
+    private double decel;
+    private double ebdecel;
+    private double speeddrop;
+    private int[] speedsteps;
     private utsdriver ld;
     private World savedworld;
     private int mascon;
@@ -57,6 +64,43 @@ class utsvehicle {
             this.setDriverseat(mg.head());
         } catch (Exception ignored) {
         }
+        // Set accel, decel and speedsteps
+        // Init train
+        // From traindata (if available)
+        String seltrainname = "";
+        Set<String> allTrains = Objects.requireNonNull(traindata.dataconfig.getConfigurationSection("trains")).getKeys(false);
+        // Choose most suitable type
+        for (String tname : allTrains) {
+            // Override config accels
+            if (mg.getProperties().getDisplayName().contains(tname) && tname.length() > seltrainname.length()) {
+                seltrainname = tname;
+            }
+        }
+        // Set as default if none
+        if (seltrainname.isEmpty()) {
+            seltrainname = "default";
+        }
+        double tempaccel = 0;
+        double tempdecel = 0;
+        double tempebdecel = 0;
+        int[] tempspeedsteps = new int[6];
+        String tDataInfo = "trains." + seltrainname;
+        if (traindata.dataconfig.contains(tDataInfo + ".accel"))
+            tempaccel = traindata.dataconfig.getDouble(tDataInfo + ".accel");
+        if (traindata.dataconfig.contains(tDataInfo + ".decel"))
+            tempdecel = traindata.dataconfig.getDouble(tDataInfo + ".decel");
+        if (traindata.dataconfig.contains(tDataInfo + ".ebdecel"))
+            tempebdecel = traindata.dataconfig.getDouble(tDataInfo + ".ebdecel");
+        if (traindata.dataconfig.contains(tDataInfo + ".speeds") && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
+            for (int i = 0; i < 6; i++) {
+                tempspeedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
+            }
+        }
+        this.setSpeeddrop(plugin.getConfig().getDouble("speeddroprate"));
+        this.setAccel(tempaccel);
+        this.setDecel(tempdecel);
+        this.setEbdecel(tempebdecel);
+        this.setSpeedsteps(tempspeedsteps);
         this.setSpeed(0.0);
         this.setSignallimit(maxspeed);
         this.setSpeedlimit(maxspeed);
@@ -416,5 +460,45 @@ class utsvehicle {
 
     public void setBeinglogged(boolean beinglogged) {
         this.beinglogged = beinglogged;
+    }
+
+    public double getAccel() {
+        return accel;
+    }
+
+    public void setAccel(double accel) {
+        this.accel = accel;
+    }
+
+    public double getDecel() {
+        return decel;
+    }
+
+    public void setDecel(double decel) {
+        this.decel = decel;
+    }
+
+    public double getEbdecel() {
+        return ebdecel;
+    }
+
+    public void setEbdecel(double ebdecel) {
+        this.ebdecel = ebdecel;
+    }
+
+    public int[] getSpeedsteps() {
+        return speedsteps;
+    }
+
+    public void setSpeedsteps(int[] speedsteps) {
+        this.speedsteps = speedsteps;
+    }
+
+    public double getSpeeddrop() {
+        return speeddrop;
+    }
+
+    public void setSpeeddrop(double speeddrop) {
+        this.speeddrop = speeddrop;
     }
 }

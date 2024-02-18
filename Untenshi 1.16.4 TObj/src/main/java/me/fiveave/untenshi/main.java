@@ -27,8 +27,8 @@ public final class main extends JavaPlugin implements Listener {
     static final int tickdelay = 20 / ticksin1s;
     static final int maxspeed = 360;
     static final double cartYPosDiff = 0.0625;
-    public static HashMap<MinecartGroup, utsvehicle> vehicle = new HashMap<>();
-    public static HashMap<Player, utsdriver> driver = new HashMap<>();
+    static HashMap<MinecartGroup, utsvehicle> vehicle = new HashMap<>();
+    static HashMap<Player, utsdriver> driver = new HashMap<>();
     public static main plugin;
     static abstractfile config;
     static abstractfile langdata;

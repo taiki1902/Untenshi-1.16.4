@@ -2,8 +2,10 @@ package me.fiveave.untenshi;
 
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 
+import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.events.doorControls;
 import static me.fiveave.untenshi.events.toEB;
 import static me.fiveave.untenshi.main.*;
@@ -12,7 +14,10 @@ import static me.fiveave.untenshi.speedsign.getSignToRailOffset;
 
 class ato {
 
-    static void atosys(utsvehicle lv, double accel, double decel, double ebdecel, double speeddrop, int[] speedsteps, MinecartGroup mg) {
+    static void atosys(utsvehicle lv, MinecartGroup mg) {
+        double decel = lv.getDecel();
+        double speeddrop = lv.getSpeeddrop();
+        int[] speedsteps = lv.getSpeedsteps();
         if (lv.getAtodest() != null && lv.getAtospeed() != -1 && !lv.isAtsping() && lv.getAtsforced() == 0 && (lv.getLd() == null || lv.getLd().isAllowatousage())) {
             /*
              Get distances (distnow: smaller value of atodist and signaldist)
@@ -71,11 +76,11 @@ class ato {
 
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
-            getAllReqdist(lv, lv.getSpeed(), lowerSpeed, ebdecel, decel, speedsteps, speeddrop, reqdist, slopeaccelsel);
+            getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel);
             // Potential acceleration (acceleration after P5 to N) (0.75 from result of average accel of P1-P5 divided by P5 accel + delay)
             double sumallaccel = 0;
             for (int i = 1; i <= 5; i++) {
-                sumallaccel += accelSwitch(accel, i, lv.getSpeed(), speedsteps);
+                sumallaccel += accelSwitch(lv, lv.getSpeed(), i);
             }
             double potentialaccel = sumallaccel / 5 + slopeaccelsel;
             boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && lv.getMascon() == 0) || lv.getMascon() > 0) && lv.getSpeed() + potentialaccel <= currentlimit && !lv.isOverrun() && (lowerSpeed > 0 || distnow > 1);
@@ -88,7 +93,7 @@ class ato {
                 finalmascon = 5;
             }
             // Require braking? (additional thinking time to prevent braking too hard)
-            if (tempdist < reqdist[6] + speed1s(lv) * getThinkingTime(lv, 6) / 2) {
+            if (tempdist < reqdist[6] + speed1s(lv) * getThinkingTime(lv, 6)) {
                 lv.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
@@ -113,7 +118,7 @@ class ato {
             // Slightly speeding auto braking (not related to ATS-P or ATC)
             if (lv.getSpeed() + slopeaccelnow > currentlimit) {
                 // Redefine reqdist (here for braking distance to speed limit)
-                getAllReqdist(lv, lv.getSpeed() + slopeaccelnow, currentlimit, ebdecel, decel, speedsteps, speeddrop, reqdist, slopeaccelnow);
+                getAllReqdist(lv, lv.getSpeed() + slopeaccelnow, currentlimit, speeddrop, reqdist, slopeaccelnow);
                 int finalbrake = -8;
                 for (int a = 8; a >= 1; a--) {
                     // If braking distance is greater than distance in 1 s and if the brake is greater, then use the value
@@ -129,28 +134,35 @@ class ato {
             lv.setMascon(finalmascon);
             // EB when overrun
             if (lv.isOverrun() && atodist > 1) {
-                toEB(lv.getLd());
+                toEB(lv);
             }
+        } else if (lv.getAtodest() != null && lv.getAtospeed() != -1 && lv.getLd() != null && !lv.getLd().isAllowatousage()) {
+            lv.setAtodest(null);
+            lv.setAtospeed(-1);
+            generalMsg(lv.getLd().getP(), ChatColor.GOLD, getlang("ato_patterncancel"));
         }
     }
 
-    static void getAllReqdist(utsvehicle ld, double upperSpeed, double lowerSpeed, double ebdecel, double decel, int[] speedsteps, double speeddrop, double[] reqdist, double slopeaccel) {
+    static void getAllReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, double[] reqdist, double slopeaccel) {
+        double decel = lv.getDecel();
+        double ebdecel = lv.getEbdecel();
+        int[] speedsteps = lv.getSpeedsteps();
         // Consider normal case or else EB will be too common (decelfr = 7 because no multiplier)
         reqdist[9] = getReqdist(upperSpeed, lowerSpeed, avgRangeDecel(ebdecel, upperSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
         // Get speed drop distance
         reqdist[0] = getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
         for (int a = 1; a <= 8; a++) {
             // Plus reaction time + consider speed after adding slopeaccel to prevent reaction lag
-            reqdist[a] = getReqdist(upperSpeed, lowerSpeed, avgRangeDecel(decel, upperSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop) + upperSpeed / 3.6 * getThinkingTime(ld, a) / 2;
+            reqdist[a] = getReqdist(upperSpeed, lowerSpeed, avgRangeDecel(decel, upperSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop) + upperSpeed / 3.6 * getThinkingTime(lv, a) / 2;
         }
     }
 
-    static double getThinkingTime(utsvehicle ld, int a) {
-        return Math.max(1.0 / ticksin1s, Math.min(a * 0.2, (a + (ld.getCurrent() * 9 / 480)) * 0.2));
+    static double getThinkingTime(utsvehicle lv, int a) {
+        return Math.max(1.0 / ticksin1s, Math.min(a * 0.2, (a + (lv.getCurrent() * 9 / 480)) * 0.2));
     }
 
-    static double speed1s(utsvehicle ld) {
-        return ld.getSpeed() / 3.6;
+    static double speed1s(utsvehicle lv) {
+        return lv.getSpeed() / 3.6;
     }
 
     // ATO Stop Time Countdown
@@ -172,8 +184,14 @@ class ato {
 
     private static void waitDepart(utsvehicle lv) {
         if (lv != null && lv.getTrain() != null && lv.getDriverseat().getEntity() != null) {
+            boolean notindist = true;
+            double[] reqdist = new double[10];
+            getAllReqdist(lv, minSpeedLimit(lv), 0, lv.getSpeeddrop(), reqdist, 0);
+            if (lv.getLastsisign() != null) {
+                notindist = (distFormula(lv.getLastsisign().getX(), lv.getDriverseat().getEntity().getLocation().getX(), lv.getLastsisign().getZ(), lv.getDriverseat().getEntity().getLocation().getZ())) > 5;
+            }
             // Wait doors fully closed then depart (if have red light in 5 meters do not depart)
-            if (lv.getDooropen() == 0 && lv.isDoorconfirm() && lv.getMascon() != -9 && (lv.getLastsisp() != 0 || lv.getLastsisign().distance(lv.getDriverseat().getEntity().getLocation()) > 5)) {
+            if (lv.getDooropen() == 0 && lv.isDoorconfirm() && lv.getMascon() != -9 && (lv.getLastsisp() != 0 || notindist)) {
                 lv.setMascon(5);
             } else {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> waitDepart(lv), tickdelay);

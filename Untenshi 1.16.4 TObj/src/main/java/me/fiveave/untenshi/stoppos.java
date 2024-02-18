@@ -31,7 +31,7 @@ class stoppos extends SignAction {
                 int[] loc2 = new int[3];
                 for (int a = 0; a <= 2; a++) {
                     loc[a] = Double.parseDouble(sloc[a]);
-                    if (!cartevent.getLine(3).equals("")) {
+                    if (!cartevent.getLine(3).isEmpty()) {
                         loc2[a] = Integer.parseInt(sloc2[a]);
                     }
                 }

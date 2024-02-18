@@ -11,8 +11,6 @@ import org.bukkit.block.Sign;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.util.Objects;
-import java.util.Set;
 
 import static me.fiveave.untenshi.ato.*;
 import static me.fiveave.untenshi.cmds.generalMsg;
@@ -25,7 +23,7 @@ import static me.fiveave.untenshi.speedsign.getSignToRailOffset;
 class motion {
 
     static void recursiveClockLv(utsvehicle lv) {
-        if (lv.getTrain() != null && lv.getTrain().size() != 0) {
+        if (lv.getTrain() != null && !lv.getTrain().isEmpty()) {
             try {
                 motionSystem(lv);
                 Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClockLv(lv), tickdelay);
@@ -58,43 +56,11 @@ class motion {
 
     static void motionSystem(utsvehicle lv) {
         // From Config
-        double accel = 0;
-        double decel = 0;
-        double ebdecel = 0;
-        int[] speedsteps = new int[6];
         double oldspeed = lv.getSpeed();
-        double speeddrop = plugin.getConfig().getDouble("speeddroprate");
         boolean stationstop = plugin.getConfig().getBoolean("stationsignstop");
         // Init train
         MinecartGroup mg = lv.getTrain();
         TrainProperties tprop = mg.getProperties();
-        // From traindata (if available)
-        String seltrainname = "";
-        Set<String> allTrains = Objects.requireNonNull(traindata.dataconfig.getConfigurationSection("trains")).getKeys(false);
-        // Choose most suitable type
-        for (String tname : allTrains) {
-            // Override config accels
-            if (mg.getProperties().getDisplayName().contains(tname) && tname.length() > seltrainname.length()) {
-                seltrainname = tname;
-            }
-        }
-        // Set as default if none
-        if (seltrainname.equals("")) {
-            seltrainname = "default";
-        }
-        // Set data accordingly
-        String tDataInfo = "trains." + seltrainname;
-        if (traindata.dataconfig.contains(tDataInfo + ".accel"))
-            accel = traindata.dataconfig.getDouble(tDataInfo + ".accel");
-        if (traindata.dataconfig.contains(tDataInfo + ".decel"))
-            decel = traindata.dataconfig.getDouble(tDataInfo + ".decel");
-        if (traindata.dataconfig.contains(tDataInfo + ".ebdecel"))
-            ebdecel = traindata.dataconfig.getDouble(tDataInfo + ".ebdecel");
-        if (traindata.dataconfig.contains(tDataInfo + ".speeds") && traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").size() == 6) {
-            for (int i = 0; i < 6; i++) {
-                speedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
-            }
-        }
         // Rounding
         DecimalFormat df3 = new DecimalFormat("#.###");
         DecimalFormat df2 = new DecimalFormat("#.##");
@@ -120,9 +86,9 @@ class motion {
         Location tailLoc = mg.tail().getEntity().getLocation();
         double slopeaccel = getSlopeAccel(headLoc, tailLoc);
         // Accel and decel
-        double stopdecel = decelSwitch(lv, lv.getSpeed(), speeddrop, decel, ebdecel, currentnow, speedsteps, slopeaccel);
+        double stopdecel = decelSwitch(lv, lv.getSpeed(), slopeaccel);
         if (lv.getDooropen() == 0) {
-            lv.setSpeed(lv.getSpeed() + accelSwitch(accel, (int) (currentnow * 9 / 480), lv.getSpeed(), speedsteps) / ticksin1s // Acceleration
+            lv.setSpeed(lv.getSpeed() + accelSwitch(lv, lv.getSpeed(), (int) (currentnow * 9 / 480)) / ticksin1s // Acceleration
                     - stopdecel / ticksin1s) // Deceleration (speed drop included)
             ;
         }
@@ -154,9 +120,9 @@ class motion {
         boolean isoverspeed0 = lv.getSpeed() > minSpeedLimit(lv);
         boolean isoverspeed3 = lv.getSpeed() > minSpeedLimit(lv) + 3 || lv.getSignallimit() == 0;
         // ATS-P or ATC
-        safetySys(lv, decel, ebdecel, speedsteps, speeddrop, mg, isoverspeed0, isoverspeed3);
+        safetySys(lv, mg, isoverspeed0, isoverspeed3);
         // ATO (Must be placed after actions)
-        atosys(lv, accel, decel, ebdecel, speeddrop, speedsteps, mg);
+        atosys(lv, mg);
         // Stop position
         stopPos(lv, shock);
     }
@@ -206,8 +172,10 @@ class motion {
                             signalOrderPtnResult result2 = getSignalOrderPtnResult(lv2);
                             for (int j = 0; j < rssign2locs.length; j++) {
                                 Location location = rssign2locs[j];
+                                // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
+                                int minno = Math.min(result2.halfptnlen - 1, j);
                                 // Resettable sign signal of lv2 is supposed to be 0 km/h by resettable sign
-                                if (oldposlist[i].equals(location) && result2.ptnsisp[j] == 0) {
+                                if (oldposlist[i].equals(location) && result2.ptnsisp[minno] == 0) {
                                     if (i < furthestoccupied) {
                                         furthestoccupied = i;
                                     }
@@ -262,20 +230,24 @@ class motion {
                 // Put in interlocking occupied
                 System.arraycopy(oldposlist, 0, newiloccupied, 0, furthestoccupied);
                 lv.setIlposoccupied(newiloccupied);
+                // Delete other's resettable sign (check all locations to prevent bug)
+                for (Location eachloc : newiloccupied) {
+                    deleteOthersResettablesign(lv, eachloc);
+                }
             }
         }
     }
 
-    private static String getCtrltext(utsvehicle ld) {
+    private static String getCtrltext(utsvehicle lv) {
         String ctrltext = "";
-        if (ld.getMascon() == -9) {
+        if (lv.getMascon() == -9) {
             ctrltext = ChatColor.DARK_RED + "EB";
-        } else if (ld.getMascon() >= -8 && ld.getMascon() <= -1) {
-            ctrltext = ChatColor.RED + "B" + Math.abs(ld.getMascon());
-        } else if (ld.getMascon() == 0) {
+        } else if (lv.getMascon() >= -8 && lv.getMascon() <= -1) {
+            ctrltext = ChatColor.RED + "B" + Math.abs(lv.getMascon());
+        } else if (lv.getMascon() == 0) {
             ctrltext = ChatColor.WHITE + "N";
-        } else if (ld.getMascon() >= 1 && ld.getMascon() <= 5) {
-            ctrltext = ChatColor.GREEN + "P" + ld.getMascon();
+        } else if (lv.getMascon() >= 1 && lv.getMascon() <= 5) {
+            ctrltext = ChatColor.GREEN + "P" + lv.getMascon();
         }
         return ctrltext;
     }
@@ -392,7 +364,11 @@ class motion {
         }
     }
 
-    private static void safetySys(utsvehicle lv, double decel, double ebdecel, int[] speedsteps, double speeddrop, MinecartGroup mg, boolean isoverspeed0, boolean isoverspeed3) {
+    private static void safetySys(utsvehicle lv, MinecartGroup mg, boolean isoverspeed0, boolean isoverspeed3) {
+        double decel = lv.getDecel();
+        double ebdecel = lv.getEbdecel();
+        double speeddrop = lv.getSpeeddrop();
+        int[] speedsteps = lv.getSpeedsteps();
         double lowerSpeed = minSpeedLimit(lv);
         // 0.0625 from result of getting mg.head() y-location
         Location headLoc = mg.head().getEntity().getLocation();
@@ -408,7 +384,7 @@ class motion {
         double reqspdist;
         double distnow = Double.MAX_VALUE;
         // TC forced stop (e.g. wait distance)
-        if (mg.isObstacleAhead(Math.max(mg.getProperties().getWaitDistance(), 0), true, true) && !lv.isAtsping() && lv.getAtsforced() != -1) {
+        if (!lv.isAtsping() && lv.getAtsforced() != -1 && (mg.isObstacleAhead(Math.max(mg.getProperties().getWaitDistance(), 0), true, false) || mg.isObstacleAhead(0.001, false, true))) {
             lv.setAtsping(true);
             lv.setAtsforced(-1);
             lv.setMascon(-9);
@@ -451,7 +427,7 @@ class motion {
         }
         // Get brake distance (reqdist)
         double[] reqdist = new double[10];
-        getAllReqdist(lv, lv.getSpeed(), lowerSpeed, ebdecel, decel, speedsteps, speeddrop, reqdist, slopeaccel);
+        getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccel);
         // Actual controlling part
         // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
         boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;
@@ -532,12 +508,14 @@ class motion {
         return (Math.pow(upperSpeed + Math.max(slopeaccel - decel, 0) / 2, 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop));
     }
 
-    static double accelSwitch(double accel, int dcurrent, double cspd, int[] sec) {
+    static double accelSwitch(utsvehicle lv, double speed, int dcurrent) {
+        double accel = lv.getAccel();
+        int[] speedsteps = lv.getSpeedsteps();
         double retaccel = 0;
         if (dcurrent - 1 >= 0) {
-            retaccel = accel * sec[dcurrent] / sec[5] * (1 - 0.5 * cspd / sec[5]);
-            if (cspd > sec[dcurrent - 1]) {
-                retaccel *= 1 - (cspd - sec[dcurrent - 1]) / (sec[dcurrent] - sec[dcurrent - 1]);
+            retaccel = accel * speedsteps[dcurrent] / speedsteps[5] * (1 - 0.5 * speed / speedsteps[5]);
+            if (speed > speedsteps[dcurrent - 1]) {
+                retaccel *= 1 - (speed - speedsteps[dcurrent - 1]) / (speedsteps[dcurrent] - speedsteps[dcurrent - 1]);
             }
         }
         if (retaccel < 0) {
@@ -546,19 +524,24 @@ class motion {
         return retaccel;
     }
 
-    static double decelSwitch(utsvehicle ld, double cspd, double speeddrop, double decel, double ebdecel, double current, int[] speedsteps, double slopeaccel) {
+    static double decelSwitch(utsvehicle lv, double speed, double slopeaccel) {
+        double decel = lv.getDecel();
+        double ebdecel = lv.getEbdecel();
+        double speeddrop = lv.getSpeeddrop();
+        double current = lv.getCurrent();
+        int[] speedsteps = lv.getSpeedsteps();
         double retdecel = 0;
         if (current == 0) {
             retdecel = speeddrop;
         } else if (current < 0 && current > -480) {
-            retdecel = globalDecel(decel, cspd, Math.abs(current * 9 / 480) + 1, speedsteps);
+            retdecel = globalDecel(decel, speed, Math.abs(current * 9 / 480) + 1, speedsteps);
         } else if (current == -480) {
-            if (ld.getAtsforced() != 2 && ld.getSignallimit() != 0) {
-                retdecel = globalDecel(ebdecel, cspd, 7, speedsteps);
+            if (lv.getAtsforced() != 2 && lv.getSignallimit() != 0) {
+                retdecel = globalDecel(ebdecel, speed, 7, speedsteps);
             } else {
                 // SPAD ATS EB (-35 km/h/s)
-                ld.setAtsforced(2);
-                ld.setSpeed(ld.getSpeed() - ebdecel / ticksin1s * 45 / 7);
+                lv.setAtsforced(2);
+                lv.setSpeed(lv.getSpeed() - ebdecel / ticksin1s * 45 / 7);
             }
         }
         return retdecel - slopeaccel;
@@ -574,7 +557,7 @@ class motion {
         return (globalDecel(decel, upperspd, rate, speedsteps) + globalDecel(decel, lowerspd, rate, speedsteps)) / 2;
     }
 
-    static int minSpeedLimit(utsvehicle ld) {
-        return Math.min(ld.getSpeedlimit(), ld.getSignallimit());
+    static int minSpeedLimit(utsvehicle lv) {
+        return Math.min(lv.getSpeedlimit(), lv.getSignallimit());
     }
 }

@@ -34,7 +34,7 @@ class atosign extends SignAction {
                 MinecartGroup mg = cartevent.getGroup();
                 MinecartMember<?> mm = cartevent.getMember();
                 utsvehicle lv = vehicle.get(mg);
-                if (cartevent.getLine(2).equals("reg")) {
+                if (lv == null && cartevent.getLine(2).equals("reg")) {
                     initVehicle(mg);
                     utsvehicle lv2 = vehicle.get(mg);
                     lv2.setMascon(-8);

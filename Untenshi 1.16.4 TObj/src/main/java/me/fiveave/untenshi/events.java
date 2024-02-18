@@ -32,13 +32,13 @@ import static me.fiveave.untenshi.utsdriver.initDriver;
 
 class events implements Listener {
 
-    static void toEB(utsdriver ld) {
-        if (noFreemodeOrATO(ld) && ld.getLv().getMascon() != -9 && ld.getLv().getSpeed() > 20 && ld.getLv().getAtsforced() != 2 && !ld.getLv().isAtsping()) {
+    static void toEB(utsvehicle lv) {
+        if (lv.getLd() != null && noFreemodeOrATO(lv.getLd()) && lv.getMascon() != -9 && lv.getSpeed() > 20 && lv.getAtsforced() != 2 && !lv.isAtsping()) {
             // Misuse EB
-            pointCounter(ld, ChatColor.YELLOW, getlang("eb_misuse") + " ", -5, "");
+            pointCounter(lv.getLd(), ChatColor.YELLOW, getlang("eb_misuse") + " ", -5, "");
         }
-        ld.getLv().setMascon(-9);
-        ld.getLv().setAtsforced(1);
+        lv.setMascon(-9);
+        lv.setAtsforced(1);
     }
 
     static void switchBack(utsvehicle lv) {
@@ -155,7 +155,7 @@ class events implements Listener {
                     if (lv.getMascon() > -8) {
                         lv.setMascon(lv.getMascon() - 1);
                     } else if (lv.getMascon() == -8) {
-                        toEB(ld);
+                        toEB(lv);
                     }
                     event.setCancelled(true);
                 }
@@ -184,7 +184,7 @@ class events implements Listener {
                 event.setCancelled(true);
             }
             if (ebButton().equals(item) && lv.getAtsforced() != 2) {
-                toEB(ld);
+                toEB(lv);
                 event.setCancelled(true);
             }
         }
@@ -202,7 +202,7 @@ class events implements Listener {
                     DecimalFormat df0 = new DecimalFormat("#");
                     double spd = lv.getSpeed();
                     String sp = df0.format(spd);
-                    toEB(ld);
+                    toEB(lv);
                     lv.setCurrent(-480);
                     lv.setSpeed(0);
                     pointCounter(ld, ChatColor.YELLOW, getlang("collidebuffer") + " ", -10, " " + sp + " km/h");
