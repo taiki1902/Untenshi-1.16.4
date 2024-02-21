@@ -27,9 +27,9 @@ public final class main extends JavaPlugin implements Listener {
     static final int tickdelay = 20 / ticksin1s;
     static final int maxspeed = 360;
     static final double cartYPosDiff = 0.0625;
+    public static main plugin;
     static HashMap<MinecartGroup, utsvehicle> vehicle = new HashMap<>();
     static HashMap<Player, utsdriver> driver = new HashMap<>();
-    public static main plugin;
     static abstractfile config;
     static abstractfile langdata;
     static abstractfile traindata;
@@ -127,7 +127,7 @@ public final class main extends JavaPlugin implements Listener {
         } catch (Exception ignored) {
         }
         // Reset signals (resettablesign)
-        final Location[] locs = lv.getResettablesisign();
+        final Location[] locs = lv.getRsposlist();
         resetSignals(lv.getSavedworld(), locs);
         // Reset signals (ilposoccupied)
         final Location[] locs2 = lv.getIlposoccupied();
@@ -161,6 +161,8 @@ public final class main extends JavaPlugin implements Listener {
         Objects.requireNonNull(this.getCommand("utssignal")).setTabCompleter(new signalcmd());
         Objects.requireNonNull(this.getCommand("utslogger")).setExecutor(new driverlog());
         Objects.requireNonNull(this.getCommand("utslogger")).setTabCompleter(new driverlog());
+        Objects.requireNonNull(this.getCommand("utsdebug")).setExecutor(new debugcmd());
+        Objects.requireNonNull(this.getCommand("utsdebug")).setTabCompleter(new debugcmd());
         pm.registerEvents(new events(), this);
     }
 

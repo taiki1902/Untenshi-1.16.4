@@ -83,7 +83,7 @@ class ato {
                 sumallaccel += accelSwitch(lv, lv.getSpeed(), i);
             }
             double potentialaccel = sumallaccel / 5 + slopeaccelsel;
-            boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && lv.getMascon() == 0) || lv.getMascon() > 0) && lv.getSpeed() + potentialaccel <= currentlimit && !lv.isOverrun() && (lowerSpeed > 0 || distnow > 1);
+            boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && lv.getMascon() == 0) || lv.getMascon() > 0) && lv.getSpeed() + potentialaccel <= currentlimit && !lv.isOverrun() && (lowerSpeed > 0 || distnow > 1) && (lv.getDooropen() == 0 && lv.isDoorconfirm());
             // Actual controlling part
             // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
             boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;

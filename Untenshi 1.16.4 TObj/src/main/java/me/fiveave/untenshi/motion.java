@@ -167,14 +167,15 @@ class motion {
                     if (!mg2.equals(lv.getTrain()) && vehicle.get(mg2) != null) {
                         utsvehicle lv2 = vehicle.get(mg2);
                         // Check resettable sign of other trains
-                        Location[] rssign2locs = lv2.getResettablesisign();
+                        Location[] rssign2locs = lv2.getRsposlist();
                         if (rssign2locs != null) {
                             signalOrderPtnResult result2 = getSignalOrderPtnResult(lv2);
                             for (int j = 0; j < rssign2locs.length; j++) {
                                 Location location = rssign2locs[j];
                                 // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
-                                int minno = Math.min(result2.halfptnlen - 1, j);
+                                int minno = Math.min(result2.halfptnlen - 1, Math.max(0, j - lv2.getRsoccupiedpos()));
                                 // Resettable sign signal of lv2 is supposed to be 0 km/h by resettable sign
+                                // Have bug, what if train occupies more than 1 signal block?
                                 if (oldposlist[i].equals(location) && result2.ptnsisp[minno] == 0) {
                                     if (i < furthestoccupied) {
                                         furthestoccupied = i;

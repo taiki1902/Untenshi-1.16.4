@@ -143,8 +143,10 @@ class speedsign extends SignAction {
                                 // ATC signal and speed limit min value
                                 if (lv.getSafetysystype().equals("atc")) {
                                     warnsp = Math.min(Math.min(lv.getLastsisp(), lv.getLastspsp()), lv.getSignallimit());
+                                    generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("signal_warn") + " " + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + warnsp + " km/h");
+                                } else {
+                                    generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("speedlimit_warn") + " " + warnsp + " km/h");
                                 }
-                                generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("speedlimit_warn") + " " + warnsp + " km/h");
                             } else {
                                 signImproper(cartevent, lv.getLd());
                             }

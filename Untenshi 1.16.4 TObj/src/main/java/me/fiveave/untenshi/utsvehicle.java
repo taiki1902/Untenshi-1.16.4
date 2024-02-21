@@ -28,6 +28,7 @@ class utsvehicle {
     private int[] stopoutput;
     private int[] atodest;
     private int atostoptime;
+    private int rsoccupiedpos;
     private int ilpriority;
     private double current;
     private double speed;
@@ -35,7 +36,7 @@ class utsvehicle {
     private double[] stoppos;
     private Location lastsisign;
     private Location lastspsign;
-    private Location[] resettablesisign;
+    private Location[] rsposlist;
     private Location[] ilposlist;
     private Location[] ilposoccupied;
     private String safetysystype;
@@ -134,6 +135,7 @@ class utsvehicle {
         this.setIlenterqueuetime(-1);
         this.setIlpriority(0);
         this.setBeinglogged(false);
+        this.setRsoccupiedpos(-1);
     }
 
     static void initVehicle(MinecartGroup mg) {
@@ -274,12 +276,12 @@ class utsvehicle {
         this.lastspsign = lastspsign;
     }
 
-    public Location[] getResettablesisign() {
-        return resettablesisign;
+    public Location[] getRsposlist() {
+        return rsposlist;
     }
 
-    public void setResettablesisign(Location[] resettablesisign) {
-        this.resettablesisign = resettablesisign;
+    public void setRsposlist(Location[] rsposlist) {
+        this.rsposlist = rsposlist;
     }
 
     public String getSafetysystype() {
@@ -500,5 +502,13 @@ class utsvehicle {
 
     public void setSpeeddrop(double speeddrop) {
         this.speeddrop = speeddrop;
+    }
+
+    public int getRsoccupiedpos() {
+        return rsoccupiedpos;
+    }
+
+    public void setRsoccupiedpos(int rsoccupiedpos) {
+        this.rsoccupiedpos = rsoccupiedpos;
     }
 }

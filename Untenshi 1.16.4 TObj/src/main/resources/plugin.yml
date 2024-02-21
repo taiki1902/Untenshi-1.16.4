@@ -1,5 +1,5 @@
 name: Untenshi
-version: 1.10-TObj_b17
+version: 1.10-TObj_b21
 main: me.fiveave.untenshi.main
 api-version: 1.15
 description: Untenshi Plugin
@@ -15,6 +15,9 @@ commands:
   utslogger:
     description: Untenshi Logger
     usage: /utslogger <player>
+  utsdebug:
+    description: Untenshi Debugger
+    usage: /utsdebug <vehicle_name> <get/set> <variable>
 permissions:
   uts.*:
     description: All Untenshi Perms
@@ -25,6 +28,7 @@ permissions:
       uts.sign: true
       uts.pa: true
       uts.ato: true
+      uts.debug: true
     default: op
   uts.main:
     description: Allow Untenshi usage (basic perm)
@@ -43,4 +47,7 @@ permissions:
     default: op
   uts.ato:
     description: Allow usage of ATO
+    default: op
+  uts.debug:
+    description: Allow usage of debug mode
     default: op

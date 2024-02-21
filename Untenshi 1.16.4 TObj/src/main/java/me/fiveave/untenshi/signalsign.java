@@ -131,8 +131,8 @@ class signalsign extends SignAction {
         for (MinecartGroup mg2 : vehicle.keySet()) {
             initVehicle(mg2);
             utsvehicle lv2 = vehicle.get(mg2);
-            if (lv2.getResettablesisign() != null && lv2 != lv) {
-                Location[] oldloc = lv2.getResettablesisign();
+            if (lv2.getRsposlist() != null && lv2 != lv) {
+                Location[] oldloc = lv2.getRsposlist();
                 Location[] newloc = oldloc;
                 for (int i1 = 0; i1 < oldloc.length; i1++) {
                     if (oldloc[i1] != null && currentloc.equals(oldloc[i1])) {
@@ -141,7 +141,7 @@ class signalsign extends SignAction {
                         break;
                     }
                 }
-                lv2.setResettablesisign(newloc);
+                lv2.setRsposlist(newloc);
             }
         }
     }
@@ -172,16 +172,17 @@ class signalsign extends SignAction {
                         case "set":
                             // Train enters, add location into resettablesign
                             if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
-                                if (lv.getResettablesisign() == null) {
-                                    lv.setResettablesisign(new Location[0]);
+                                if (lv.getRsposlist() == null) {
+                                    lv.setRsposlist(new Location[0]);
                                 }
                                 lv.setSignalorderptn(cartevent.getLine(3).split(" ")[0]);
                                 // Prevent stepping on same signal causing ATS run
-                                if (lv.getResettablesisign().length == 0 || !lv.getResettablesisign()[0].equals(cartevent.getLocation())) {
+                                if (lv.getRsposlist().length == 0 || !lv.getRsposlist()[0].equals(cartevent.getLocation())) {
                                     // Except red light, signal must get reset first
                                     if (signalspeed != 0) {
                                         Location currentloc = cartevent.getLocation();
                                         // Suzhoushi: If in 3 trains middle train disappears, back train will receive ALL green lights (r, 0 (front), g, 360 (back), g, 360 (back), ...)
+                                        // Have bug, some points (not signals) may be cleared as well?
                                         // Check if that location exists in any other train, then delete that record
                                         deleteOthersResettablesign(lv, currentloc);
                                         // If location is in interlocking list, then remove location and shift list
@@ -208,7 +209,7 @@ class signalsign extends SignAction {
                                     if (signalspeed != 0) {
                                         signalOrderPtnResult result = getSignalOrderPtnResult(lv);
                                         // Array copy (move passed signals to the back)
-                                        Location[] oldloc = lv.getResettablesisign();
+                                        Location[] oldloc = lv.getRsposlist();
                                         Location[] newloc;
                                         // Expand oldloc into newloc by 1 index
                                         newloc = new Location[oldloc.length + 1];
@@ -220,7 +221,7 @@ class signalsign extends SignAction {
                                         // Remove variables
                                         lv.setLastsisign(null);
                                         lv.setLastsisp(maxspeed);
-                                        lv.setResettablesisign(newloc);
+                                        lv.setRsposlist(newloc);
                                         // Set 0th (this) sign with new signal and speed
                                         // settable: Sign to be set
                                         Sign settable;
@@ -235,6 +236,8 @@ class signalsign extends SignAction {
                                             }
                                         } catch (Exception ignored) {
                                         }
+                                        // Make blocked section longer by 1
+                                        lv.setRsoccupiedpos(lv.getRsoccupiedpos() + 1);
                                     }
                                     // Prevent non-resettable ATS Run caused by red light but without receiving warning
                                     else if (lv.getLastsisign() == null) {
@@ -244,9 +247,11 @@ class signalsign extends SignAction {
                                 }
                             }
                             // Train leaves, but in many ways (group leave, destroyed, etc), delete location from resettablesign
-                            else if ((cartevent.isAction(SignActionType.GROUP_LEAVE, SignActionType.REDSTONE_OFF) || !cartevent.hasRailedMember() || !cartevent.isPowered()) && lv.getResettablesisign() != null && lv.getResettablesisign().length > 1) {
-                                Location[] oldloc = lv.getResettablesisign();
+                            else if ((cartevent.isAction(SignActionType.GROUP_LEAVE, SignActionType.REDSTONE_OFF) || !cartevent.hasRailedMember() || !cartevent.isPowered()) && lv.getRsposlist() != null && lv.getRsposlist().length > 1) {
+                                Location[] oldloc = lv.getRsposlist();
                                 signalOrderPtnResult result = getSignalOrderPtnResult(lv);
+                                // Make blocked section shorter by 1
+                                lv.setRsoccupiedpos(Math.max(lv.getRsoccupiedpos() - 1, 0));
                                 for (int i1 = 0; i1 < oldloc.length; i1++) {
                                     // settable: Sign to be set
                                     Sign settable;
@@ -256,7 +261,7 @@ class signalsign extends SignAction {
                                             String defaultsi = settable.getLine(3).split(" ")[1];
                                             int defaultsp = parseInt(settable.getLine(3).split(" ")[2]);
                                             // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
-                                            int minno = Math.min(result.halfptnlen - 1, i1);
+                                            int minno = Math.min(result.halfptnlen - 1, Math.max(0, i1 - lv.getRsoccupiedpos()));
                                             // Check if new speed to be set is larger than default, if yes choose default instead
                                             String str = result.ptnsisp[minno] > defaultsp ? defaultsi + " " + defaultsp : result.ptnsisi[minno] + " " + result.ptnsisp[minno];
                                             Bukkit.getScheduler().runTaskLater(plugin, () -> updateSignals(settable, "set " + str), 1);
@@ -282,7 +287,6 @@ class signalsign extends SignAction {
                                             signImproper(cartevent, lv.getLd());
                                             break;
                                         }
-
                                         // ATC signal and speed limit min value
                                         if (lv.getSafetysystype().equals("atc")) {
                                             warnsp = Math.min(Math.min(lv.getLastsisp(), lv.getLastspsp()), lv.getSpeedlimit());

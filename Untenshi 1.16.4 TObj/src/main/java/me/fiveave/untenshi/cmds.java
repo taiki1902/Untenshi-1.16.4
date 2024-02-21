@@ -59,6 +59,14 @@ class cmds implements CommandExecutor, TabCompleter {
         generalMsg(sender, ChatColor.RED, getlang("noperm"));
     }
 
+    static boolean checkPerm(Player sender2, String name) {
+        if (!sender2.hasPermission(name)) {
+            noPerm(sender2);
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
@@ -342,14 +350,6 @@ class cmds implements CommandExecutor, TabCompleter {
     private boolean reqDeactivate(utsdriver ld) {
         if (ld.isPlaying()) {
             generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate_offfirst"));
-            return true;
-        }
-        return false;
-    }
-
-    private boolean checkPerm(Player sender2, String name) {
-        if (!sender2.hasPermission(name)) {
-            noPerm(sender2);
             return true;
         }
         return false;

@@ -40,6 +40,8 @@ class atosign extends SignAction {
                     lv2.setMascon(-8);
                 } else if (lv != null && lv.getTrain() != null && (lv.getLd() == null || lv.getLd().isAllowatousage())) {
                     switch (cartevent.getLine(2)) {
+                        case "reg":
+                            break;
                         case "stoptime":
                             if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON)) {
                                 lv.setAtostoptime(parseInt(cartevent.getLine(3)));
