@@ -68,7 +68,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                                     case "lastsisign":
                                         retstr = locToString(lv.getLastsisign());
                                         break;
-                                    case "resettablesign":
+                                    case "rslist":
                                         retstr = locListToString(lv.getRsposlist());
                                         break;
                                     case "ilposlist":
@@ -87,7 +87,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                                         retstr = String.valueOf(lv.getAtsforced());
                                         break;
                                     case "atsping":
-                                        retstr = String.valueOf(lv.isAtsping());
+                                        retstr = String.valueOf(lv.getAtsping());
                                         break;
                                     case "atspnear":
                                         retstr = String.valueOf(lv.isAtspnear());
@@ -141,7 +141,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                                                 Location loc3 = new Location(lv.getSavedworld(), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
                                                 lv.setLastsisign(loc3);
                                                 break;
-                                            case "resettablesign":
+                                            case "rslist":
                                             case "ilposlist":
                                             case "ilposoccupied":
                                             case "ilpriority":
@@ -153,7 +153,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                                                 lv.setAtsforced(Integer.parseInt(args[3]));
                                                 break;
                                             case "atsping":
-                                                lv.setAtsping(Boolean.parseBoolean(args[3]));
+                                                lv.setAtsping(Integer.parseInt(args[3]));
                                                 break;
                                             case "atspnear":
                                                 lv.setAtspnear(Boolean.parseBoolean(args[3]));
@@ -198,7 +198,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 ta.addAll(Arrays.asList("get", "set"));
                 break;
             case 3:
-                ta.addAll(Arrays.asList("speed", "mascon", "speedlimit", "signallimit", "atospeed", "atodest", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "resettablesign", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld"));
+                ta.addAll(Arrays.asList("speed", "mascon", "speedlimit", "signallimit", "atospeed", "atodest", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld"));
                 break;
         }
         for (String a : ta) {

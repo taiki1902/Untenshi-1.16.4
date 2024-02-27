@@ -137,7 +137,7 @@ class motion {
         String doortxt = doorText(ld.getLv());
         // Display speed
         String speedcolor = "";
-        if (ld.getLv().isAtsping() || ld.getLv().getAtsforced() == 2) {
+        if (ld.getLv().getAtsping() > 0 || ld.getLv().getAtsforced() == 2) {
             speedcolor += ChatColor.RED;
         } else if (ld.getLv().isAtspnear()) {
             speedcolor += ChatColor.GOLD;
@@ -175,7 +175,6 @@ class motion {
                                 // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
                                 int minno = Math.min(result2.halfptnlen - 1, Math.max(0, j - lv2.getRsoccupiedpos()));
                                 // Resettable sign signal of lv2 is supposed to be 0 km/h by resettable sign
-                                // Have bug, what if train occupies more than 1 signal block?
                                 if (oldposlist[i].equals(location) && result2.ptnsisp[minno] == 0) {
                                     if (i < furthestoccupied) {
                                         furthestoccupied = i;
@@ -312,13 +311,15 @@ class motion {
     }
 
     private static void ebUntilRestoreInit(utsdriver ld, String s) {
-        if (ld.getLv().getAtsforced() != 2) {
-            generalMsg(ld.getP(), ChatColor.RED, s);
-        }
-        ld.getLv().setAtsforced(2);
-        ld.getLv().setMascon(-9);
-        if (ld.getLv().getSpeed() == 0) {
-            restoreinitld(ld);
+        if (ld != null) {
+            if (ld.getLv().getAtsforced() != 2) {
+                generalMsg(ld.getP(), ChatColor.RED, s);
+            }
+            ld.getLv().setAtsforced(2);
+            ld.getLv().setMascon(-9);
+            if (ld.getLv().getSpeed() == 0) {
+                restoreinitld(ld);
+            }
         }
     }
 
@@ -385,13 +386,13 @@ class motion {
         double reqspdist;
         double distnow = Double.MAX_VALUE;
         // TC forced stop (e.g. wait distance)
-        if (!lv.isAtsping() && lv.getAtsforced() != -1 && (mg.isObstacleAhead(Math.max(mg.getProperties().getWaitDistance(), 0), true, false) || mg.isObstacleAhead(0.001, false, true))) {
-            lv.setAtsping(true);
+        if (lv.getAtsping() == 0 && lv.getAtsforced() != -1 && (mg.isObstacleAhead(Math.max(mg.getProperties().getWaitDistance(), 0), true, false) || mg.isObstacleAhead(0.001, false, true))) {
+            lv.setAtsping(2);
             lv.setAtsforced(-1);
             lv.setMascon(-9);
             generalMsg(lv.getLd(), ChatColor.RED, getlang("tcblocking"));
         }
-        if (lv.getAtsforced() == -1 && lv.isAtsping() && lv.getMascon() == -9) {
+        if (lv.getAtsforced() == -1 && lv.getAtsping() > 0 && lv.getMascon() == -9) {
             lv.setSpeed(Math.max(lv.getSpeed() - ebdecel / ticksin1s * 45 / 7, 0));
         }
         // If no obstacle need braking in 2s then release
@@ -442,17 +443,18 @@ class motion {
             }
         }
         // Pattern run
-        if (((reqbrake > 8 && lv.getSpeed() > lowerSpeed + 3) || isoverspeed3) && !lv.isAtsping()) {
-            lv.setAtsping(true);
+        if (((reqbrake > 8 && lv.getSpeed() > lowerSpeed + 3) || isoverspeed3) && lv.getAtsping() == 0) {
             if (reqbrake > 9) {
                 lv.setMascon(-9);
+                lv.setAtsping(2);
                 pointCounter(lv.getLd(), ChatColor.RED, lv.getSafetysystype().toUpperCase() + " " + getlang("p_eb") + " ", -5, "");
             } else {
                 lv.setMascon(-8);
+                lv.setAtsping(1);
                 pointCounter(lv.getLd(), ChatColor.RED, lv.getSafetysystype().toUpperCase() + " " + getlang("p_b8") + " ", -5, "");
             }
         } else if (lv.getSpeed() <= lowerSpeed + 3 && !isoverspeed0 && !isoverspeed3 && lv.getAtsforced() != 2 && lv.getAtsforced() != -1) {
-            lv.setAtsping(false);
+            lv.setAtsping(0);
         }
         // Pattern near
         boolean pnear = (tempdist < reqdist[8] + speed1s(lv) * 5 && lv.getSpeed() > lowerSpeed) || isoverspeed0;

@@ -205,7 +205,7 @@ class cmds implements CommandExecutor, TabCompleter {
                     case "ac":
                         try {
                             if (ld.getLv().getSignallimit() != 0 && ld.getLv().getAtsforced() == 2) {
-                                ld.getLv().setAtsforced(1);
+                                ld.getLv().setAtsforced(0);
                                 generalMsg(sender, ChatColor.GOLD, ld.getLv().getSafetysystype().toUpperCase() + " " + getlang("ac_success"));
                             } else if (ld.getLv().getSignallimit() == 0) {
                                 generalMsg(sender, ChatColor.RED, ld.getLv().getSafetysystype().toUpperCase() + " " + getlang("ac_failed"));

@@ -33,7 +33,7 @@ import static me.fiveave.untenshi.utsdriver.initDriver;
 class events implements Listener {
 
     static void toEB(utsvehicle lv) {
-        if (lv.getLd() != null && noFreemodeOrATO(lv.getLd()) && lv.getMascon() != -9 && lv.getSpeed() > 20 && lv.getAtsforced() != 2 && !lv.isAtsping()) {
+        if (lv.getLd() != null && noFreemodeOrATO(lv.getLd()) && lv.getMascon() != -9 && lv.getSpeed() > 20 && lv.getAtsforced() != 2 && lv.getAtsping() == 0) {
             // Misuse EB
             pointCounter(lv.getLd(), ChatColor.YELLOW, getlang("eb_misuse") + " ", -5, "");
         }
@@ -160,14 +160,15 @@ class events implements Listener {
                     event.setCancelled(true);
                 }
                 if (nWand().equals(item)) {
-                    if (!lv.isAtsping()) {
+                    if (lv.getAtsping() == 0) {
                         lv.setMascon(0);
                         lv.setAtsforced(0);
                     }
                     event.setCancelled(true);
                 }
                 if (downWand().equals(item)) {
-                    if (!lv.isAtsping() && (lv.getDooropen() == 0 || lv.getDooropen() > 0 && lv.getMascon() < 0) && lv.getMascon() < 5) {
+                    // No ATS-P run or ATS-P Service brake run but in EB
+                    if ((lv.getAtsping() == 0 || (lv.getAtsping() == 1 && lv.getMascon() == -9)) && (lv.getDooropen() == 0 || lv.getDooropen() > 0 && lv.getMascon() < 0) && lv.getMascon() < 5) {
                         lv.setMascon(lv.getMascon() + 1);
                         lv.setAtsforced(0);
                     }

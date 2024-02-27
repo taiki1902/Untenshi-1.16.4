@@ -46,7 +46,7 @@ class utsvehicle {
     private boolean fixstoppos;
     private boolean staaccel;
     private boolean staeb;
-    private boolean atsping;
+    private int atsping;
     private boolean atspnear;
     private boolean doordiropen;
     private boolean doorconfirm;
@@ -113,7 +113,7 @@ class utsvehicle {
         this.setStaaccel(false);
         this.setMascon(-9);
         this.setCurrent(-480.0);
-        this.setAtsping(false);
+        this.setAtsping(0);
         this.setAtspnear(false);
         this.setOverrun(false);
         this.setSafetysystype("ats-p");
@@ -340,12 +340,12 @@ class utsvehicle {
         this.staeb = staeb;
     }
 
-    // ATS-P or ATC Pattern run
-    public boolean isAtsping() {
+    // ATS-P or ATC Pattern run, 0: none, 1: B8, 2: EB
+    public int getAtsping() {
         return atsping;
     }
 
-    public void setAtsping(boolean atsping) {
+    public void setAtsping(int atsping) {
         this.atsping = atsping;
     }
 

@@ -18,7 +18,7 @@ class ato {
         double decel = lv.getDecel();
         double speeddrop = lv.getSpeeddrop();
         int[] speedsteps = lv.getSpeedsteps();
-        if (lv.getAtodest() != null && lv.getAtospeed() != -1 && !lv.isAtsping() && lv.getAtsforced() == 0 && (lv.getLd() == null || lv.getLd().isAllowatousage())) {
+        if (lv.getAtodest() != null && lv.getAtospeed() != -1 && lv.getAtsping() == 0 && lv.getAtsforced() == 0 && (lv.getLd() == null || lv.getLd().isAllowatousage())) {
             /*
              Get distances (distnow: smaller value of atodist and signaldist)
              reqatodist rate must be higher than others to prevent ATS-P or ATC run
