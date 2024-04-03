@@ -15,6 +15,7 @@ import java.text.DecimalFormat;
 import static me.fiveave.untenshi.ato.*;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.events.doorControls;
+import static me.fiveave.untenshi.events.trainSound;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.*;
 import static me.fiveave.untenshi.speedsign.getSignFromLoc;
@@ -69,16 +70,28 @@ class motion {
         // Electric current brake
         double currentnow = lv.getCurrent();
         // Set current for current mascon
-        double ecb = Integer.parseInt(df0.format(480.0 / 9 * lv.getMascon()));
+        double ecbtarget = Integer.parseInt(df0.format(480.0 / 9 * lv.getMascon()));
         df0.setRoundingMode(RoundingMode.HALF_EVEN);
         // Set real current
-        if (ecb < currentnow) {
-            lv.setCurrent((currentnow - ecb) > 40 / 3.0 * tickdelay ? currentnow - 40 / 3.0 * tickdelay : ecb);
-        } else if (ecb > currentnow) {
-            lv.setCurrent((ecb - currentnow) > 40 / 3.0 * tickdelay ? currentnow + 40 / 3.0 * tickdelay : ecb);
+        if (ecbtarget < currentnow) {
+            lv.setCurrent((currentnow - ecbtarget) > 40 / 3.0 * tickdelay ? currentnow - 40 / 3.0 * tickdelay : ecbtarget);
+            if (currentnow - 40 / 3.0 < 0 && currentnow - 40 / 3.0 > ecbtarget) {
+                trainSound(lv, "brake_apply");
+            }
+            if (currentnow > 0 && currentnow - 40 / 3.0 > 0) {
+                trainSound(lv, "accel_off");
+            }
+        } else if (ecbtarget > currentnow) {
+            lv.setCurrent((ecbtarget - currentnow) > 40 / 3.0 * tickdelay ? currentnow + 40 / 3.0 * tickdelay : ecbtarget);
+            if (currentnow < 0 && currentnow + 40 / 3.0 < 0) {
+                trainSound(lv, "brake_release");
+            }
+            if (currentnow + 40 / 3.0 > 0 && currentnow + 40 / 3.0 < ecbtarget) {
+                trainSound(lv, "accel_on");
+            }
         }
         // If brake cancel accel
-        if (currentnow > 0 && ecb < 0) {
+        if (currentnow > 0 && ecbtarget < 0) {
             lv.setCurrent(0);
         }
         // Slope speed adjust
@@ -160,16 +173,16 @@ class motion {
             // Check conditions to change signal
             int furthestoccupied = oldposlist.length - 1;
             boolean ispriority = true;
-            // Check for each location
-            for (int i = oldposlist.length - 1; i >= 0; i--) {
-                // mg2: other trains
-                for (MinecartGroup mg2 : vehicle.keySet()) {
-                    if (!mg2.equals(lv.getTrain()) && vehicle.get(mg2) != null) {
-                        utsvehicle lv2 = vehicle.get(mg2);
-                        // Check resettable sign of other trains
-                        Location[] rssign2locs = lv2.getRsposlist();
-                        if (rssign2locs != null) {
-                            signalOrderPtnResult result2 = getSignalOrderPtnResult(lv2);
+            // mg2: other trains
+            for (MinecartGroup mg2 : vehicle.keySet()) {
+                if (!mg2.equals(lv.getTrain()) && vehicle.get(mg2) != null) {
+                    utsvehicle lv2 = vehicle.get(mg2);
+                    // Check resettable sign of other trains
+                    Location[] rssign2locs = lv2.getRsposlist();
+                    if (rssign2locs != null) {
+                        signalOrderPtnResult result2 = getSignalOrderPtnResult(lv2);
+                        // Check for each location
+                        for (int i = oldposlist.length - 1; i >= 0; i--) {
                             for (int j = 0; j < rssign2locs.length; j++) {
                                 Location location = rssign2locs[j];
                                 // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
@@ -182,9 +195,12 @@ class motion {
                                 }
                             }
                         }
-                        // Check occupied interlocking path of other trains
-                        Location[] il2posoccupied = lv2.getIlposoccupied();
-                        if (il2posoccupied != null) {
+                    }
+                    // Check occupied interlocking path of other trains
+                    Location[] il2posoccupied = lv2.getIlposoccupied();
+                    if (il2posoccupied != null) {
+                        // Check for each location
+                        for (int i = oldposlist.length - 1; i >= 0; i--) {
                             for (Location location : il2posoccupied) {
                                 // Occupied by interlocking route
                                 if (oldposlist[i].equals(location)) {
@@ -194,15 +210,52 @@ class motion {
                                 }
                             }
                         }
-                        // Check for priority
-                        // Fighting with other's unoccupied interlocking route
-                        Location[] il2poslist = lv2.getIlposlist();
-                        if (il2poslist != null) {
-                            for (int j = 0; j < il2poslist.length - 1; j++) {
-                                if (oldposlist[i].equals(il2poslist[j]) && lv.getIlenterqueuetime() > lv2.getIlenterqueuetime() && lv.getIlpriority() <= lv2.getIlpriority()) {
-                                    ispriority = false;
+                    }
+                    // Check for priority
+                    // Fighting with other's unoccupied interlocking route
+                    Location[] il2poslist = lv2.getIlposlist();
+                    if (il2poslist != null) {
+                        // Find location for start of blocked section, -1 means none
+                        int blocked = -1;
+                        for (int i = 0; i < oldposlist.length; i++) {
+                            if (blocked == -1) {
+                                for (int j = 0; j < il2poslist.length - 1; j++) {
+                                    // Check for each location
+                                    if (oldposlist[i].equals(il2poslist[j])) {
+                                        blocked = i;
+                                        break;
+                                    }
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                        if (blocked != -1) {
+                            // Sign closer to this train
+                            int firstsign = 0;
+                            for (int i = 0; i <= blocked; i++) {
+                                Sign test = getSignFromLoc(oldposlist[i]);
+                                firstsign = i;
+                                // If sign is found
+                                if (test != null) {
                                     break;
                                 }
+                            }
+                            // Sign closer to part being blocked
+                            int lastsign = 0;
+                            for (int i = blocked; i >= 0; i--) {
+                                Sign test = getSignFromLoc(oldposlist[i]);
+                                lastsign = i;
+                                // If sign is found
+                                if (test != null) {
+                                    break;
+                                }
+                            }
+                            // firstsign == lastsign means the front sign of train is last before blocked section
+                            // Check priority
+                            if (firstsign == lastsign && lv.getIlenterqueuetime() > lv2.getIlenterqueuetime() && lv.getIlpriority() <= lv2.getIlpriority()) {
+                                ispriority = false;
+                                break;
                             }
                         }
                     }

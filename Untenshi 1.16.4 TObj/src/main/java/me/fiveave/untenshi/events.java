@@ -5,6 +5,7 @@ import com.bergerkiller.bukkit.tc.controller.MinecartGroupStore;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -39,6 +40,7 @@ class events implements Listener {
         }
         lv.setMascon(-9);
         lv.setAtsforced(1);
+        trainSound(lv, "ebbutton");
     }
 
     static void switchBack(utsvehicle lv) {
@@ -53,6 +55,7 @@ class events implements Listener {
             }
             String dirtext = lv.getTrain().head().equals(lv.getDriverseat()) ? getlang("dir_front") : getlang("dir_back");
             generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sb_success") + ChatColor.GRAY + " (" + dirtext + " / " + getlang("dir_" + mg.head().getDirection().toString().toLowerCase()) + ")");
+            trainSound(lv, "sblever");
         } else {
             generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sb_inmotion"));
         }
@@ -102,6 +105,7 @@ class events implements Listener {
             lv.setOverrun(false);
             lv.setDoorconfirm(false);
         }
+        trainSound(lv, "doorbutton");
     }
 
     // Simplify
@@ -154,8 +158,10 @@ class events implements Listener {
                 if (upWand().equals(item)) {
                     if (lv.getMascon() > -8) {
                         lv.setMascon(lv.getMascon() - 1);
+                        trainSound(lv, "mascon");
                     } else if (lv.getMascon() == -8) {
                         toEB(lv);
+                        trainSound(lv, "ebbutton");
                     }
                     event.setCancelled(true);
                 }
@@ -163,6 +169,7 @@ class events implements Listener {
                     if (lv.getAtsping() == 0) {
                         lv.setMascon(0);
                         lv.setAtsforced(0);
+                        trainSound(lv, "mascon");
                     }
                     event.setCancelled(true);
                 }
@@ -171,6 +178,7 @@ class events implements Listener {
                     if ((lv.getAtsping() == 0 || (lv.getAtsping() == 1 && lv.getMascon() == -9)) && (lv.getDooropen() == 0 || lv.getDooropen() > 0 && lv.getMascon() < 0) && lv.getMascon() < 5) {
                         lv.setMascon(lv.getMascon() + 1);
                         lv.setAtsforced(0);
+                        trainSound(lv, "mascon");
                     }
                     event.setCancelled(true);
                 }
@@ -259,6 +267,45 @@ class events implements Listener {
         utsdriver ld = driver.get(p);
         if (ld.isPlaying()) {
             restoreinitld(ld);
+        }
+    }
+
+    static void trainSound(utsvehicle lv, String type) {
+        if (lv.getTrain() != null) {
+            switch (type) {
+                case "brake_apply":
+                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 0.75f));
+                    break;
+                case "brake_release":
+                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 1.5f));
+                    break;
+                case "accel_on":
+                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_EXTEND, 0.01f, 2f));
+                    break;
+                case "accel_off":
+                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_CONTRACT, 0.01f, 2f));
+                    break;
+                case "mascon":
+                    if (lv.getLd() != null) {
+                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOOD_PLACE, 0.5f, 1.5f);
+                    }
+                    break;
+                case "ebbutton":
+                    if (lv.getLd() != null) {
+                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, 0.5f, 0.75f);
+                    }
+                    break;
+                case "sblever":
+                    if (lv.getLd() != null) {
+                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_FENCE_GATE_CLOSE, 0.5f, 1.25f);
+                    }
+                    break;
+                case "doorbutton":
+                    if (lv.getLd() != null) {
+                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, 0.5f, 1.5f);
+                    }
+                    break;
+            }
         }
     }
 }

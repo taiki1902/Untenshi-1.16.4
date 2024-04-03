@@ -1,6 +1,5 @@
 package me.fiveave.untenshi;
 
-import com.bergerkiller.bukkit.common.entity.CommonEntity;
 import com.bergerkiller.bukkit.tc.CollisionMode;
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
 import com.bergerkiller.bukkit.tc.controller.MinecartGroupStore;
@@ -157,8 +156,7 @@ class cmds implements CommandExecutor, TabCompleter {
                                         tprop.setCollision(tprop.getCollision().cloneAndSetPlayerMode(CollisionMode.CANCEL));
                                         // Set train group for player
                                         if (selcart instanceof Minecart) {
-                                            //noinspection rawtypes
-                                            MinecartMember mem = (MinecartMember) CommonEntity.get(selcart).getController();
+                                            MinecartMember<?> mem = MinecartMemberStore.getFromEntity(selcart);
                                             if (!selcart.getPassengers().isEmpty() && selcart.getPassengers().get(0) instanceof Player) {
                                                 Bukkit.getScheduler().runTaskLater(plugin, () -> CartProperties.setEditing((Player) selcart.getPassengers().get(0), mem.getProperties()), tickdelay);
                                             }
@@ -286,8 +284,7 @@ class cmds implements CommandExecutor, TabCompleter {
                         if (checkPerm(p, "uts.pa")) break;
                         if (ld.isPlaying()) {
                             MinecartGroup mg = MinecartGroupStore.get(p.getVehicle());
-                            //noinspection rawtypes
-                            for (MinecartMember mm : mg) {
+                            mg.forEach((mm) -> {
                                 if (!mm.getEntity().getPassengers().isEmpty()) {
                                     Player p2 = (Player) mm.getEntity().getPassengers().get(0);
                                     String s;
@@ -311,7 +308,7 @@ class cmds implements CommandExecutor, TabCompleter {
                                         generalMsg(p, ChatColor.RED, getlang("panoempty"));
                                     }
                                 }
-                            }
+                            });
                         } else {
                             generalMsg(sender, ChatColor.YELLOW, getlang("activate_onfirst"));
                         }

@@ -95,6 +95,8 @@ class signalsign extends SignAction {
                     break;
                 }
             }
+        }
+        if (lv.getIlposoccupied() != null) {
             // Occupied list
             Location[] oldoccupied = lv.getIlposoccupied();
             for (int i2 = 0; i2 < oldoccupied.length; i2++) {
