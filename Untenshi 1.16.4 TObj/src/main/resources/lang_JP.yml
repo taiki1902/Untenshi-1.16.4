@@ -110,3 +110,5 @@ argwrong: 引数が正しくありません。
 signimproper: このサインが正しく設定されていません。
 tcblocking: 前に塞いでいる TrainCarts のオブジェクトがあります。
 nopoints: 点数が足りないので、運転が終了しました。
+secclear: 区間が空いています。
+secnotclear: 区間が空いていません。

@@ -52,6 +52,7 @@ class utsvehicle {
     private boolean doorconfirm;
     private boolean atopisdirect;
     private boolean atoforcebrake;
+    private boolean atoautodep;
     private boolean beinglogged;
     private MinecartGroup train;
     @SuppressWarnings("rawtypes")
@@ -136,6 +137,7 @@ class utsvehicle {
         this.setIlpriority(0);
         this.setBeinglogged(false);
         this.setRsoccupiedpos(-1);
+        this.setAtoautodep(false);
     }
 
     static void initVehicle(MinecartGroup mg) {
@@ -510,5 +512,13 @@ class utsvehicle {
 
     public void setRsoccupiedpos(int rsoccupiedpos) {
         this.rsoccupiedpos = rsoccupiedpos;
+    }
+
+    public boolean isAtoautodep() {
+        return atoautodep;
+    }
+
+    public void setAtoautodep(boolean atoautodep) {
+        this.atoautodep = atoautodep;
     }
 }

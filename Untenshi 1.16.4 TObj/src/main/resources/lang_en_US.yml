@@ -110,3 +110,5 @@ argwrong: Incorrect arguments.
 signimproper: This sign is set incorrectly.
 tcblocking: A TrainCarts object is blocking in front.
 nopoints: Having not enough points, your drive mode has been disabled.
+secclear: Section is clear.
+secnotclear: Section is not clear.

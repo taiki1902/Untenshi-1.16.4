@@ -1,40 +1,47 @@
 package me.fiveave.untenshi;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
+import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
+import org.bukkit.block.CommandBlock;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.*;
-import static me.fiveave.untenshi.speedsign.getFullLoc;
-import static me.fiveave.untenshi.speedsign.getSignFromLoc;
+import static me.fiveave.untenshi.speedsign.*;
 
 class signalcmd implements CommandExecutor, TabCompleter {
+
+    private static void resetSuccessCount(Block blk) {
+        BlockData bd = blk.getBlockData();
+        Material bm = blk.getType();
+        if (blk.getState() instanceof CommandBlock) {
+            CommandBlock cmdblk = (CommandBlock) blk.getState();
+            String cmd = cmdblk.getCommand();
+            blk.setType(Material.AIR, false);
+            blk.setType(bm);
+            blk.setBlockData(bd);
+            cmdblk.setCommand(cmd);
+            cmdblk.update();
+        }
+    }
 
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
             if (sender instanceof BlockCommandSender) {
                 int signalspeed = args[3].equals("sign") ? parseInt(args[5]) : 0;
-                // Anti returning wrong arguments
-                String e;
+                // Input position combined
                 String inputpos = args[0] + " " + args[1] + " " + args[2];
-                if (args.length == 4) {
-                    e = args[3];
-                } else if (args.length == 6) {
-                    e = args[3] + " " + args[4] + " " + args[5];
-                } else {
-                    e = null;
-                }
                 // Main content starts here
                 if (signalspeed > maxspeed) {
                     sender.sendMessage(getSpeedMax());
@@ -44,19 +51,19 @@ class signalcmd implements CommandExecutor, TabCompleter {
                     generalMsg(sender, ChatColor.RESET, getlang("argwrong"));
                     return true;
                 }
-                assert e != null;
-                if ((l1(e).equals("warn") || l1(e).equals("sign"))) {
+                if (args[3].equals("warn") || args[3].equals("sign") || args[3].equals("getilclear") || args[3].equals("getilclearlossy")) {
+                    World world = ((BlockCommandSender) sender).getBlock().getWorld();
                     String signalmsg;
                     switch (args[3]) {
                         // Signal speed limit warn
                         case "warn":
-                            Sign warn = getSignFromLoc(getFullLoc(((BlockCommandSender) sender).getBlock().getWorld(), inputpos));
+                            Sign warn = getSignFromLoc(getFullLoc(world, inputpos));
                             if (warn != null && warn.getLine(1).equals("signalsign")) {
                                 // lastsisign and lastsisp are for detecting signal change
                                 String warnsi = warn.getLine(2).split(" ")[1];
                                 String warnsp = warn.getLine(2).split(" ")[2];
                                 signalmsg = signalName(warnsi);
-                                if (signalmsg.equals("")) {
+                                if (signalmsg.isEmpty()) {
                                     generalMsg(sender, ChatColor.RESET, ChatColor.RED + getlang("signal_typewrong"));
                                 }
                                 String showspeed = parseInt(warnsp) >= maxspeed ? getlang("speedlimit_del") : warnsp + " km/h";
@@ -66,13 +73,84 @@ class signalcmd implements CommandExecutor, TabCompleter {
                         // Set line 4 of sign at (line 3 of this sign) to turn signal
                         case "sign":
                             if (isSignalType(args[4])) {
-                                Sign sign = getSignFromLoc(getFullLoc(((BlockCommandSender) sender).getBlock().getWorld(), inputpos));
+                                Sign sign = getSignFromLoc(getFullLoc(world, inputpos));
                                 if (sign != null) {
                                     updateSignals(sign, "set " + args[4] + " " + args[5]);
                                     generalMsg(sender, ChatColor.RESET, getlang("signal_signchange") + " (" + args[4] + " " + args[5] + ")");
                                 }
                                 break;
                             }
+                        case "getilclear":
+                        case "getilclearlossy":
+                            Chest refchest = getChestFromLoc(getFullLoc(world, inputpos));
+                            for (int itemno = 0; itemno < 27; itemno++) {
+                                ItemMeta mat = null;
+                                try {
+                                    assert refchest != null;
+                                    mat = Objects.requireNonNull(refchest.getBlockInventory().getItem(itemno)).getItemMeta();
+                                } catch (Exception ignored) {
+                                }
+                                if (mat instanceof BookMeta) {
+                                    boolean isclear = true;
+                                    BookMeta bk = (BookMeta) mat;
+                                    int pgcount = bk.getPageCount();
+                                    // Get pages from books
+                                    for (int pgno = 1; pgno <= pgcount; pgno++) {
+                                        String str = bk.getPage(pgno);
+                                        Location loc1 = getFullLoc(world, str);
+                                        for (MinecartGroup mg2 : vehicle.keySet()) {
+                                            if (vehicle.get(mg2) != null) {
+                                                utsvehicle lv2 = vehicle.get(mg2);
+                                                // Get rsposlist (if not lossy)
+                                                if (args[3].equals("getilclear")) {
+                                                    Location[] rssign2locs = lv2.getRsposlist();
+                                                    if (rssign2locs != null) {
+                                                        signalOrderPtnResult result2 = getSignalOrderPtnResult(lv2);
+                                                        // Check for each location
+                                                        for (int j = 0; j < rssign2locs.length; j++) {
+                                                            Location location = rssign2locs[j];
+                                                            // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
+                                                            int minno = Math.min(result2.halfptnlen - 1, Math.max(0, j - lv2.getRsoccupiedpos()));
+                                                            // Resettable sign signal of lv2 is supposed to be 0 km/h by resettable sign
+                                                            if (result2.ptnsisp[minno] == 0 && loc1.equals(location)) {
+                                                                isclear = false;
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                                // Get ilposoccupied
+                                                Location[] il2posoccupied = lv2.getIlposoccupied();
+                                                if (il2posoccupied != null) {
+                                                    for (Location loc2 : il2posoccupied) {
+                                                        if (loc1.equals(loc2)) {
+                                                            isclear = false;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Block blk = ((BlockCommandSender) sender).getBlock();
+                                    if (isclear) {
+                                        Bukkit.dispatchCommand(sender, String.format("data modify block %s %s %s SuccessCount set value 15", blk.getX(), blk.getY(), blk.getZ()));
+                                        int delay = 4;
+                                        if (args.length == 5) {
+                                            int newdelay = Integer.parseInt(args[4]);
+                                            delay = newdelay == -1 ? -1 : Math.max(delay, newdelay);
+                                        }
+                                        if (delay != -1) {
+                                            Bukkit.getScheduler().runTaskLater(plugin, () -> resetSuccessCount(blk), delay);
+                                        }
+                                        generalMsg(sender, ChatColor.RESET, getlang("secclear"));
+                                    } else {
+                                        Bukkit.getScheduler().runTaskLater(plugin, () -> resetSuccessCount(blk), 1);
+                                        generalMsg(sender, ChatColor.RESET, getlang("secnotclear"));
+                                    }
+                                }
+                            }
+                            break;
                         default:
                             generalMsg(sender, ChatColor.RESET, getlang("argwrong"));
                             break;
@@ -88,11 +166,6 @@ class signalcmd implements CommandExecutor, TabCompleter {
     }
 
     // Simplify
-
-    // l[n]: "n"th split text in line 3
-    String l1(String e) {
-        return e.toLowerCase().split(" ")[0];
-    }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
@@ -116,9 +189,20 @@ class signalcmd implements CommandExecutor, TabCompleter {
             }
         }
         if (args.length == 4) {
-            ta.addAll(Arrays.asList("warn", "sign"));
-        } else if (args.length == 5 && args[3].equals("sign")) {
-            ta.addAll(Arrays.asList("r", "yy", "y", "yg", "g", "atc"));
+            ta.addAll(Arrays.asList("warn", "sign", "getilclear", "getilclearlossy"));
+        } else if (args.length == 5) {
+            switch (args[3]) {
+                case "sign":
+                    ta.addAll(Arrays.asList("r", "yy", "y", "yg", "g", "atc"));
+                    break;
+                case "getilclear":
+                case "getilclearlossy":
+                    ta.addAll(Arrays.asList("-1", "4"));
+                    break;
+                default:
+                    ta.add("");
+                    break;
+            }
         } else {
             ta.add("");
         }

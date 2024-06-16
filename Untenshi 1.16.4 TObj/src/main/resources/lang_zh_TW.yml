@@ -110,3 +110,5 @@ argwrong: 參數不正確。
 signimproper: 本告示牌設定錯誤。
 tcblocking: 有 TrainCarts 物件在堵塞前方。
 nopoints: 分數不足，駕駛結束。
+secclear: 區間暢通。
+secnotclear: 區間未暢通。

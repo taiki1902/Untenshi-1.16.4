@@ -44,7 +44,9 @@ class atosign extends SignAction {
                             break;
                         case "stoptime":
                             if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON)) {
-                                lv.setAtostoptime(parseInt(cartevent.getLine(3)));
+                                int val = parseInt(cartevent.getLine(3));
+                                lv.setAtoautodep(val >= 0);
+                                lv.setAtostoptime(Math.abs(val));
                                 generalMsg(lv.getLd(), ChatColor.GOLD, getlang("ato_detectstoptime"));
                             }
                             break;
@@ -92,8 +94,12 @@ class atosign extends SignAction {
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "ATO sign");
             switch (e.getLine(2)) {
                 case "stoptime":
-                    opt.setDescription("set ATO station stopping time for train");
-                    if (parseInt(e.getLine(3)) < 1) {
+                    int stoptimeval = parseInt(e.getLine(3));
+                    if (stoptimeval >= 1) {
+                        opt.setDescription("set ATO station stopping time for train, train departs automatically after doors close");
+                    } else if (Math.abs(stoptimeval) >= 1) {
+                        opt.setDescription("set ATO station stopping time for train, train does not depart automatically after doors close");
+                    } else {
                         p.sendMessage(ChatColor.RED + getlang("signimproper"));
                         e.setCancelled(true);
                     }

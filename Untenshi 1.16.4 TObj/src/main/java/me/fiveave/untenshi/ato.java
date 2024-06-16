@@ -191,9 +191,9 @@ class ato {
                 notindist = (distFormula(lv.getLastsisign().getX(), lv.getDriverseat().getEntity().getLocation().getX(), lv.getLastsisign().getZ(), lv.getDriverseat().getEntity().getLocation().getZ())) > 5;
             }
             // Wait doors fully closed then depart (if have red light in 5 meters do not depart)
-            if (lv.getDooropen() == 0 && lv.isDoorconfirm() && lv.getMascon() != -9 && (lv.getLastsisp() != 0 || notindist)) {
+            if (lv.getDooropen() == 0 && lv.isDoorconfirm() && lv.getMascon() != -9 && (lv.getLastsisp() != 0 || notindist) && lv.isAtoautodep() && lv.getAtsforced() == 0) {
                 lv.setMascon(5);
-            } else {
+            } else if (lv.isAtoautodep()) {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> waitDepart(lv), tickdelay);
                 if (lv.getMascon() != -9) {
                     lv.setMascon(-8);
