@@ -17,6 +17,7 @@ import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.vehicle.VehicleBlockCollisionEvent;
 import org.bukkit.inventory.ItemStack;
@@ -142,6 +143,72 @@ class events implements Listener {
         return getItem(Material.STONE_BUTTON, ChatColor.DARK_RED, getlang("item_ebbutton"));
     }
 
+    private static void downWandAction(utsvehicle lv) {
+        // No ATS-P run or ATS-P Service brake run but in EB
+        if ((lv.getAtsping() == 0 || (lv.getAtsping() == 1 && lv.getMascon() == -9)) && (lv.getDooropen() == 0 || lv.getDooropen() > 0 && lv.getMascon() < 0) && lv.getMascon() < 5) {
+            lv.setMascon(lv.getMascon() + 1);
+            lv.setAtsforced(0);
+            trainSound(lv, "mascon");
+        }
+    }
+
+    private static void nWandAction(utsvehicle lv) {
+        if (lv.getAtsping() == 0) {
+            lv.setMascon(0);
+            lv.setAtsforced(0);
+            trainSound(lv, "mascon");
+        }
+    }
+
+    private static void upWandAction(utsvehicle lv) {
+        if (lv.getMascon() > -8) {
+            lv.setMascon(lv.getMascon() - 1);
+            trainSound(lv, "mascon");
+        } else if (lv.getMascon() == -8) {
+            toEB(lv);
+            trainSound(lv, "ebbutton");
+        }
+    }
+
+    static void trainSound(utsvehicle lv, String type) {
+        if (lv.getTrain() != null) {
+            switch (type) {
+                case "brake_apply":
+                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 0.75f));
+                    break;
+                case "brake_release":
+                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 1.5f));
+                    break;
+                case "accel_on":
+                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_EXTEND, 0.01f, 2f));
+                    break;
+                case "accel_off":
+                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_CONTRACT, 0.01f, 2f));
+                    break;
+                case "mascon":
+                    if (lv.getLd() != null) {
+                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOOD_PLACE, 0.5f, 1.5f);
+                    }
+                    break;
+                case "ebbutton":
+                    if (lv.getLd() != null) {
+                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, 0.5f, 0.75f);
+                    }
+                    break;
+                case "sblever":
+                    if (lv.getLd() != null) {
+                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_FENCE_GATE_CLOSE, 0.5f, 1.25f);
+                    }
+                    break;
+                case "doorbutton":
+                    if (lv.getLd() != null) {
+                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, 0.5f, 1.5f);
+                    }
+                    break;
+            }
+        }
+    }
+
     @EventHandler
     void onPlayerClicks(PlayerInteractEvent event) {
         // Init
@@ -156,30 +223,15 @@ class events implements Listener {
             // Either not in ATO mode, or ATO mode with EB
             if ((lv.getAtodest() == null || lv.getAtsforced() == 1) && lv.getAtsforced() != 2) {
                 if (upWand().equals(item)) {
-                    if (lv.getMascon() > -8) {
-                        lv.setMascon(lv.getMascon() - 1);
-                        trainSound(lv, "mascon");
-                    } else if (lv.getMascon() == -8) {
-                        toEB(lv);
-                        trainSound(lv, "ebbutton");
-                    }
+                    upWandAction(lv);
                     event.setCancelled(true);
                 }
                 if (nWand().equals(item)) {
-                    if (lv.getAtsping() == 0) {
-                        lv.setMascon(0);
-                        lv.setAtsforced(0);
-                        trainSound(lv, "mascon");
-                    }
+                    nWandAction(lv);
                     event.setCancelled(true);
                 }
                 if (downWand().equals(item)) {
-                    // No ATS-P run or ATS-P Service brake run but in EB
-                    if ((lv.getAtsping() == 0 || (lv.getAtsping() == 1 && lv.getMascon() == -9)) && (lv.getDooropen() == 0 || lv.getDooropen() > 0 && lv.getMascon() < 0) && lv.getMascon() < 5) {
-                        lv.setMascon(lv.getMascon() + 1);
-                        lv.setAtsforced(0);
-                        trainSound(lv, "mascon");
-                    }
+                    downWandAction(lv);
                     event.setCancelled(true);
                 }
             }
@@ -255,6 +307,20 @@ class events implements Listener {
         }
     }
 
+//    @EventHandler
+//    void onScroll(PlayerItemHeldEvent event) {
+//        Player p = event.getPlayer();
+//        initDriver(p);
+//        utsdriver ld = driver.get(p);
+//        assert ld.getLv() != null;
+//        if ((event.getNewSlot() > event.getPreviousSlot() && event.getNewSlot() != 8) || (event.getPreviousSlot() == 8 && event.getNewSlot() == 0)) {
+//            downWandAction(ld.getLv());
+//        }
+//        if ((event.getNewSlot() < event.getPreviousSlot() && event.getNewSlot() != 0) || (event.getPreviousSlot() == 0 && event.getNewSlot() == 8)) {
+//            upWandAction(ld.getLv());
+//        }
+//    }
+
     private boolean isItems(ItemStack item) {
         return item.equals(upWand()) || item.equals(nWand()) || item.equals(downWand()) || item.equals(doorButton()) || item.equals(sbLever()) || item.equals(ebButton());
     }
@@ -267,45 +333,6 @@ class events implements Listener {
         utsdriver ld = driver.get(p);
         if (ld.isPlaying()) {
             restoreinitld(ld);
-        }
-    }
-
-    static void trainSound(utsvehicle lv, String type) {
-        if (lv.getTrain() != null) {
-            switch (type) {
-                case "brake_apply":
-                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 0.75f));
-                    break;
-                case "brake_release":
-                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 1.5f));
-                    break;
-                case "accel_on":
-                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_EXTEND, 0.01f, 2f));
-                    break;
-                case "accel_off":
-                    lv.getTrain().forEach((mm) -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_CONTRACT, 0.01f, 2f));
-                    break;
-                case "mascon":
-                    if (lv.getLd() != null) {
-                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOOD_PLACE, 0.5f, 1.5f);
-                    }
-                    break;
-                case "ebbutton":
-                    if (lv.getLd() != null) {
-                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, 0.5f, 0.75f);
-                    }
-                    break;
-                case "sblever":
-                    if (lv.getLd() != null) {
-                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_FENCE_GATE_CLOSE, 0.5f, 1.25f);
-                    }
-                    break;
-                case "doorbutton":
-                    if (lv.getLd() != null) {
-                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, 0.5f, 1.5f);
-                    }
-                    break;
-            }
         }
     }
 }

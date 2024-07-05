@@ -7,7 +7,9 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.Rail;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -308,7 +310,8 @@ class motion {
     private static void stopPos(utsvehicle lv, String shock) {
         if (lv.isReqstopping()) {
             // Get stop location
-            double stopdist = distFormula(lv.getDriverseat().getEntity().getLocation().getX(), lv.getStoppos()[0], lv.getDriverseat().getEntity().getLocation().getZ(), lv.getStoppos()[2]);
+            double[] stopposloc = lv.getStoppos();
+            double stopdist = distFormula(lv.getDriverseat().getEntity().getLocation().getX(), stopposloc[0], lv.getDriverseat().getEntity().getLocation().getZ(), stopposloc[2]);
             int stopdistcm = (int) (stopdist * 100);
             // Start Overrun
             if (stopdist < 1 && !lv.isOverrun()) {
@@ -484,9 +487,9 @@ class motion {
         double[] reqdist = new double[10];
         getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccel);
         // Actual controlling part
-        // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
+        // Check if next is red light
         boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;
-        // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
+        // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
         double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
         // Find minimum brake needed (default 10: even EB cannot brake in time)
         int reqbrake = 10;

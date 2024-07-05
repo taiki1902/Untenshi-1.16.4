@@ -26,7 +26,6 @@ class utsvehicle {
     private int lastspsp;
     private int dooropen;
     private int[] stopoutput;
-    private int[] atodest;
     private int atostoptime;
     private int rsoccupiedpos;
     private int ilpriority;
@@ -34,6 +33,7 @@ class utsvehicle {
     private double speed;
     private double atospeed;
     private double[] stoppos;
+    private double[] atodest;
     private Location lastsisign;
     private Location lastspsign;
     private Location[] rsposlist;
@@ -214,11 +214,11 @@ class utsvehicle {
         this.stopoutput = stopoutput;
     }
 
-    public int[] getAtodest() {
+    public double[] getAtodest() {
         return atodest;
     }
 
-    public void setAtodest(int[] atodest) {
+    public void setAtodest(double[] atodest) {
         this.atodest = atodest;
     }
 

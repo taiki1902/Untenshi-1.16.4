@@ -17,6 +17,7 @@ import java.util.Arrays;
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
+import static me.fiveave.untenshi.stoppos.curveRailPosFix;
 import static me.fiveave.untenshi.utsvehicle.initVehicle;
 
 class atosign extends SignAction {
@@ -64,7 +65,7 @@ class atosign extends SignAction {
                             break;
                         default:
                             if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON)) {
-                                int[] loc = new int[3];
+                                double[] loc = new double[3];
                                 String[] sloc = cartevent.getLine(3).split(" ");
                                 for (int a = 0; a <= 2; a++) {
                                     loc[a] = Integer.parseInt(sloc[a]);
@@ -74,6 +75,7 @@ class atosign extends SignAction {
                                 // Direct or indirect pattern?
                                 lv.setAtopisdirect(val < 0);
                                 lv.setAtospeed(Math.abs(val));
+                                curveRailPosFix(lv, loc);
                                 lv.setAtodest(loc);
                                 generalMsg(lv.getLd(), ChatColor.GOLD, getlang("ato_detectpattern"));
                                 break;

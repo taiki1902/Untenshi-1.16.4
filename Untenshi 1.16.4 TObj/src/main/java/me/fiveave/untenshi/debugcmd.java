@@ -121,7 +121,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                                                 lv.setAtospeed(Double.parseDouble(args[3]));
                                                 break;
                                             case "atodest":
-                                                int[] loc1 = new int[3];
+                                                double[] loc1 = new double[3];
                                                 for (int i = 0; i < 3; i++) {
                                                     loc1[i] = Integer.parseInt(args[i + 3]);
                                                 }
@@ -188,7 +188,9 @@ class debugcmd implements CommandExecutor, TabCompleter {
         List<String> result = new ArrayList<>();
         List<String> vehiclelist = new ArrayList<>();
         for (MinecartGroup mg : vehicle.keySet()) {
-            vehiclelist.add(mg.getProperties().getTrainName());
+            if (!mg.isUnloaded()) {
+                vehiclelist.add(mg.getProperties().getTrainName());
+            }
         }
         switch (args.length) {
             case 1:
@@ -209,7 +211,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
         return result;
     }
 
-    public String locToString(int[] loc) {
+    public String locToString(double[] loc) {
         String retstr = "null";
         try {
             for (int i = 0; i < 3; i++) {

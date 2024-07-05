@@ -7,6 +7,8 @@ import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import com.bergerkiller.bukkit.tc.signactions.SignActionType;
 import com.bergerkiller.bukkit.tc.utils.SignBuildOptions;
 import org.bukkit.ChatColor;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Rail;
 
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.cmds.generalMsg;
@@ -32,9 +34,10 @@ class stoppos extends SignAction {
                 for (int a = 0; a <= 2; a++) {
                     loc[a] = Double.parseDouble(sloc[a]);
                     if (!cartevent.getLine(3).isEmpty()) {
-                        loc2[a] = Integer.parseInt(sloc2[a]);
+                        loc2[a] = parseInt(sloc2[a]);
                     }
                 }
+                curveRailPosFix(lv, loc);
                 loc[0] += 0.5;
                 loc[2] += 0.5;
                 lv.setStoppos(loc);
@@ -43,6 +46,30 @@ class stoppos extends SignAction {
                 }
                 lv.setReqstopping(true);
                 generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("stoppos_next"));
+            }
+        }
+    }
+
+    static void curveRailPosFix(utsvehicle lv, double[] loc) {
+        BlockData bs = lv.getTrain().getWorld().getBlockAt((int) loc[0], (int) loc[1], (int) loc[2]).getBlockData();
+        if (bs instanceof Rail) {
+            switch (((Rail) bs).getShape()) {
+                case NORTH_EAST:
+                    loc[0] += 0.25;
+                    loc[2] -= 0.25;
+                    break;
+                case NORTH_WEST:
+                    loc[0] -= 0.25;
+                    loc[2] -= 0.25;
+                    break;
+                case SOUTH_EAST:
+                    loc[0] += 0.25;
+                    loc[2] += 0.25;
+                    break;
+                case SOUTH_WEST:
+                    loc[0] -= 0.25;
+                    loc[2] += 0.25;
+                    break;
             }
         }
     }
