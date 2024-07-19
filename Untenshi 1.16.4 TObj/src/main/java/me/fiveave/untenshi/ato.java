@@ -77,7 +77,7 @@ class ato {
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
             getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel);
-            // Potential acceleration (acceleration after P5 to N) (0.75 from result of average accel of P1-P5 divided by P5 accel + delay)
+            // Potential acceleration (acceleration after P5 to N)
             double sumallaccel = 0;
             for (int i = 1; i <= 5; i++) {
                 sumallaccel += accelSwitch(lv, lv.getSpeed(), i);
@@ -85,11 +85,12 @@ class ato {
             double potentialaccel = sumallaccel / 5 + slopeaccelsel;
             boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && lv.getMascon() == 0) || lv.getMascon() > 0) && lv.getSpeed() + potentialaccel <= currentlimit && !lv.isOverrun() && (lowerSpeed > 0 || distnow > 1) && (lv.getDooropen() == 0 && lv.isDoorconfirm());
             // Actual controlling part
-            // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
+            // To prevent redundant setting of mascon to N when approaching any signal
             boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;
-            double tempdist = nextredlight ? (distnow - 5 < 0 ? 0 : distnow - 5) : distnow;
+            // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
+            double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
             // Require accel? (no need to prepare for braking yet + additional thinking time)
-            if (tempdist - reqdist[6] > speed1s(lv) * (getThinkingTime(lv, 6) + 2) && allowaccel && !(nextredlight && tempdist < 10)) {
+            if (tempdist > reqdist[6] + speed1s(lv) * (getThinkingTime(lv, 6) + 2) && allowaccel && !(nextredlight && tempdist < 10)) {
                 finalmascon = 5;
             }
             // Require braking? (additional thinking time to prevent braking too hard)
@@ -100,7 +101,6 @@ class ato {
             if (lv.isAtoforcebrake() || lv.isAtopisdirect()) {
                 // If even emergency brake cannot brake in time
                 finalmascon = -9;
-                // tempdist is for anti-ATS-run, stop at 5 m before 0 km/h signal
                 for (int b = 9; b >= 0; b--) {
                     if (tempdist >= reqdist[b]) {
                         finalmascon = -b;
@@ -108,7 +108,7 @@ class ato {
                 }
             }
             // Cancel braking?
-            if (tempdist > reqdist[1] + speed1s(lv) * getThinkingTime(lv, 1)) {
+            if (tempdist > reqdist[6] + speed1s(lv) * (getThinkingTime(lv, 6) + 4) || tempdist > reqdist[1] + speed1s(lv) * getThinkingTime(lv, 1)) {
                 lv.setAtoforcebrake(false);
             }
             // Red light waiting procedure
@@ -122,7 +122,7 @@ class ato {
                 int finalbrake = -8;
                 for (int a = 8; a >= 1; a--) {
                     // If braking distance is greater than distance in 1 s and if the brake is greater, then use the value
-                    if (reqdist[a] <= lv.getSpeed() / 3.6) {
+                    if (speed1s(lv) >= reqdist[a]) {
                         finalbrake = -a;
                     }
                 }
@@ -153,7 +153,7 @@ class ato {
         reqdist[0] = getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
         for (int a = 1; a <= 8; a++) {
             // Plus reaction time + consider speed after adding slopeaccel to prevent reaction lag
-            reqdist[a] = getReqdist(upperSpeed, lowerSpeed, avgRangeDecel(decel, upperSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop) + upperSpeed / 3.6 * getThinkingTime(lv, a) / 2;
+            reqdist[a] = getReqdist(upperSpeed, lowerSpeed, avgRangeDecel(decel, upperSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop) + upperSpeed / 3.6 * getThinkingTime(lv, a);
         }
     }
 

@@ -7,9 +7,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
-import org.bukkit.block.data.Rail;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -500,7 +498,8 @@ class motion {
         }
         // Pattern run
         if (((reqbrake > 8 && lv.getSpeed() > lowerSpeed + 3) || isoverspeed3) && lv.getAtsping() == 0) {
-            if (reqbrake > 9) {
+            // Or SPAD (0 km/h signal) EB
+            if (reqbrake > 9 || lv.getSignallimit() == 0) {
                 lv.setMascon(-9);
                 lv.setAtsping(2);
                 pointCounter(lv.getLd(), ChatColor.RED, lv.getSafetysystype().toUpperCase() + " " + getlang("p_eb") + " ", -5, "");
@@ -612,8 +611,10 @@ class motion {
     }
 
     static double avgRangeDecel(double decel, double upperspd, double lowerspd, double rate, int[] speedsteps) {
-        // (1 / 98) = (1 / 7 / 14)
-        return (globalDecel(decel, upperspd, rate, speedsteps) + globalDecel(decel, lowerspd, rate, speedsteps)) / 2;
+        double varRangeDiff = Math.max(0, upperspd - speedsteps[0]);
+        double staticRangeDiff = Math.max(0, Math.min(upperspd - lowerspd, speedsteps[0] - lowerspd));
+        double totalDiff = varRangeDiff + staticRangeDiff;
+        return totalDiff == 0 ? 0 : (globalDecel(decel, speedsteps[0], rate, speedsteps) * staticRangeDiff + (globalDecel(decel, upperspd, rate, speedsteps) + globalDecel(decel, speedsteps[0], rate, speedsteps)) / 2 * varRangeDiff) / totalDiff;
     }
 
     static int minSpeedLimit(utsvehicle lv) {
