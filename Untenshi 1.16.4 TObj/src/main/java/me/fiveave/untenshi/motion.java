@@ -450,7 +450,7 @@ class motion {
             lv.setSpeed(Math.max(lv.getSpeed() - ebdecel / ticksin1s * 45 / 7, 0));
         }
         // If no obstacle need braking in 2s then release
-        if (lv.getAtsforced() == -1 && !mg.isObstacleAhead(mg.getProperties().getWaitDistance() + getThinkingTime(lv, 8) * speed1s(lv) * 2, true, true)) {
+        if (lv.getAtsforced() == -1 && !mg.isObstacleAhead(mg.getProperties().getWaitDistance() + getThinkingDistance(lv, 8, 0, slopeaccel) * 2, true, true)) {
             lv.setAtsforced(0);
         }
         // Find either signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
@@ -605,9 +605,9 @@ class motion {
         return retdecel - slopeaccel;
     }
 
-    static double globalDecel(double decel, double cspd, double rate, int[] speedsteps) {
+    static double globalDecel(double decel, double speed, double rate, int[] speedsteps) {
         // (1 / 98) = (1 / 7 / 14)
-        return (cspd >= speedsteps[0]) ? (decel * rate * (15 - 4 * (cspd - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * rate * 15 / 98);
+        return (speed >= speedsteps[0]) ? (decel * rate * (15 - 4 * (speed - speedsteps[0]) / (speedsteps[5] - speedsteps[0])) / 98) : (decel * rate * 15 / 98);
     }
 
     static double avgRangeDecel(double decel, double upperspd, double lowerspd, double rate, int[] speedsteps) {

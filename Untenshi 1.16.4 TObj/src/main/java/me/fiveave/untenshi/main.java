@@ -163,7 +163,11 @@ public final class main extends JavaPlugin implements Listener {
         Objects.requireNonNull(this.getCommand("utslogger")).setTabCompleter(new driverlog());
         Objects.requireNonNull(this.getCommand("utsdebug")).setExecutor(new debugcmd());
         Objects.requireNonNull(this.getCommand("utsdebug")).setTabCompleter(new debugcmd());
-        pm.registerEvents(new events(), this);
+        try {
+            pm.registerEvents(new events(), this);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
