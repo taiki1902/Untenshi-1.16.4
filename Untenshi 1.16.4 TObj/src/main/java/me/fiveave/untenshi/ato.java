@@ -75,7 +75,7 @@ class ato {
             }
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
-            getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel);
+            getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, true);
             // Potential acceleration (acceleration after P5 to N)
             double sumallaccel = 0;
             for (int i = 1; i <= 5; i++) {
@@ -119,7 +119,7 @@ class ato {
             // Slightly speeding auto braking (not related to ATS-P or ATC)
             if (lv.getSpeed() + slopeaccelnow > currentlimit) {
                 // Redefine reqdist (here for braking distance to speed limit)
-                getAllReqdist(lv, lv.getSpeed() + slopeaccelnow, currentlimit, speeddrop, reqdist, slopeaccelnow);
+                getAllReqdist(lv, lv.getSpeed() + slopeaccelnow, currentlimit, speeddrop, reqdist, slopeaccelnow, true);
                 int finalbrake = -8;
                 for (int a = 8; a >= 1; a--) {
                     // If braking distance is greater than distance in 1 s and if the brake is greater, then use the value
@@ -144,7 +144,7 @@ class ato {
         }
     }
 
-    static void getAllReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, double[] reqdist, double slopeaccel) {
+    static void getAllReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, double[] reqdist, double slopeaccel, boolean hasthinkingdist) {
         double decel = lv.getDecel();
         double ebdecel = lv.getEbdecel();
         int[] speedsteps = lv.getSpeedsteps();
@@ -163,7 +163,7 @@ class ato {
             // Need minimum is 0 or else there may be negative value
             double brakeInitDistance = getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(decel, upperSpeed, afterBrakeInitSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
-            reqdist[a] = brakeInitDistance + afterInitDistance + getThinkingDistance(lv, a, 0, slopeaccel);
+            reqdist[a] = brakeInitDistance + afterInitDistance + (hasthinkingdist ? getThinkingDistance(lv, a, 0, slopeaccel) : 0);
         }
     }
 
@@ -212,7 +212,7 @@ class ato {
         if (lv != null && lv.getTrain() != null && lv.getDriverseat().getEntity() != null) {
             boolean notindist = true;
             double[] reqdist = new double[10];
-            getAllReqdist(lv, minSpeedLimit(lv), 0, lv.getSpeeddrop(), reqdist, 0);
+            getAllReqdist(lv, minSpeedLimit(lv), 0, lv.getSpeeddrop(), reqdist, 0, true);
             if (lv.getLastsisign() != null) {
                 notindist = (distFormula(lv.getLastsisign().getX(), lv.getDriverseat().getEntity().getLocation().getX(), lv.getLastsisign().getZ(), lv.getDriverseat().getEntity().getLocation().getZ())) > 5;
             }

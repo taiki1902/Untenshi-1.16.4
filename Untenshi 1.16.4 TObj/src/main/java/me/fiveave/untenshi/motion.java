@@ -483,7 +483,7 @@ class motion {
         }
         // Get brake distance (reqdist)
         double[] reqdist = new double[10];
-        getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccel);
+        getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccel, false);
         // Actual controlling part
         // Check if next is red light
         boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;
