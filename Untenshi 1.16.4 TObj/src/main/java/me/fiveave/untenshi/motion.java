@@ -620,7 +620,7 @@ class motion {
         double staticupper = Math.min(upperspd, speedsteps[0]); // upper end speed in static range in decel graph
         double sumdiststatic = Math.max(0, (Math.pow(staticupper, 2) - Math.pow(lowerspd, 2)) / (7.2 * beta)); // braking distance in static range
         // Need minimum is 0 or else there may be negative value
-        return Math.max(0,upperspd - lowerspd != 0 ? (Math.pow(upperspd, 2) - Math.pow(lowerspd, 2)) / (7.2 * (sumdistvar + sumdiststatic)) : alpha);
+        return Math.max(0, upperspd - lowerspd != 0 ? (Math.pow(upperspd, 2) - Math.pow(lowerspd, 2)) / (7.2 * (sumdistvar + sumdiststatic)) : alpha);
     }
 
     static int minSpeedLimit(utsvehicle lv) {

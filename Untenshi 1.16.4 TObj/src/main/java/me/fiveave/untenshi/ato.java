@@ -73,7 +73,6 @@ class ato {
                 distnow = speeddist;
                 slopeaccelsel = slopeaccelsp;
             }
-
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
             getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel);
@@ -89,13 +88,12 @@ class ato {
             boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;
             // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
             double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
-            // Sometimes they will flick between brake and accel?
             // Require accel? (no need to prepare for braking yet + additional thinking distance with at least 3 sec delay, now set as 5)
             if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 5, slopeaccelnow) && allowaccel && !(nextredlight && tempdist < 10)) {
                 finalmascon = 5;
             }
             // Require braking? (additional thinking time to prevent braking too hard)
-            if (tempdist < reqdist[6] + getThinkingDistance(lv, 6, 0, slopeaccelnow)) {
+            if (tempdist < reqdist[6] + getThinkingDistance(lv,  6, 0, slopeaccelnow)) {
                 lv.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
@@ -110,7 +108,7 @@ class ato {
                 }
             }
             // Cancel braking?
-            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 4, slopeaccelnow) || tempdist > reqdist[1] + getThinkingDistance(lv, 1, 0, slopeaccelnow)) {
+            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 4, slopeaccelnow)) {
                 lv.setAtoforcebrake(false);
             }
             // Red light waiting procedure
@@ -150,23 +148,22 @@ class ato {
         double decel = lv.getDecel();
         double ebdecel = lv.getEbdecel();
         int[] speedsteps = lv.getSpeedsteps();
-        // Consider normal case or else EB will be too common (decelfr = 7 because no multiplier)
         {
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, ebdecel, 9, slopeaccel);
+            // Consider normal case or else EB will be too common (decelfr = 7 because no multiplier)
             // Need minimum is 0 or else there may be negative value
             double brakeInitDistance = getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(ebdecel, upperSpeed, afterBrakeInitSpeed, 7, speedsteps), slopeaccel, speeddrop);
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(ebdecel, afterBrakeInitSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
-            reqdist[9] = Math.max(0, brakeInitDistance) + Math.max(0, afterInitDistance);
+            reqdist[9] = brakeInitDistance + afterInitDistance;
         }
         // Get speed drop distance
         reqdist[0] = getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
         for (int a = 1; a <= 8; a++) {
-            // Plus reaction time + consider speed after adding slopeaccel to prevent reaction lag
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, decel, a, slopeaccel);
             // Need minimum is 0 or else there may be negative value
             double brakeInitDistance = getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(decel, upperSpeed, afterBrakeInitSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
-            reqdist[a] = Math.max(0, brakeInitDistance) + Math.max(0, afterInitDistance) + getThinkingDistance(lv, a, 0, slopeaccel);
+            reqdist[a] = brakeInitDistance + afterInitDistance + getThinkingDistance(lv, a, 0, slopeaccel);
         }
     }
 
@@ -186,7 +183,8 @@ class ato {
     }
 
     static double getThinkingDistance(utsvehicle lv, int a, double extra, double slopeaccel) {
-        return (slopeaccel / 3.6 * getThinkingTime(lv, a) + speed1s(lv)) * (getThinkingTime(lv, a) + extra);
+        double t = getThinkingTime(lv, a) + extra;
+        return t * (speed1s(lv) + slopeaccel / 3.6 * 2 * t);
     }
 
     static double speed1s(utsvehicle lv) {
