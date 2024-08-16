@@ -89,6 +89,7 @@ class ato {
             boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;
             // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
             double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
+            // Sometimes they will flick between brake and accel?
             // Require accel? (no need to prepare for braking yet + additional thinking distance with at least 3 sec delay, now set as 5)
             if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 5, slopeaccelnow) && allowaccel && !(nextredlight && tempdist < 10)) {
                 finalmascon = 5;
@@ -116,6 +117,7 @@ class ato {
             if (nextredlight && lv.getSpeed() == 0) {
                 waitDepart(lv);
             }
+            // Large brake application too common when not needed
             // Slightly speeding auto braking (not related to ATS-P or ATC)
             if (lv.getSpeed() + slopeaccelnow > currentlimit) {
                 // Redefine reqdist (here for braking distance to speed limit)
@@ -151,18 +153,20 @@ class ato {
         // Consider normal case or else EB will be too common (decelfr = 7 because no multiplier)
         {
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, ebdecel, 9, slopeaccel);
+            // Need minimum is 0 or else there may be negative value
             double brakeInitDistance = getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(ebdecel, upperSpeed, afterBrakeInitSpeed, 7, speedsteps), slopeaccel, speeddrop);
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(ebdecel, afterBrakeInitSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
-            reqdist[9] = brakeInitDistance + afterInitDistance + getThinkingDistance(lv, 9, 0, slopeaccel);
+            reqdist[9] = Math.max(0, brakeInitDistance) + Math.max(0, afterInitDistance);
         }
         // Get speed drop distance
         reqdist[0] = getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
         for (int a = 1; a <= 8; a++) {
             // Plus reaction time + consider speed after adding slopeaccel to prevent reaction lag
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, decel, a, slopeaccel);
+            // Need minimum is 0 or else there may be negative value
             double brakeInitDistance = getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(decel, upperSpeed, afterBrakeInitSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
-            reqdist[a] = brakeInitDistance + afterInitDistance + getThinkingDistance(lv, a, 0, slopeaccel);
+            reqdist[a] = Math.max(0, brakeInitDistance) + Math.max(0, afterInitDistance) + getThinkingDistance(lv, a, 0, slopeaccel);
         }
     }
 

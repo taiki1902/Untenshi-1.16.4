@@ -611,10 +611,16 @@ class motion {
     }
 
     static double avgRangeDecel(double decel, double upperspd, double lowerspd, double rate, int[] speedsteps) {
-        double varRangeDiff = Math.max(0, upperspd - speedsteps[0]);
-        double staticRangeDiff = Math.max(0, Math.min(upperspd - lowerspd, speedsteps[0] - lowerspd));
-        double totalDiff = varRangeDiff + staticRangeDiff;
-        return totalDiff == 0 ? 0 : (globalDecel(decel, speedsteps[0], rate, speedsteps) * staticRangeDiff + (globalDecel(decel, upperspd, rate, speedsteps) + globalDecel(decel, speedsteps[0], rate, speedsteps)) / 2 * varRangeDiff) / totalDiff;
+        double k = decel * rate / (490 * (speedsteps[5] - speedsteps[0])) + 1; // result of da/dt / 20 + 1, or result of dividing decel of this tick to last tick
+        double alpha = globalDecel(decel, upperspd, rate, speedsteps); // first term of geometric decel sequence, or current decel
+        double varlower = Math.max(lowerspd, speedsteps[0]); // lower end speed in variable range in decel graph
+        double x = Math.max(0, Math.log(-20 * (k - 1) * (varlower - upperspd) / alpha + 1) / Math.log(k)); // no. of ticks to lowerspeed / speedsteps[0]
+        double sumdistvar = ((upperspd * x) - (alpha * (Math.pow(k, x) - 1 - x * (k - 1))) / (20 * Math.pow(k - 1, 2))) / 72; // braking distance in variable range
+        double beta = globalDecel(decel, speedsteps[0], rate, speedsteps); // decel in static range
+        double staticupper = Math.min(upperspd, speedsteps[0]); // upper end speed in static range in decel graph
+        double sumdiststatic = Math.max(0, (Math.pow(staticupper, 2) - Math.pow(lowerspd, 2)) / (7.2 * beta)); // braking distance in static range
+        // Need minimum is 0 or else there may be negative value
+        return Math.max(0,upperspd - lowerspd != 0 ? (Math.pow(upperspd, 2) - Math.pow(lowerspd, 2)) / (7.2 * (sumdistvar + sumdiststatic)) : alpha);
     }
 
     static int minSpeedLimit(utsvehicle lv) {
