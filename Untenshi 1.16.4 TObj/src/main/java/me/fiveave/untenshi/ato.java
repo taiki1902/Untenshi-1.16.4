@@ -97,7 +97,6 @@ class ato {
                 lv.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
-            System.out.printf("%.2f :", tempdist);
             if (lv.isAtoforcebrake() || lv.isAtopisdirect()) {
                 // If even emergency brake cannot brake in time
                 finalmascon = -9;
@@ -105,11 +104,8 @@ class ato {
                     if (tempdist >= reqdist[b]) {
                         finalmascon = -b;
                     }
-                    System.out.printf("%.2f ", reqdist[b]);
                 }
             }
-            System.out.printf("| %s", finalmascon);
-            System.out.println();
             // Cancel braking?
             if (tempdist > reqdist[1] + getThinkingDistance(lv, 1, 0, slopeaccelnow)) {
                 lv.setAtoforcebrake(false);
