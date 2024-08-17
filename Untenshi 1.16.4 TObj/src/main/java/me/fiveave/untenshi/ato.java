@@ -93,22 +93,25 @@ class ato {
                 finalmascon = 5;
             }
             // Require braking? (additional thinking time to prevent braking too hard)
-            if (tempdist < reqdist[6] + getThinkingDistance(lv,  6, 0, slopeaccelnow)) {
+            if (tempdist < reqdist[6] + getThinkingDistance(lv, 6, 0, slopeaccelnow)) {
                 lv.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
+            System.out.printf("%.2f :", tempdist);
             if (lv.isAtoforcebrake() || lv.isAtopisdirect()) {
                 // If even emergency brake cannot brake in time
-                // Why do brakes fight against each other in some circumstances??????
                 finalmascon = -9;
                 for (int b = 9; b >= 0; b--) {
                     if (tempdist >= reqdist[b]) {
                         finalmascon = -b;
                     }
+                    System.out.printf("%.2f ", reqdist[b]);
                 }
             }
+            System.out.printf("| %s", finalmascon);
+            System.out.println();
             // Cancel braking?
-            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 4, slopeaccelnow)) {
+            if (tempdist > reqdist[1] + getThinkingDistance(lv, 1, 0, slopeaccelnow)) {
                 lv.setAtoforcebrake(false);
             }
             // Red light waiting procedure
@@ -144,51 +147,16 @@ class ato {
         }
     }
 
-    static void getAllReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, double[] reqdist, double slopeaccel, boolean hasthinkingdist) {
-        double decel = lv.getDecel();
-        double ebdecel = lv.getEbdecel();
-        int[] speedsteps = lv.getSpeedsteps();
-        {
-            double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, ebdecel, 9, slopeaccel);
-            // Consider normal case or else EB will be too common (decelfr = 7 because no multiplier)
-            // Need minimum is 0 or else there may be negative value
-            double brakeInitDistance = getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(ebdecel, upperSpeed, afterBrakeInitSpeed, 7, speedsteps), slopeaccel, speeddrop);
-            double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(ebdecel, afterBrakeInitSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
-            reqdist[9] = brakeInitDistance + afterInitDistance;
+    // Reset values, open doors, reset ATO
+    static void openDoorProcedure(utsvehicle lv) {
+        lv.setReqstopping(false);
+        lv.setFixstoppos(false);
+        doorControls(lv, true);
+        if (lv.getAtospeed() != -1) {
+            lv.setMascon(-8);
         }
-        // Get speed drop distance
-        reqdist[0] = getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
-        for (int a = 1; a <= 8; a++) {
-            double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, decel, a, slopeaccel);
-            // Need minimum is 0 or else there may be negative value
-            double brakeInitDistance = getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(decel, upperSpeed, afterBrakeInitSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
-            double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
-            reqdist[a] = brakeInitDistance + afterInitDistance + (hasthinkingdist ? getThinkingDistance(lv, a, 0, slopeaccel) : 0);
-        }
-    }
-
-    static double getSpeedAfterBrakeInit(utsvehicle lv, double upperSpeed, double decel, int a, double slopeaccel) {
-        double speed = upperSpeed;
-        double current = lv.getCurrent();
-        while (current > -a * 480.0 / 9 && speed > 0) {
-            speed -= (globalDecel(decel, speed, Math.abs(current * 9 / 480) + 1, lv.getSpeedsteps()) - slopeaccel) / ticksin1s;
-            current -= 40 / 3.0 * tickdelay;
-        }
-        return speed;
-    }
-
-    static double getThinkingTime(utsvehicle lv, int a) {
-        // 1.0 / ticksin1s is necessary because of action delay
-        return Math.max(1.0 / ticksin1s, Math.min(a * 0.2, (a + (lv.getCurrent() * 9 / 480)) * 0.2));
-    }
-
-    static double getThinkingDistance(utsvehicle lv, int a, double extra, double slopeaccel) {
-        double t = getThinkingTime(lv, a) + extra;
-        return t * (speed1s(lv) + slopeaccel / 3.6 * 2 * t);
-    }
-
-    static double speed1s(utsvehicle lv) {
-        return lv.getSpeed() / 3.6;
+        lv.setAtodest(null);
+        lv.setAtospeed(-1);
     }
 
     // ATO Stop Time Countdown

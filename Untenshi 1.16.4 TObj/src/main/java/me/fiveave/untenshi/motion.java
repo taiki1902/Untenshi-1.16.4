@@ -12,9 +12,9 @@ import org.bukkit.block.Sign;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-import static me.fiveave.untenshi.ato.*;
+import static me.fiveave.untenshi.ato.atosys;
+import static me.fiveave.untenshi.ato.openDoorProcedure;
 import static me.fiveave.untenshi.cmds.generalMsg;
-import static me.fiveave.untenshi.events.doorControls;
 import static me.fiveave.untenshi.events.trainSound;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.*;
@@ -70,7 +70,7 @@ class motion {
         // Electric current brake
         double currentnow = lv.getCurrent();
         // Set current for current mascon
-        double ecbtarget = Integer.parseInt(df0.format(480.0 / 9 * lv.getMascon()));
+        double ecbtarget = Integer.parseInt(df0.format(getCurrentFromNotch(lv.getMascon())));
         df0.setRoundingMode(RoundingMode.HALF_EVEN);
         // Set real current
         if (ecbtarget < currentnow) {
@@ -101,7 +101,7 @@ class motion {
         // Accel and decel
         double stopdecel = decelSwitch(lv, lv.getSpeed(), slopeaccel);
         if (lv.getDooropen() == 0) {
-            lv.setSpeed(lv.getSpeed() + accelSwitch(lv, lv.getSpeed(), (int) (currentnow * 9 / 480)) / ticksin1s // Acceleration
+            lv.setSpeed(lv.getSpeed() + accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(currentnow))) / ticksin1s // Acceleration
                     - stopdecel / ticksin1s) // Deceleration (speed drop included)
             ;
         }
@@ -519,6 +519,71 @@ class motion {
         lv.setAtspnear(pnear);
     }
 
+    static void getAllReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, double[] reqdist, double slopeaccel, boolean hasthinkingdist) {
+        double decel = lv.getDecel();
+        double ebdecel = lv.getEbdecel();
+        int[] speedsteps = lv.getSpeedsteps();
+        {
+            double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel);
+            // Consider normal case or else EB will be too common (decelfr = 7 because no multiplier)
+            // Need minimum is 0 or else there may be negative value
+            double brakeInitDistance = Math.max(0, getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(ebdecel, upperSpeed, afterBrakeInitSpeed, 7, speedsteps), slopeaccel, speeddrop));
+            double afterInitDistance = Math.max(0, getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(ebdecel, afterBrakeInitSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop));
+            reqdist[9] = brakeInitDistance + afterInitDistance;
+        }
+        // Get speed drop distance
+        reqdist[0] = Math.max(0, getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop));
+        for (int a = 1; a <= 8; a++) {
+            double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel);
+            // Need minimum is 0 or else there may be negative value
+            double brakeInitDistance = Math.max(0, getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(decel, upperSpeed, afterBrakeInitSpeed, a + 1, speedsteps), slopeaccel, speeddrop));
+            double afterInitDistance = Math.max(0, getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop));
+            reqdist[a] = brakeInitDistance + afterInitDistance + (hasthinkingdist ? getThinkingDistance(lv, a, 0, slopeaccel) : 0);
+        }
+    }
+
+    static double getReqdist(double upperSpeed, double lowerSpeed, double decel, double slopeaccel, double speeddrop) {
+        return (Math.pow(upperSpeed + Math.max(slopeaccel - decel, 0) / 2, 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop));
+    }
+
+    static double getSpeedAfterBrakeInit(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int a, double slopeaccel) {
+        double speed = upperSpeed;
+        double current = lv.getCurrent();
+
+        while (current > getCurrentFromNotch(-a) && speed > lowerSpeed) {
+            double thisdecel = (globalDecel(decel, speed, Math.abs(getNotchFromCurrent(current)) + 1, lv.getSpeedsteps()) - slopeaccel) / ticksin1s;
+            if (speed - thisdecel > lowerSpeed) {
+                speed -= thisdecel;
+                current -= 40 / 3.0 * tickdelay;
+            } else {
+                break;
+            }
+        }
+        return speed;
+    }
+
+    static double getCurrentFromNotch(int a) {
+        return a * 480.0 / 9;
+    }
+
+    static double getNotchFromCurrent(double current) {
+        return current * 9 / 480;
+    }
+
+    static double getThinkingTime(utsvehicle lv, int a) {
+        // 1.0 / ticksin1s is necessary because of action delay
+        return Math.max(1.0 / ticksin1s, Math.min(a * 0.2, (a + (getNotchFromCurrent(lv.getCurrent()))) * 0.2));
+    }
+
+    static double getThinkingDistance(utsvehicle lv, int a, double extra, double slopeaccel) {
+        double t = getThinkingTime(lv, a) + extra;
+        return t * (speed1s(lv) + slopeaccel / 3.6);
+    }
+
+    static double speed1s(utsvehicle lv) {
+        return lv.getSpeed() / 3.6;
+    }
+
     static double getSlopeAccel(Location endpt, Location beginpt) {
         double height = beginpt.getY() - endpt.getY();
         double length = distFormula(endpt.getX(), beginpt.getX(), endpt.getZ(), beginpt.getZ());
@@ -549,23 +614,6 @@ class motion {
         }
     }
 
-
-    // Reset values, open doors, reset ATO
-    static void openDoorProcedure(utsvehicle lv) {
-        lv.setReqstopping(false);
-        lv.setFixstoppos(false);
-        doorControls(lv, true);
-        if (lv.getAtospeed() != -1) {
-            lv.setMascon(-8);
-        }
-        lv.setAtodest(null);
-        lv.setAtospeed(-1);
-    }
-
-    static double getReqdist(double upperSpeed, double lowerSpeed, double decel, double slopeaccel, double speeddrop) {
-        return (Math.pow(upperSpeed + Math.max(slopeaccel - decel, 0) / 2, 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop));
-    }
-
     static double accelSwitch(utsvehicle lv, double speed, int dcurrent) {
         double accel = lv.getAccel();
         int[] speedsteps = lv.getSpeedsteps();
@@ -592,7 +640,7 @@ class motion {
         if (current == 0) {
             retdecel = speeddrop;
         } else if (current < 0 && current > -480) {
-            retdecel = globalDecel(decel, speed, Math.abs(current * 9 / 480) + 1, speedsteps);
+            retdecel = globalDecel(decel, speed, Math.abs(getNotchFromCurrent(current)) + 1, speedsteps);
         } else if (current == -480) {
             if (lv.getAtsforced() != 2 && lv.getSignallimit() != 0) {
                 retdecel = globalDecel(ebdecel, speed, 7, speedsteps);
@@ -620,7 +668,7 @@ class motion {
         double staticupper = Math.min(upperspd, speedsteps[0]); // upper end speed in static range in decel graph
         double sumdiststatic = Math.max(0, (Math.pow(staticupper, 2) - Math.pow(lowerspd, 2)) / (7.2 * beta)); // braking distance in static range
         // Need minimum is 0 or else there may be negative value
-        return Math.max(0, upperspd - lowerspd != 0 ? (Math.pow(upperspd, 2) - Math.pow(lowerspd, 2)) / (7.2 * (sumdistvar + sumdiststatic)) : alpha);
+        return Math.max(0, upperspd - lowerspd > 0 ? (Math.pow(upperspd, 2) - Math.pow(lowerspd, 2)) / (7.2 * (sumdistvar + sumdiststatic)) : alpha);
     }
 
     static int minSpeedLimit(utsvehicle lv) {

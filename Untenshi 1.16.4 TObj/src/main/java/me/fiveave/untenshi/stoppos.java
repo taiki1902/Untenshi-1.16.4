@@ -16,6 +16,30 @@ import static me.fiveave.untenshi.main.*;
 
 class stoppos extends SignAction {
 
+    static void curveRailPosFix(utsvehicle lv, double[] loc) {
+        BlockData bs = lv.getTrain().getWorld().getBlockAt((int) loc[0], (int) loc[1], (int) loc[2]).getBlockData();
+        if (bs instanceof Rail) {
+            switch (((Rail) bs).getShape()) {
+                case NORTH_EAST:
+                    loc[0] += 0.25;
+                    loc[2] -= 0.25;
+                    break;
+                case NORTH_WEST:
+                    loc[0] -= 0.25;
+                    loc[2] -= 0.25;
+                    break;
+                case SOUTH_EAST:
+                    loc[0] += 0.25;
+                    loc[2] += 0.25;
+                    break;
+                case SOUTH_WEST:
+                    loc[0] -= 0.25;
+                    loc[2] += 0.25;
+                    break;
+            }
+        }
+    }
+
     @Override
     public boolean match(SignActionEvent info) {
         return info.isType("stoppos");
@@ -46,30 +70,6 @@ class stoppos extends SignAction {
                 }
                 lv.setReqstopping(true);
                 generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("stoppos_next"));
-            }
-        }
-    }
-
-    static void curveRailPosFix(utsvehicle lv, double[] loc) {
-        BlockData bs = lv.getTrain().getWorld().getBlockAt((int) loc[0], (int) loc[1], (int) loc[2]).getBlockData();
-        if (bs instanceof Rail) {
-            switch (((Rail) bs).getShape()) {
-                case NORTH_EAST:
-                    loc[0] += 0.25;
-                    loc[2] -= 0.25;
-                    break;
-                case NORTH_WEST:
-                    loc[0] -= 0.25;
-                    loc[2] -= 0.25;
-                    break;
-                case SOUTH_EAST:
-                    loc[0] += 0.25;
-                    loc[2] += 0.25;
-                    break;
-                case SOUTH_WEST:
-                    loc[0] -= 0.25;
-                    loc[2] += 0.25;
-                    break;
             }
         }
     }
