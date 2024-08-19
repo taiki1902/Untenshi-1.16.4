@@ -31,7 +31,7 @@ class ato {
             double slopeaccelsel = getSlopeAccel(atoLocForSlope, tailLoc);
             double slopeaccelsi = 0;
             double slopeaccelsp = 0;
-            double reqatodist = getSingleReqdist(lv, lv.getSpeed(), lv.getAtospeed(), speeddrop, 6, slopeaccelsel, true);
+            double reqatodist = getSingleReqdist(lv, lv.getSpeed(), lv.getAtospeed(), speeddrop, 6, slopeaccelsel, true) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getAtospeed(), slopeaccelsel);
             double signaldist = Double.MAX_VALUE;
             double signaldistdiff = Double.MAX_VALUE;
             double speeddist = Double.MAX_VALUE;
@@ -48,7 +48,7 @@ class ato {
                 int[] getSiOffset = getSignToRailOffset(lv.getLastsisign(), mg.getWorld());
                 Location siLocForSlope = new Location(mg.getWorld(), lv.getLastsisign().getX() + getSiOffset[0], lv.getLastsisign().getY() + getSiOffset[1] + cartYPosDiff, lv.getLastsisign().getZ() + getSiOffset[2]);
                 slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
-                reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, true);
+                reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, true) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getLastsisp(), slopeaccelsi);
                 signaldist = distFormula(lv.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), lv.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
                 signaldistdiff = signaldist - reqsidist;
             }
@@ -56,7 +56,7 @@ class ato {
                 int[] getSpOffset = getSignToRailOffset(lv.getLastspsign(), mg.getWorld());
                 Location spLocForSlope = new Location(mg.getWorld(), lv.getLastspsign().getX() + getSpOffset[0], lv.getLastspsign().getY() + getSpOffset[1] + cartYPosDiff, lv.getLastspsign().getZ() + getSpOffset[2]);
                 slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
-                reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, true);
+                reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, true) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getLastspsp(), slopeaccelsp);
                 speeddist = distFormula(lv.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), lv.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
                 speeddistdiff = speeddist - reqspdist;
             }
@@ -99,6 +99,10 @@ class ato {
                         finalmascon = -b;
                     }
                 }
+//                if (finalmascon == -9) {
+//                    Location trainloc = lv.getTrain().head().getEntity().getLocation();
+//                    generalMsg(Bukkit.getConsoleSender(), ChatColor.RED, "EB application detected at " + trainloc.getX() + " " + trainloc.getY() + " " + trainloc.getZ() + "!");
+//                }
             }
             // Cancel braking? (Slope acceleration considered)
             if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 4, lv.getSpeed() + slopeaccelsel, lowerSpeed, slopeaccelnow)) {
