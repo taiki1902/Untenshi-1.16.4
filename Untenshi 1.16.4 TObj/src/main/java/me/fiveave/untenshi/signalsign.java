@@ -183,7 +183,7 @@ class signalsign extends SignAction {
                                     // Except red light, signal must get reset first
                                     if (signalspeed != 0) {
                                         Location currentloc = cartevent.getLocation();
-                                        // Suzhoushi: If in 3 trains middle train disappears, back train will receive ALL green lights (r, 0 (front), g, 360 (back), g, 360 (back), ...)
+                                        // Suzhoushi: If in 3 trains middle train disappears, back train will receive ALL green lights ((rs only, il is issue-free) r, 0 (front), g, 360 (back), g, 360 (back), ...)
                                         // Check if that location exists in any other train, then delete that record
                                         deleteOthersResettablesign(lv, currentloc);
                                     }
