@@ -575,20 +575,25 @@ class motion {
     }
 
     static double getThinkingDistance(utsvehicle lv, int a, double extra, double upperSpeed, double lowerSpeed, double decel, double slopeaccel) {
-        double speed = upperSpeed;
-        double current = lv.getCurrent();
-        double sumdist = 0;
-        while (current > getCurrentFromNotch(-a) && speed > lowerSpeed) {
-            double thisdecel = (globalDecel(decel, speed, Math.abs(getNotchFromCurrent(current)) + 1, lv.getSpeedsteps()) - slopeaccel) / ticksin1s;
-            if (speed - thisdecel >= lowerSpeed) {
-                speed -= thisdecel;
-                sumdist += speed / 3.6 / ticksin1s;
-                current -= 40 / 3.0 * tickdelay;
-            } else {
-                break;
+        // Prevent unable to accel just because near next target, but no need to brake or to neutral
+        if (upperSpeed > lowerSpeed) {
+            double speed = upperSpeed;
+            double current = lv.getCurrent();
+            double sumdist = 0;
+            while (current > getCurrentFromNotch(-a) && speed > lowerSpeed) {
+                double thisdecel = (globalDecel(decel, speed, Math.abs(getNotchFromCurrent(current)) + 1, lv.getSpeedsteps()) - slopeaccel) / ticksin1s;
+                if (speed - thisdecel >= lowerSpeed) {
+                    speed -= thisdecel;
+                    sumdist += speed / 3.6 / ticksin1s;
+                    current -= 40 / 3.0 * tickdelay;
+                } else {
+                    break;
+                }
             }
+            return sumdist + speed1s(lv) * extra;
+        } else {
+            return 0;
         }
-        return sumdist + speed1s(lv) * extra;
     }
 
     static double speed1s(utsvehicle lv) {
