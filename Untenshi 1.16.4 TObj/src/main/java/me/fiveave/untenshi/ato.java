@@ -23,6 +23,7 @@ class ato {
              allowaccel is for N to accel when difference is at least 5, or already accelerating
             */
             double lowerSpeed = lv.getAtospeed();
+            double decel = lv.getDecel();
             // 0.0625 from result of getting mg.head() y-location
             Location headLoc = mg.head().getEntity().getLocation();
             Location tailLoc = mg.tail().getEntity().getLocation();
@@ -31,7 +32,7 @@ class ato {
             double slopeaccelsel = getSlopeAccel(atoLocForSlope, tailLoc);
             double slopeaccelsi = 0;
             double slopeaccelsp = 0;
-            double reqatodist = getSingleReqdist(lv, lv.getSpeed(), lv.getAtospeed(), speeddrop, 6, slopeaccelsel, true) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getAtospeed(), slopeaccelsel);
+            double reqatodist = getSingleReqdist(lv, lv.getSpeed(), lv.getAtospeed(), speeddrop, 6, slopeaccelsel, true, 0) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getAtospeed(), decel, slopeaccelsel);
             double signaldist = Double.MAX_VALUE;
             double signaldistdiff = Double.MAX_VALUE;
             double speeddist = Double.MAX_VALUE;
@@ -48,7 +49,7 @@ class ato {
                 int[] getSiOffset = getSignToRailOffset(lv.getLastsisign(), mg.getWorld());
                 Location siLocForSlope = new Location(mg.getWorld(), lv.getLastsisign().getX() + getSiOffset[0], lv.getLastsisign().getY() + getSiOffset[1] + cartYPosDiff, lv.getLastsisign().getZ() + getSiOffset[2]);
                 slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
-                reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, true) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getLastsisp(), slopeaccelsi);
+                reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, true, 0) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getLastsisp(), decel, slopeaccelsi);
                 signaldist = distFormula(lv.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), lv.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
                 signaldistdiff = signaldist - reqsidist;
             }
@@ -56,7 +57,7 @@ class ato {
                 int[] getSpOffset = getSignToRailOffset(lv.getLastspsign(), mg.getWorld());
                 Location spLocForSlope = new Location(mg.getWorld(), lv.getLastspsign().getX() + getSpOffset[0], lv.getLastspsign().getY() + getSpOffset[1] + cartYPosDiff, lv.getLastspsign().getZ() + getSpOffset[2]);
                 slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
-                reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, true) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getLastspsp(), slopeaccelsp);
+                reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, true, 0) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getLastspsp(), decel, slopeaccelsp);
                 speeddist = distFormula(lv.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), lv.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
                 speeddistdiff = speeddist - reqspdist;
             }
@@ -81,13 +82,13 @@ class ato {
             double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
             boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && lv.getMascon() == 0) || lv.getMascon() > 0) && lv.getSpeed() + potentialaccel <= currentlimit && !lv.isOverrun() && ((lowerSpeed > 0 && lv.getLastsisp() > 0) || distnow > 1) && (lv.getDooropen() == 0 && lv.isDoorconfirm());
             // Actual controlling part
-            getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, true);
+            getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, true, 1.0 / ticksin1s);
             // Require accel? (no need to prepare for braking yet + additional thinking distance + potential acceleration)
-            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 5, lv.getSpeed() + potentialaccel, lowerSpeed, slopeaccelnow) && allowaccel) {
+            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 5, lv.getSpeed() + potentialaccel, lowerSpeed, decel, slopeaccelnow) && allowaccel) {
                 finalmascon = 5;
             }
             // Require braking? (additional thinking time to prevent braking too hard)
-            if (tempdist < reqdist[6] + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lowerSpeed, slopeaccelnow)) {
+            if (tempdist < reqdist[6] + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lowerSpeed, decel, slopeaccelnow)) {
                 lv.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
@@ -99,13 +100,9 @@ class ato {
                         finalmascon = -b;
                     }
                 }
-//                if (finalmascon == -9) {
-//                    Location trainloc = lv.getTrain().head().getEntity().getLocation();
-//                    generalMsg(Bukkit.getConsoleSender(), ChatColor.RED, "EB application detected at " + trainloc.getX() + " " + trainloc.getY() + " " + trainloc.getZ() + "!");
-//                }
             }
             // Cancel braking? (Slope acceleration considered)
-            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 4, lv.getSpeed() + slopeaccelsel, lowerSpeed, slopeaccelnow)) {
+            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 4, lv.getSpeed() + slopeaccelsel, lowerSpeed, decel, slopeaccelnow)) {
                 lv.setAtoforcebrake(false);
             }
             // Red light waiting procedure
@@ -116,7 +113,7 @@ class ato {
             // Slightly speeding auto braking (not related to ATS-P or ATC)
             if (lv.getSpeed() + slopeaccelnow > currentlimit) {
                 // Redefine reqdist (here for braking distance to speed limit)
-                getAllReqdist(lv, lv.getSpeed() + slopeaccelnow, currentlimit, speeddrop, reqdist, slopeaccelnow, true);
+                getAllReqdist(lv, lv.getSpeed() + slopeaccelnow, currentlimit, speeddrop, reqdist, slopeaccelnow, true, 0);
                 int finalbrake = -8;
                 for (int a = 8; a >= 1; a--) {
                     // If braking distance is greater than distance in 1 s and if the brake is greater, then use the value
@@ -174,7 +171,7 @@ class ato {
         if (lv != null && lv.getTrain() != null && lv.getDriverseat().getEntity() != null) {
             boolean notindist = true;
             double[] reqdist = new double[10];
-            getAllReqdist(lv, minSpeedLimit(lv), 0, lv.getSpeeddrop(), reqdist, 0, true);
+            getAllReqdist(lv, minSpeedLimit(lv), 0, lv.getSpeeddrop(), reqdist, 0, true, 0);
             if (lv.getLastsisign() != null) {
                 notindist = (distFormula(lv.getLastsisign().getX(), lv.getDriverseat().getEntity().getLocation().getX(), lv.getLastsisign().getZ(), lv.getDriverseat().getEntity().getLocation().getZ())) > 5;
             }
