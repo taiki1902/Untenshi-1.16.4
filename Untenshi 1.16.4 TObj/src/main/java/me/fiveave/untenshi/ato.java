@@ -74,17 +74,17 @@ class ato {
             }
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
-            // Potential acceleration (acceleration after P5 to N)
-            double potentialaccel = Math.max(0, accelSwitch(lv, lv.getSpeed(), 5) + slopeaccelsel);
+            // Potential speed after acceleration (acceleration after P5 to N)
+            double potentialspeed = getSpeedAfterPotentialAccel(lv, lv.getSpeed(), slopeaccelsel);
             // To prevent redundant setting of mascon to N when approaching any signal
             boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;
             // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
             double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
-            boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && lv.getMascon() == 0) || lv.getMascon() > 0) && lv.getSpeed() + potentialaccel <= currentlimit && !lv.isOverrun() && ((lowerSpeed > 0 && lv.getLastsisp() > 0) || distnow > 1) && (lv.getDooropen() == 0 && lv.isDoorconfirm());
+            boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && lv.getMascon() == 0) || lv.getMascon() > 0) && potentialspeed <= currentlimit && !lv.isOverrun() && ((lowerSpeed > 0 && lv.getLastsisp() > 0) || distnow > 1) && (lv.getDooropen() == 0 && lv.isDoorconfirm());
             // Actual controlling part
             getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, true, 1.0 / ticksin1s);
             // Require accel? (no need to prepare for braking yet + additional thinking distance + potential acceleration)
-            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 5, lv.getSpeed() + potentialaccel, lowerSpeed, decel, slopeaccelnow) && allowaccel) {
+            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 5, potentialspeed, lowerSpeed, decel, slopeaccelnow) && allowaccel) {
                 finalmascon = 5;
             }
             // Require braking? (additional thinking time to prevent braking too hard)

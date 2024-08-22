@@ -566,6 +566,17 @@ class motion {
         return speed;
     }
 
+    static double getSpeedAfterPotentialAccel(utsvehicle lv, double currentSpeed, double slopeaccel) {
+        double speed = currentSpeed;
+        double current = lv.getCurrent();
+        while (current > 0) {
+            double thisaccel = (accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(current))) + slopeaccel) / ticksin1s;
+            speed += thisaccel;
+            current -= 40 / 3.0 * tickdelay;
+        }
+        return Math.max(currentSpeed, speed);
+    }
+
     static double getCurrentFromNotch(int a) {
         return a * 480.0 / 9;
     }
