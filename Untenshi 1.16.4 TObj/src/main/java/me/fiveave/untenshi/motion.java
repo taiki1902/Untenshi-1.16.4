@@ -296,7 +296,7 @@ class motion {
         if (lv.getMascon() == -9) {
             ctrltext = ChatColor.DARK_RED + "EB";
         } else if (lv.getMascon() >= -8 && lv.getMascon() <= -1) {
-            ctrltext = ChatColor.RED + "B" + Math.abs(lv.getMascon());
+            ctrltext = ChatColor.RED + "B" + -lv.getMascon();
         } else if (lv.getMascon() == 0) {
             ctrltext = ChatColor.WHITE + "N";
         } else if (lv.getMascon() >= 1 && lv.getMascon() <= 5) {
@@ -553,9 +553,10 @@ class motion {
 
     static double getSpeedAfterBrakeInit(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int a, double slopeaccel) {
         double speed = upperSpeed;
-        double current = lv.getCurrent();
+        // Anti out-of-range causing GIGO
+        double current = Math.min(0, lv.getCurrent());
         while (current > getCurrentFromNotch(-a) && speed > lowerSpeed) {
-            double thisdecel = (globalDecel(decel, speed, Math.abs(getNotchFromCurrent(current)) + 1, lv.getSpeedsteps()) - slopeaccel) / ticksin1s;
+            double thisdecel = (globalDecel(decel, speed, -getNotchFromCurrent(current) + 1, lv.getSpeedsteps()) - slopeaccel) / ticksin1s;
             if (speed - thisdecel >= lowerSpeed) {
                 speed -= thisdecel;
                 current -= 40 / 3.0 * tickdelay;
@@ -568,9 +569,10 @@ class motion {
 
     static double getSpeedAfterPotentialAccel(utsvehicle lv, double currentSpeed, double slopeaccel) {
         double speed = currentSpeed;
-        double current = lv.getCurrent();
+        // Anti out-of-range causing GIGO
+        double current = Math.max(0, lv.getCurrent());
         while (current > 0) {
-            double thisaccel = (accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(current))) + slopeaccel) / ticksin1s;
+            double thisaccel = (accelSwitch(lv, speed, (int) (getNotchFromCurrent(current))) + slopeaccel) / ticksin1s;
             speed += thisaccel;
             current -= 40 / 3.0 * tickdelay;
         }
@@ -589,10 +591,11 @@ class motion {
         // Prevent unable to accel just because near next target, but no need to brake or to neutral
         if (upperSpeed > lowerSpeed) {
             double speed = upperSpeed;
-            double current = lv.getCurrent();
+            // Anti out-of-range causing GIGO
+            double current = Math.min(0, lv.getCurrent());
             double sumdist = 0;
             while (current > getCurrentFromNotch(-a) && speed > lowerSpeed) {
-                double thisdecel = (globalDecel(decel, speed, Math.abs(getNotchFromCurrent(current)) + 1, lv.getSpeedsteps()) - slopeaccel) / ticksin1s;
+                double thisdecel = (globalDecel(decel, speed, -getNotchFromCurrent(current) + 1, lv.getSpeedsteps()) - slopeaccel) / ticksin1s;
                 if (speed - thisdecel >= lowerSpeed) {
                     speed -= thisdecel;
                     sumdist += speed / 3.6 / ticksin1s;
@@ -601,7 +604,7 @@ class motion {
                     break;
                 }
             }
-            return sumdist + speed1s(lv) * extra;
+            return sumdist + upperSpeed / 3.6 * extra;
         } else {
             return 0;
         }
@@ -667,7 +670,7 @@ class motion {
         if (current == 0) {
             retdecel = speeddrop;
         } else if (current < 0 && current > -480) {
-            retdecel = globalDecel(decel, speed, Math.abs(getNotchFromCurrent(current)) + 1, speedsteps);
+            retdecel = globalDecel(decel, speed, -getNotchFromCurrent(current) + 1, speedsteps);
         } else if (current == -480) {
             if (lv.getAtsforced() != 2 && lv.getSignallimit() != 0) {
                 retdecel = globalDecel(ebdecel, speed, 7, speedsteps);
