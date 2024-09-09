@@ -29,7 +29,8 @@ class ato {
             Location tailLoc = mg.tail().getEntity().getLocation();
             Location atoLocForSlope = new Location(mg.getWorld(), lv.getAtodest()[0] + 0.5, lv.getAtodest()[1] + cartYPosDiff, lv.getAtodest()[2] + 0.5);
             double slopeaccelnow = getSlopeAccel(headLoc, tailLoc);
-            double slopeaccelsel = getSlopeAccel(atoLocForSlope, tailLoc);
+            double slopeaccelato = getSlopeAccel(atoLocForSlope, tailLoc);
+            double slopeaccelsel = slopeaccelato;
             double slopeaccelsi = 0;
             double slopeaccelsp = 0;
             double reqatodist = getSingleReqdist(lv, lv.getSpeed(), lv.getAtospeed(), speeddrop, 6, slopeaccelsel, true, 0) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getAtospeed(), decel, slopeaccelsel);
@@ -74,6 +75,7 @@ class ato {
             }
             // Get brake distance (reqdist)
             double[] reqdist = new double[10];
+            double[] atoreqdist = new double[10];
             // Potential speed after acceleration (acceleration after P5 to N)
             double potentialspeed = getSpeedAfterPotentialAccel(lv, lv.getSpeed(), Math.max(slopeaccelsel, slopeaccelnow));
             // To prevent redundant setting of mascon to N when approaching any signal
@@ -83,8 +85,10 @@ class ato {
             boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && (lowerSpeed - lv.getSpeed() > 5 || tempdist > speed1s(lv)) && lv.getMascon() == 0) || lv.getMascon() > 0) && potentialspeed <= currentlimit && (potentialspeed <= lowerSpeed || tempdist > speed1s(lv)) && !lv.isOverrun() && (lv.getDooropen() == 0 && lv.isDoorconfirm());
             // Actual controlling part
             getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, true, 1.0 / ticksin1s);
-            // Require accel? (no need to prepare for braking yet + additional thinking distance + potential acceleration)
-            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 3, potentialspeed, lowerSpeed, decel, slopeaccelsel) && allowaccel) {
+            getAllReqdist(lv, lv.getSpeed(), lv.getAtospeed(), speeddrop, atoreqdist, slopeaccelato, true, 1.0 / ticksin1s);
+            // Require accel? (no need to prepare for braking for next object and ATO target destination + additional thinking distance)
+            boolean notnearreqdist = (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 3, potentialspeed, lowerSpeed, decel, slopeaccelsel)) && (atodist > atoreqdist[6] + getThinkingDistance(lv, 6, 3, potentialspeed, lv.getAtospeed(), decel, slopeaccelato));
+            if (notnearreqdist && allowaccel) {
                 finalmascon = 5;
             }
             // Require braking? (additional 1 tick of thinking time for delay)
