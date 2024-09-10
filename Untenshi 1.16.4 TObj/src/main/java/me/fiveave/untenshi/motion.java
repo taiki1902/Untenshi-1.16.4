@@ -568,15 +568,16 @@ class motion {
     }
 
     static double getSpeedAfterPotentialAccel(utsvehicle lv, double currentSpeed, double slopeaccel) {
-        double speed = currentSpeed;
-        // Anti out-of-range causing GIGO
         double current = Math.max(0, lv.getCurrent());
+        // 1 tick delay for compensation for action delay
+        double speed = currentSpeed + (accelSwitch(lv, currentSpeed, (int) (getNotchFromCurrent(current))) + slopeaccel) / ticksin1s;
+        // Anti out-of-range causing GIGO
         while (current > 0) {
             double thisaccel = (accelSwitch(lv, speed, (int) (getNotchFromCurrent(current))) + slopeaccel) / ticksin1s;
             speed += thisaccel;
             current -= 40 / 3.0 * tickdelay;
         }
-        return Math.max(currentSpeed, speed);
+        return speed;
     }
 
     static double getCurrentFromNotch(int a) {
