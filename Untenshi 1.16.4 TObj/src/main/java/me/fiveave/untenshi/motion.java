@@ -101,12 +101,19 @@ class motion {
         // Accel and decel
         double stopdecel = decelSwitch(lv, lv.getSpeed(), slopeaccel);
         if (lv.getDooropen() == 0) {
+            // If door is closed
             lv.setSpeed(lv.getSpeed() + accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(currentnow))) / ticksin1s // Acceleration
                     - stopdecel / ticksin1s) // Deceleration (speed drop included)
             ;
+        } else {
+            // If door is open
+            lv.setSpeed(0);
+            if (lv.getMascon() > 0) {
+                lv.setMascon(0);
+            }
         }
-        // Anti-negative speed and force stop when door is open
-        if (lv.getSpeed() < 0 || lv.getDooropen() > 0) {
+        // Prevent negative speed
+        if (lv.getSpeed() < 0) {
             lv.setSpeed(0.0);
         }
         df3.setRoundingMode(RoundingMode.CEILING);
