@@ -55,15 +55,15 @@ class signalsign extends SignAction {
         String retsi = "";
         switch (warnsi) {
             case "g":
-                retsi = ChatColor.GREEN + getlang("signal_" + warnsi);
+                retsi = ChatColor.GREEN + getLang("signal_" + warnsi);
                 break;
             case "yg":
             case "y":
-                retsi = ChatColor.YELLOW + getlang("signal_" + warnsi);
+                retsi = ChatColor.YELLOW + getLang("signal_" + warnsi);
                 break;
             case "yy":
             case "r":
-                retsi = ChatColor.RED + getlang("signal_" + warnsi);
+                retsi = ChatColor.RED + getLang("signal_" + warnsi);
                 break;
             case "atc":
                 retsi = ChatColor.GOLD + "ATC";
@@ -200,9 +200,9 @@ class signalsign extends SignAction {
                                     if (lv.getSafetysystype().equals("atc")) {
                                         shownspeed = Math.min(lv.getSignallimit(), lv.getSpeedlimit());
                                     }
-                                    String temp = shownspeed >= maxspeed ? getlang("speedlimit_del") : shownspeed + " km/h";
+                                    String temp = shownspeed >= maxspeed ? getLang("speedlimit_del") : shownspeed + " km/h";
                                     if (lv.getLd() != null) {
-                                        generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("signal_set") + " " + signalmsg + ChatColor.GRAY + " " + temp);
+                                        generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("signal_set") + " " + signalmsg + ChatColor.GRAY + " " + temp);
                                     }
                                     // If red light need to wait signal change, if not then delete variable
                                     if (signalspeed != 0) {
@@ -293,8 +293,8 @@ class signalsign extends SignAction {
                                         if (lv.getSafetysystype().equals("atc")) {
                                             warnsp = Math.min(Math.min(lv.getLastsisp(), lv.getLastspsp()), lv.getSpeedlimit());
                                         }
-                                        String temp2 = warnsp >= maxspeed ? getlang("speedlimit_del") : warnsp + " km/h";
-                                        generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("signal_warn") + " " + signalmsg + ChatColor.GRAY + " " + temp2);
+                                        String temp2 = warnsp >= maxspeed ? getLang("speedlimit_del") : warnsp + " km/h";
+                                        generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("signal_warn") + " " + signalmsg + ChatColor.GRAY + " " + temp2);
                                     } else {
                                         signImproper(cartevent, lv.getLd());
                                     }
@@ -373,8 +373,8 @@ class signalsign extends SignAction {
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Signal sign");
             // Check signal name
             if (!checkType(e) && !l2(e).equals("del")) {
-                p.sendMessage(ChatColor.RED + getlang("signal_typewrong"));
-                p.sendMessage(ChatColor.RED + getlang("argwrong"));
+                p.sendMessage(ChatColor.RED + getLang("signal_typewrong"));
+                p.sendMessage(ChatColor.RED + getLang("argwrong"));
                 e.setCancelled(true);
             }
             // Check speed conditions
@@ -384,7 +384,7 @@ class signalsign extends SignAction {
                     e.setCancelled(true);
                 }
                 if (parseInt(l3(e)) < 0 || Math.floorMod(parseInt(l3(e)), 5) != 0) {
-                    p.sendMessage(ChatColor.RED + getlang("argwrong"));
+                    p.sendMessage(ChatColor.RED + getLang("argwrong"));
                     e.setCancelled(true);
                 }
 
@@ -415,7 +415,7 @@ class signalsign extends SignAction {
                     break;
                 case "set":
                     if (!isSignalType(s3[1].toLowerCase())) {
-                        p.sendMessage(ChatColor.RED + getlang("signal_typewrong"));
+                        p.sendMessage(ChatColor.RED + getLang("signal_typewrong"));
                     }
                     parseInt(s3[2]);
                     if (parseInt(s3[2]) > maxspeed) {
@@ -423,7 +423,7 @@ class signalsign extends SignAction {
                         e.setCancelled(true);
                     }
                     if (parseInt(s3[2]) < 0 || Math.floorMod(parseInt(s3[2]), 5) != 0) {
-                        p.sendMessage(ChatColor.RED + getlang("argwrong"));
+                        p.sendMessage(ChatColor.RED + getLang("argwrong"));
                         e.setCancelled(true);
                     }
                     opt.setDescription("set signal speed limit for train");
@@ -431,7 +431,7 @@ class signalsign extends SignAction {
             }
             return opt.handle(p);
         } catch (Exception exception) {
-            p.sendMessage(ChatColor.RED + getlang("signimproper"));
+            p.sendMessage(ChatColor.RED + getLang("signimproper"));
             e.setCancelled(true);
         }
         return true;

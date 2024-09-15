@@ -14,7 +14,7 @@ import static me.fiveave.untenshi.speedsign.getSignToRailOffset;
 
 class ato {
 
-    static void atosys(utsvehicle lv, MinecartGroup mg) {
+    static void atoSys(utsvehicle lv, MinecartGroup mg) {
         double speeddrop = lv.getSpeeddrop();
         if (lv.getAtodest() != null && lv.getAtospeed() != -1 && lv.getAtsping() == 0 && lv.getAtsforced() == 0 && (lv.getLd() == null || lv.getLd().isAllowatousage())) {
             /*
@@ -26,12 +26,12 @@ class ato {
             // 0.0625 from result of getting mg.head() y-location
             Location headLoc = mg.head().getEntity().getLocation();
             Location tailLoc = mg.tail().getEntity().getLocation();
-            Location atoLocForSlope = new Location(mg.getWorld(), lv.getAtodest()[0] + 0.5, lv.getAtodest()[1] + cartYPosDiff, lv.getAtodest()[2] + 0.5);
+            Location atoLocForSlope = new Location(mg.getWorld(), lv.getAtodest()[0] + 0.5, lv.getAtodest()[1] + cartyposdiff, lv.getAtodest()[2] + 0.5);
             double slopeaccelnow = getSlopeAccel(headLoc, tailLoc);
             double slopeaccelsel = getSlopeAccel(atoLocForSlope, tailLoc);
             double slopeaccelsi = 0;
             double slopeaccelsp = 0;
-            double reqatodist = getSingleReqdist(lv, lv.getSpeed(), lv.getAtospeed(), speeddrop, 6, slopeaccelsel, true, 0) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getAtospeed(), decel, slopeaccelsel);
+            double reqatodist = getSingleReqdist(lv, lv.getSpeed(), lv.getAtospeed(), speeddrop, 6, slopeaccelsel, true, 0) + getThinkingDistance(lv, lv.getSpeed(), lv.getAtospeed(), decel, 6, slopeaccelsel, 0);
             double signaldist = Double.MAX_VALUE;
             double signaldistdiff = Double.MAX_VALUE;
             double speeddist = Double.MAX_VALUE;
@@ -46,17 +46,17 @@ class ato {
             // Find either ATO, signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
             if (lv.getLastsisign() != null && lv.getLastsisp() != maxspeed) {
                 int[] getSiOffset = getSignToRailOffset(lv.getLastsisign(), mg.getWorld());
-                Location siLocForSlope = new Location(mg.getWorld(), lv.getLastsisign().getX() + getSiOffset[0], lv.getLastsisign().getY() + getSiOffset[1] + cartYPosDiff, lv.getLastsisign().getZ() + getSiOffset[2]);
+                Location siLocForSlope = new Location(mg.getWorld(), lv.getLastsisign().getX() + getSiOffset[0], lv.getLastsisign().getY() + getSiOffset[1] + cartyposdiff, lv.getLastsisign().getZ() + getSiOffset[2]);
                 slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
-                reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, true, 0) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getLastsisp(), decel, slopeaccelsi);
+                reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, true, 0) + getThinkingDistance(lv, lv.getSpeed(), lv.getLastsisp(), decel, 6, slopeaccelsi, 0);
                 signaldist = distFormula(lv.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), lv.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
                 signaldistdiff = signaldist - reqsidist;
             }
             if (lv.getLastspsign() != null && lv.getLastspsp() != maxspeed) {
                 int[] getSpOffset = getSignToRailOffset(lv.getLastspsign(), mg.getWorld());
-                Location spLocForSlope = new Location(mg.getWorld(), lv.getLastspsign().getX() + getSpOffset[0], lv.getLastspsign().getY() + getSpOffset[1] + cartYPosDiff, lv.getLastspsign().getZ() + getSpOffset[2]);
+                Location spLocForSlope = new Location(mg.getWorld(), lv.getLastspsign().getX() + getSpOffset[0], lv.getLastspsign().getY() + getSpOffset[1] + cartyposdiff, lv.getLastspsign().getZ() + getSpOffset[2]);
                 slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
-                reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, true, 0) + getThinkingDistance(lv, 6, 0, lv.getSpeed(), lv.getLastspsp(), decel, slopeaccelsp);
+                reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, true, 0) + getThinkingDistance(lv, lv.getSpeed(), lv.getLastspsp(), decel, 6, slopeaccelsp, 0);
                 speeddist = distFormula(lv.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), lv.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
                 speeddistdiff = speeddist - reqspdist;
             }
@@ -83,12 +83,12 @@ class ato {
             // Actual controlling part
             getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, true, 1.0 / ticksin1s);
             // Require accel? (no need to prepare for braking for next object and ATO target destination + additional thinking distance)
-            boolean notnearreqdist = tempdist > reqdist[6] + getThinkingDistance(lv, 6, 3, potentialspeed, lowerSpeed, decel, slopeaccelsel);
+            boolean notnearreqdist = tempdist > reqdist[6] + getThinkingDistance(lv, potentialspeed, lowerSpeed, decel, 6, slopeaccelsel, 3);
             if (notnearreqdist && allowaccel) {
                 finalmascon = 5;
             }
-            // Require braking? (additional 1 tick of thinking time for delay)
-            if (tempdist < reqdist[6] + speed1s(lv) / ticksin1s) {
+            // Require braking?
+            if (tempdist < reqdist[6]) {
                 lv.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
@@ -102,7 +102,7 @@ class ato {
                 }
             }
             // Cancel braking? (Slope acceleration considered)
-            if (tempdist > reqdist[6] + getThinkingDistance(lv, 6, 3, lv.getSpeed() + slopeaccelsel, lowerSpeed, decel, slopeaccelsel)) {
+            if (tempdist > reqdist[6] + getThinkingDistance(lv, lv.getSpeed() + slopeaccelsel, lowerSpeed, decel, 6, slopeaccelsel, 3)) {
                 lv.setAtoforcebrake(false);
             }
             // Red light waiting procedure
@@ -134,7 +134,7 @@ class ato {
         } else if (lv.getAtodest() != null && lv.getAtospeed() != -1 && lv.getLd() != null && !lv.getLd().isAllowatousage()) {
             lv.setAtodest(null);
             lv.setAtospeed(-1);
-            generalMsg(lv.getLd().getP(), ChatColor.GOLD, getlang("ato_patterncancel"));
+            generalMsg(lv.getLd().getP(), ChatColor.GOLD, getLang("ato_patterncancel"));
         }
     }
 

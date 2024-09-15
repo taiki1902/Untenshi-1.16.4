@@ -48,7 +48,7 @@ class signalcmd implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 if (signalspeed < 0 || Math.floorMod(signalspeed, 5) != 0) {
-                    generalMsg(sender, ChatColor.RESET, getlang("argwrong"));
+                    generalMsg(sender, ChatColor.RESET, getLang("argwrong"));
                     return true;
                 }
                 if (args[3].equals("warn") || args[3].equals("sign") || args[3].equals("getilclear") || args[3].equals("getilclearlossy")) {
@@ -64,10 +64,10 @@ class signalcmd implements CommandExecutor, TabCompleter {
                                 String warnsp = warn.getLine(2).split(" ")[2];
                                 signalmsg = signalName(warnsi);
                                 if (signalmsg.isEmpty()) {
-                                    generalMsg(sender, ChatColor.RESET, ChatColor.RED + getlang("signal_typewrong"));
+                                    generalMsg(sender, ChatColor.RESET, ChatColor.RED + getLang("signal_typewrong"));
                                 }
-                                String showspeed = parseInt(warnsp) >= maxspeed ? getlang("speedlimit_del") : warnsp + " km/h";
-                                generalMsg(sender, ChatColor.YELLOW, getlang("signal_warn") + " " + signalmsg + ChatColor.GRAY + " " + showspeed);
+                                String showspeed = parseInt(warnsp) >= maxspeed ? getLang("speedlimit_del") : warnsp + " km/h";
+                                generalMsg(sender, ChatColor.YELLOW, getLang("signal_warn") + " " + signalmsg + ChatColor.GRAY + " " + showspeed);
                             }
                             break;
                         // Set line 4 of sign at (line 3 of this sign) to turn signal
@@ -76,7 +76,7 @@ class signalcmd implements CommandExecutor, TabCompleter {
                                 Sign sign = getSignFromLoc(getFullLoc(world, inputpos));
                                 if (sign != null) {
                                     updateSignals(sign, "set " + args[4] + " " + args[5]);
-                                    generalMsg(sender, ChatColor.RESET, getlang("signal_signchange") + " (" + args[4] + " " + args[5] + ")");
+                                    generalMsg(sender, ChatColor.RESET, getLang("signal_signchange") + " (" + args[4] + " " + args[5] + ")");
                                 }
                                 break;
                             }
@@ -143,21 +143,21 @@ class signalcmd implements CommandExecutor, TabCompleter {
                                         if (delay != -1) {
                                             Bukkit.getScheduler().runTaskLater(plugin, () -> resetSuccessCount(blk), delay);
                                         }
-                                        generalMsg(sender, ChatColor.RESET, getlang("secclear"));
+                                        generalMsg(sender, ChatColor.RESET, getLang("secclear"));
                                     } else {
                                         Bukkit.getScheduler().runTaskLater(plugin, () -> resetSuccessCount(blk), 1);
-                                        generalMsg(sender, ChatColor.RESET, getlang("secnotclear"));
+                                        generalMsg(sender, ChatColor.RESET, getLang("secnotclear"));
                                     }
                                 }
                             }
                             break;
                         default:
-                            generalMsg(sender, ChatColor.RESET, getlang("argwrong"));
+                            generalMsg(sender, ChatColor.RESET, getLang("argwrong"));
                             break;
                     }
                 }
             } else {
-                generalMsg(sender, ChatColor.RESET, getlang("cmdblkonlycmd"));
+                generalMsg(sender, ChatColor.RESET, getLang("cmdblkonlycmd"));
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -42,16 +42,16 @@ class driverlog implements CommandExecutor, TabCompleter {
                     } else if (lv != null && lv.isBeinglogged()) {
                         lv.setBeinglogged(false);
                     } else {
-                        generalMsg(sender, ChatColor.RED, getlang("driverlog_notuts"));
+                        generalMsg(sender, ChatColor.RED, getLang("driverlog_notuts"));
                     }
                 } else {
-                    sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getlang("help_usage") + " " + ChatColor.GOLD + "/utslogger <vehicle>" + ChatColor.YELLOW + "]");
+                    sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getLang("help_usage") + " " + ChatColor.GOLD + "/utslogger <vehicle>" + ChatColor.YELLOW + "]");
                 }
             } else {
                 cmds.noPerm(sender);
             }
         } catch (Exception e) {
-            generalMsg(sender, ChatColor.RED, getlang("error"));
+            generalMsg(sender, ChatColor.RED, getLang("error"));
             e.printStackTrace();
         }
         return true;
@@ -80,7 +80,7 @@ class driverlog implements CommandExecutor, TabCompleter {
     public void startlog(CommandSender sender, utsvehicle lv, String timestamp) throws IOException {
         create(lv, timestamp);
         logging(sender, lv, timestamp);
-        generalMsg(sender, ChatColor.GREEN, getlang("driverlog_on") + ChatColor.GRAY + " (" + lv.getTrain().getProperties().getTrainName() + ")");
+        generalMsg(sender, ChatColor.GREEN, getLang("driverlog_on") + ChatColor.GRAY + " (" + lv.getTrain().getProperties().getTrainName() + ")");
     }
 
     public void logging(CommandSender sender, utsvehicle lv, String timestamp) {
@@ -94,12 +94,12 @@ class driverlog implements CommandExecutor, TabCompleter {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> logging(sender, lv, timestamp), tickdelay);
             } catch (Exception e) {
                 lv.setBeinglogged(false);
-                generalMsg(sender, ChatColor.RED, getlang("driverlog_off") + ChatColor.GRAY + " (" + lv.getTrain().getProperties().getTrainName() + ")");
+                generalMsg(sender, ChatColor.RED, getLang("driverlog_off") + ChatColor.GRAY + " (" + lv.getTrain().getProperties().getTrainName() + ")");
                 throw new RuntimeException(e);
             }
         } else {
             lv.setBeinglogged(false);
-            generalMsg(sender, ChatColor.RED, getlang("driverlog_off") + ChatColor.GRAY + " (" + lv.getTrain().getProperties().getTrainName() + ")");
+            generalMsg(sender, ChatColor.RED, getLang("driverlog_off") + ChatColor.GRAY + " (" + lv.getTrain().getProperties().getTrainName() + ")");
         }
     }
 

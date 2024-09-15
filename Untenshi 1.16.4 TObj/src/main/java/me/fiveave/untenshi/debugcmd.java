@@ -15,7 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static me.fiveave.untenshi.cmds.*;
-import static me.fiveave.untenshi.main.getlang;
+import static me.fiveave.untenshi.main.getLang;
 import static me.fiveave.untenshi.main.vehicle;
 
 class debugcmd implements CommandExecutor, TabCompleter {
@@ -96,7 +96,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                                         retstr = lv.getLd().getP().getName();
                                         break;
                                     default:
-                                        generalMsg(sender, ChatColor.RED, getlang("argwrong"));
+                                        generalMsg(sender, ChatColor.RED, getLang("argwrong"));
                                         break;
                                 }
                                 generalMsg(sender, ChatColor.GRAY, args[0] + ": " + ChatColor.YELLOW + args[2].toLowerCase() + ChatColor.WHITE + " = " + ChatColor.GREEN + retstr);
@@ -159,22 +159,22 @@ class debugcmd implements CommandExecutor, TabCompleter {
                                                 lv.setAtspnear(Boolean.parseBoolean(args[3]));
                                                 break;
                                             default:
-                                                generalMsg(sender, ChatColor.RED, getlang("argwrong"));
+                                                generalMsg(sender, ChatColor.RED, getLang("argwrong"));
                                                 break;
                                         }
                                     } catch (Exception e) {
-                                        generalMsg(sender, ChatColor.RED, getlang("argwrong"));
+                                        generalMsg(sender, ChatColor.RED, getLang("argwrong"));
                                     }
                                 } else {
-                                    generalMsg(sender, ChatColor.RED, getlang("argwrong"));
+                                    generalMsg(sender, ChatColor.RED, getLang("argwrong"));
                                 }
                         }
                     }
                 } else {
-                    generalMsg(sender, ChatColor.RED, getlang("argwrong"));
+                    generalMsg(sender, ChatColor.RED, getLang("argwrong"));
                 }
             } else {
-                generalMsg(sender, ChatColor.RESET, getlang("playeronlycmd"));
+                generalMsg(sender, ChatColor.RESET, getLang("playeronlycmd"));
             }
         } catch (Exception e) {
             e.printStackTrace();

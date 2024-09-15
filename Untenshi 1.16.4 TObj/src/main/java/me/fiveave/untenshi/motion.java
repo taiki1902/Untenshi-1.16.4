@@ -12,7 +12,7 @@ import org.bukkit.block.Sign;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-import static me.fiveave.untenshi.ato.atosys;
+import static me.fiveave.untenshi.ato.atoSys;
 import static me.fiveave.untenshi.ato.openDoorProcedure;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.events.trainSound;
@@ -30,10 +30,10 @@ class motion {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClockLv(lv), tickdelay);
             } catch (Exception e) {
                 e.printStackTrace();
-                restoreinitlv(lv);
+                restoreInitLv(lv);
             }
         } else {
-            restoreinitlv(lv);
+            restoreInitLv(lv);
         }
     }
 
@@ -44,14 +44,14 @@ class motion {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClockLd(ld), tickdelay);
             } catch (Exception e) {
                 e.printStackTrace();
-                restoreinitld(ld);
+                restoreInitLd(ld);
             }
         } else if (!ld.getP().isInsideVehicle() && !ld.isFrozen()) {
-            restoreinitld(ld);
+            restoreInitLd(ld);
         } else if (ld.isFrozen()) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClockLd(ld), tickdelay);
         } else {
-            restoreinitld(ld);
+            restoreInitLd(ld);
         }
     }
 
@@ -74,19 +74,19 @@ class motion {
         df0.setRoundingMode(RoundingMode.HALF_EVEN);
         // Set real current
         if (ecbtarget < currentnow) {
-            lv.setCurrent((currentnow - ecbtarget) > 40 / 3.0 * tickdelay ? currentnow - 40 / 3.0 * tickdelay : ecbtarget);
-            if (currentnow - 40 / 3.0 < 0 && currentnow - 40 / 3.0 > ecbtarget) {
+            lv.setCurrent((currentnow - ecbtarget) > currentpertick ? currentnow - currentpertick : ecbtarget);
+            if (currentnow - currentpertick < 0 && currentnow - currentpertick > ecbtarget) {
                 trainSound(lv, "brake_apply");
             }
-            if (currentnow > 0 && currentnow - 40 / 3.0 > 0) {
+            if (currentnow > 0 && currentnow - currentpertick > 0) {
                 trainSound(lv, "accel_off");
             }
         } else if (ecbtarget > currentnow) {
-            lv.setCurrent((ecbtarget - currentnow) > 40 / 3.0 * tickdelay ? currentnow + 40 / 3.0 * tickdelay : ecbtarget);
-            if (currentnow < 0 && currentnow + 40 / 3.0 < 0) {
+            lv.setCurrent((ecbtarget - currentnow) > currentpertick ? currentnow + currentpertick : ecbtarget);
+            if (currentnow < 0 && currentnow + currentpertick < 0) {
                 trainSound(lv, "brake_release");
             }
-            if (currentnow + 40 / 3.0 > 0 && currentnow + 40 / 3.0 < ecbtarget) {
+            if (currentnow + currentpertick > 0 && currentnow + currentpertick < ecbtarget) {
                 trainSound(lv, "accel_on");
             }
         }
@@ -142,7 +142,7 @@ class motion {
         // ATS-P or ATC
         safetySys(lv, mg, isoverspeed0, isoverspeed3);
         // ATO (Must be placed after actions)
-        atosys(lv, mg);
+        atoSys(lv, mg);
         // Stop position
         stopPos(lv, shock);
     }
@@ -166,11 +166,11 @@ class motion {
         }
         String displaySpeed = speedcolor + df0.format(ld.getLv().getSpeed());
         // Action bar
-        String actionbarmsg = getCtrltext(ld.getLv()) + ChatColor.WHITE + " | " + ChatColor.YELLOW + getlang("speed") + " " + displaySpeed + ChatColor.WHITE + " km/h" + " | " + ChatColor.YELLOW + getlang("points") + " " + ChatColor.WHITE + ld.getPoints() + " | " + ChatColor.YELLOW + getlang("door") + " " + doortxt;
+        String actionbarmsg = getCtrlText(ld.getLv()) + ChatColor.WHITE + " | " + ChatColor.YELLOW + getLang("speed") + " " + displaySpeed + ChatColor.WHITE + " km/h" + " | " + ChatColor.YELLOW + getLang("points") + " " + ChatColor.WHITE + ld.getPoints() + " | " + ChatColor.YELLOW + getLang("door") + " " + doortxt;
         ld.getP().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbarmsg));
         // Catch point <= 0 and end game
         if (noFreemodeOrATO(ld) && ld.getPoints() <= 0) {
-            ebUntilRestoreInit(ld, getlang("nopoints"));
+            ebUntilRestoreInit(ld, getLang("nopoints"));
         }
     }
 
@@ -298,7 +298,7 @@ class motion {
         }
     }
 
-    private static String getCtrltext(utsvehicle lv) {
+    private static String getCtrlText(utsvehicle lv) {
         String ctrltext = "";
         if (lv.getMascon() == -9) {
             ctrltext = ChatColor.DARK_RED + "EB";
@@ -354,15 +354,15 @@ class motion {
                 lv.setFixstoppos(true);
                 lv.setStaaccel(false);
                 if (noFreemodeOrATO(lv.getLd())) {
-                    pointCounter(lv.getLd(), ChatColor.YELLOW, getlang("stoppos_over") + " ", Math.toIntExact(-Math.round(stopdist)), shock);
+                    pointCounter(lv.getLd(), ChatColor.YELLOW, getLang("stoppos_over") + " ", Math.toIntExact(-Math.round(stopdist)), shock);
                 } else {
-                    generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("stoppos_over") + " " + ChatColor.RED + Math.round(stopdist) + " m" + shock);
+                    generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("stoppos_over") + " " + ChatColor.RED + Math.round(stopdist) + " m" + shock);
                 }
             }
             // Cho-heta-dane!
             else if (stopdist >= 50 && lv.isOverrun()) {
                 if (noFreemodeOrATO(lv.getLd())) {
-                    ebUntilRestoreInit(lv.getLd(), getlang("stoppos_seriousover"));
+                    ebUntilRestoreInit(lv.getLd(), getLang("stoppos_seriousover"));
                 } else {
                     lv.setReqstopping(false);
                     lv.setOverrun(false);
@@ -379,7 +379,7 @@ class motion {
             ld.getLv().setAtsforced(2);
             ld.getLv().setMascon(-9);
             if (ld.getLv().getSpeed() == 0) {
-                restoreinitld(ld);
+                restoreInitLd(ld);
             }
         }
     }
@@ -402,7 +402,7 @@ class motion {
     private static String doorText(utsvehicle lv) {
         // Door text
         String tolangtxt = lv.isDoorconfirm() ? "ed" : "ing";
-        return lv.isDoordiropen() ? (lv.getAtostoptime() != -1 ? ChatColor.GOLD + "..." + lv.getAtostoptime() : ChatColor.GREEN + getlang("door_open" + tolangtxt)) : ChatColor.RED + getlang("door_clos" + tolangtxt);
+        return lv.isDoordiropen() ? (lv.getAtostoptime() != -1 ? ChatColor.GOLD + "..." + lv.getAtostoptime() : ChatColor.GREEN + getLang("door_open" + tolangtxt)) : ChatColor.RED + getLang("door_clos" + tolangtxt);
     }
 
     private static void catchSignalUpdate(utsvehicle lv) {
@@ -421,8 +421,8 @@ class motion {
                     lv.setLastsisign(null);
                     lv.setLastsisp(maxspeed);
                 }
-                String speedlimittxt = warnsp >= maxspeed ? getlang("speedlimit_del") : warnsp + " km/h";
-                generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("signal_change") + " " + signalmsg + ChatColor.GRAY + " " + speedlimittxt);
+                String speedlimittxt = warnsp >= maxspeed ? getLang("speedlimit_del") : warnsp + " km/h";
+                generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("signal_change") + " " + signalmsg + ChatColor.GRAY + " " + speedlimittxt);
             }
         }
     }
@@ -450,19 +450,19 @@ class motion {
             lv.setAtsping(2);
             lv.setAtsforced(-1);
             lv.setMascon(-9);
-            generalMsg(lv.getLd(), ChatColor.RED, getlang("tcblocking"));
+            generalMsg(lv.getLd(), ChatColor.RED, getLang("tcblocking"));
         }
         if (lv.getAtsforced() == -1 && lv.getAtsping() > 0 && lv.getMascon() == -9) {
             lv.setSpeed(Math.max(lv.getSpeed() - ebdecel / ticksin1s * 45 / 7, 0));
         }
         // If no obstacle need braking in 2s then release
-        if (lv.getAtsforced() == -1 && !mg.isObstacleAhead(mg.getProperties().getWaitDistance() + getThinkingDistance(lv, 8, 0, lv.getSpeed(), lowerSpeed, decel, slopeaccel) * 2, true, true)) {
+        if (lv.getAtsforced() == -1 && !mg.isObstacleAhead(mg.getProperties().getWaitDistance() + getThinkingDistance(lv, lv.getSpeed(), lowerSpeed, decel, 8, slopeaccel, 0) * 2, true, true)) {
             lv.setAtsforced(0);
         }
         // Find either signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
         if (lv.getLastsisign() != null && lv.getLastsisp() != maxspeed) {
             int[] getSiOffset = getSignToRailOffset(lv.getLastsisign(), mg.getWorld());
-            Location siLocForSlope = new Location(mg.getWorld(), lv.getLastsisign().getX() + getSiOffset[0], lv.getLastsisign().getY() + getSiOffset[1] + cartYPosDiff, lv.getLastsisign().getZ() + getSiOffset[2]);
+            Location siLocForSlope = new Location(mg.getWorld(), lv.getLastsisign().getX() + getSiOffset[0], lv.getLastsisign().getY() + getSiOffset[1] + cartyposdiff, lv.getLastsisign().getZ() + getSiOffset[2]);
             slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
             reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, true, 0);
             signaldist = distFormula(lv.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), lv.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
@@ -470,7 +470,7 @@ class motion {
         }
         if (lv.getLastspsign() != null && lv.getLastspsp() != maxspeed) {
             int[] getSpOffset = getSignToRailOffset(lv.getLastspsign(), mg.getWorld());
-            Location spLocForSlope = new Location(mg.getWorld(), lv.getLastspsign().getX() + getSpOffset[0], lv.getLastspsign().getY() + getSpOffset[1] + cartYPosDiff, lv.getLastspsign().getZ() + getSpOffset[2]);
+            Location spLocForSlope = new Location(mg.getWorld(), lv.getLastspsign().getX() + getSpOffset[0], lv.getLastspsign().getY() + getSpOffset[1] + cartyposdiff, lv.getLastspsign().getZ() + getSpOffset[2]);
             slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
             reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, true, 0);
             speeddist = distFormula(lv.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), lv.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
@@ -497,9 +497,9 @@ class motion {
         double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
         // Find minimum brake needed (default 10: even EB cannot brake in time)
         int reqbrake = 10;
-        for (int b = 8; b >= 0; b--) {
+        for (int b = 9; b >= 0; b--) {
             if (tempdist >= reqdist[b]) {
-                reqbrake = b + 1;
+                reqbrake = b;
             }
         }
         // Pattern run
@@ -508,11 +508,11 @@ class motion {
             if (reqbrake > 9 || lv.getSignallimit() == 0) {
                 lv.setMascon(-9);
                 lv.setAtsping(2);
-                pointCounter(lv.getLd(), ChatColor.RED, lv.getSafetysystype().toUpperCase() + " " + getlang("p_eb") + " ", -5, "");
+                pointCounter(lv.getLd(), ChatColor.RED, lv.getSafetysystype().toUpperCase() + " " + getLang("p_eb") + " ", -5, "");
             } else {
                 lv.setMascon(-8);
                 lv.setAtsping(1);
-                pointCounter(lv.getLd(), ChatColor.RED, lv.getSafetysystype().toUpperCase() + " " + getlang("p_b8") + " ", -5, "");
+                pointCounter(lv.getLd(), ChatColor.RED, lv.getSafetysystype().toUpperCase() + " " + getLang("p_b8") + " ", -5, "");
             }
         } else if (lv.getSpeed() <= lowerSpeed + 3 && !isoverspeed0 && !isoverspeed3 && lv.getAtsforced() != 2 && lv.getAtsforced() != -1) {
             lv.setAtsping(0);
@@ -520,7 +520,7 @@ class motion {
         // Pattern near
         boolean pnear = (tempdist < reqdist[8] + speed1s(lv) * 5 && lv.getSpeed() > lowerSpeed) || isoverspeed0;
         if (!lv.isAtspnear() && pnear) {
-            generalMsg(lv.getLd(), ChatColor.GOLD, lv.getSafetysystype().toUpperCase() + " " + getlang("p_near"));
+            generalMsg(lv.getLd(), ChatColor.GOLD, lv.getSafetysystype().toUpperCase() + " " + getLang("p_near"));
         }
         lv.setAtspnear(pnear);
     }
@@ -531,26 +531,24 @@ class motion {
         }
     }
 
-    static double getSingleReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, int rate, double slopeaccel, boolean hasthinkingdist, double extra) {
+    static double getSingleReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, int a, double slopeaccel, boolean hasthinkingdist, double extra) {
         double decel = lv.getDecel();
         double ebdecel = lv.getEbdecel();
         int[] speedsteps = lv.getSpeedsteps();
-        if (rate == 9) {
+        if (a == 9) {
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel);
-            // Consider normal case or else EB will be too common (decelfr = 7 because no multiplier)
-            // Need minimum is 0 or else there may be negative value
-            double brakeInitDistance = getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(ebdecel, upperSpeed, afterBrakeInitSpeed, 7, speedsteps), slopeaccel, speeddrop);
+            // rate = 7 because no multiplier for avgRangeDecel
+            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel, 0);
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(ebdecel, afterBrakeInitSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
-            return brakeInitDistance + afterInitDistance + (hasthinkingdist ? getThinkingDistance(lv, 9, extra, upperSpeed, lowerSpeed, ebdecel, slopeaccel) : 0);
-        } else if (rate == 0) {
+            return brakeInitDistance + afterInitDistance + (hasthinkingdist ? getThinkingDistance(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel, extra) : 0);
+        } else if (a == 0) {
             // Get speed drop distance
             return getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
         } else {
-            double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, decel, rate, slopeaccel);
-            // Need minimum is 0 or else there may be negative value
-            double brakeInitDistance = getReqdist(upperSpeed, afterBrakeInitSpeed, avgRangeDecel(decel, upperSpeed, afterBrakeInitSpeed, rate + 1, speedsteps), slopeaccel, speeddrop);
-            double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, rate + 1, speedsteps), slopeaccel, speeddrop);
-            return brakeInitDistance + afterInitDistance + (hasthinkingdist ? getThinkingDistance(lv, rate, extra, upperSpeed, lowerSpeed, decel, slopeaccel) : 0);
+            double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel);
+            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel, 0);
+            double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
+            return brakeInitDistance + afterInitDistance + (hasthinkingdist ? getThinkingDistance(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel, extra) : 0);
         }
     }
 
@@ -558,20 +556,34 @@ class motion {
         return Math.max((Math.pow(upperSpeed + Math.max(slopeaccel - decel, 0), 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop)), 0);
     }
 
-    static double getSpeedAfterBrakeInit(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int a, double slopeaccel) {
+    static double getSpeedAfterBrakeInit(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetRate, double slopeaccel) {
         double speed = upperSpeed;
         // Anti out-of-range causing GIGO
         double current = Math.min(0, lv.getCurrent());
-        while (current > getCurrentFromNotch(-a) && speed > lowerSpeed) {
-            double thisdecel = (globalDecel(decel, speed, -getNotchFromCurrent(current) + 1, lv.getSpeedsteps()) - slopeaccel) / ticksin1s;
-            if (speed - thisdecel >= lowerSpeed) {
-                speed -= thisdecel;
-                current -= 40 / 3.0 * tickdelay;
-            } else {
-                break;
-            }
+        double targetcurrent = getCurrentFromNotch(-targetRate);
+        if (upperSpeed > lowerSpeed && current > targetcurrent) {
+            AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, lowerSpeed, decel, targetRate, slopeaccel, current, targetcurrent);
+            speed -= result.avgdecel * result.t; // result
         }
         return speed;
+    }
+
+    static double getThinkingDistance(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetRate, double slopeaccel, double extra) {
+        // Prevent unable to accel just because near next target, but no need to brake or to neutral
+        if (upperSpeed > lowerSpeed) {
+            // Anti out-of-range causing GIGO
+            double current = Math.min(0, lv.getCurrent());
+            double targetcurrent = getCurrentFromNotch(-targetRate);
+            double sumdist = 0;
+            if (current > targetcurrent) {
+                AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, lowerSpeed, decel, targetRate, slopeaccel, current, targetcurrent);
+                sumdist = (upperSpeed * result.t - result.avgdecel * Math.pow(result.t, 2) / 2) / 3.6; // get distance from basic decel distance formula
+            }
+            return sumdist + upperSpeed / 3.6 * extra;
+        } else {
+            // Thinking distance not required
+            return 0;
+        }
     }
 
     static double getSpeedAfterPotentialAccel(utsvehicle lv, double currentSpeed, double slopeaccel) {
@@ -582,7 +594,7 @@ class motion {
         while (current > 0) {
             double thisaccel = (accelSwitch(lv, speed, (int) (getNotchFromCurrent(current))) + slopeaccel) / ticksin1s;
             speed += thisaccel;
-            current -= 40 / 3.0 * tickdelay;
+            current -= currentpertick;
         }
         return speed;
     }
@@ -593,29 +605,6 @@ class motion {
 
     static double getNotchFromCurrent(double current) {
         return current * 9 / 480;
-    }
-
-    static double getThinkingDistance(utsvehicle lv, int a, double extra, double upperSpeed, double lowerSpeed, double decel, double slopeaccel) {
-        // Prevent unable to accel just because near next target, but no need to brake or to neutral
-        if (upperSpeed > lowerSpeed) {
-            double speed = upperSpeed;
-            // Anti out-of-range causing GIGO
-            double current = Math.min(0, lv.getCurrent());
-            double sumdist = 0;
-            while (current > getCurrentFromNotch(-a) && speed > lowerSpeed) {
-                double thisdecel = (globalDecel(decel, speed, -getNotchFromCurrent(current) + 1, lv.getSpeedsteps()) - slopeaccel) / ticksin1s;
-                if (speed - thisdecel >= lowerSpeed) {
-                    speed -= thisdecel;
-                    sumdist += speed / 3.6 / ticksin1s;
-                    current -= 40 / 3.0 * tickdelay;
-                } else {
-                    break;
-                }
-            }
-            return sumdist + upperSpeed / 3.6 * extra;
-        } else {
-            return 0;
-        }
     }
 
     static double speed1s(utsvehicle lv) {
@@ -640,7 +629,7 @@ class motion {
                 s = " " + ChatColor.GREEN + "+" + pts + " ";
                 ld.setPoints(lv.getLd().getPoints() + pts);
             }
-            generalMsg(ld.getP(), ChatColor.YELLOW, getlang(stopposeval) + s + ChatColor.GRAY + stopdistcm + " cm" + shock);
+            generalMsg(ld.getP(), ChatColor.YELLOW, getLang(stopposeval) + s + ChatColor.GRAY + stopdistcm + " cm" + shock);
         }
     }
 
@@ -698,16 +687,16 @@ class motion {
 
     static double avgRangeDecel(double decel, double upperspd, double lowerspd, double rate, int[] speedsteps) {
         double alpha = globalDecel(decel, upperspd, rate, speedsteps); // first term of geometric decel sequence, or current decel
-        if (upperspd > speedsteps[0]) {
+        if (upperspd > lowerspd && upperspd > speedsteps[0]) {
             double k = decel * rate / (490 * (speedsteps[5] - speedsteps[0])) + 1; // result of da/dt / 20 + 1, or result of dividing decel of this tick to last tick
             double varlower = Math.max(lowerspd, speedsteps[0]); // lower end speed in variable range in decel graph
-            double x = Math.max(0, Math.log(-20 * (k - 1) * (varlower - upperspd) / alpha + 1) / Math.log(k)); // no. of ticks to lowerspeed / speedsteps[0]
+            double x = Math.max(0, Math.log(20 * (k - 1) * (upperspd - varlower) / alpha + 1) / Math.log(k)); // no. of ticks to lowerspeed / speedsteps[0]
             double sumdistvar = ((upperspd * x) - (alpha * (Math.pow(k, x) - 1 - x * (k - 1))) / (20 * Math.pow(k - 1, 2))) / 72; // braking distance in variable range
             double beta = globalDecel(decel, speedsteps[0], rate, speedsteps); // decel in static range
             double staticupper = Math.min(upperspd, speedsteps[0]); // upper end speed in static range in decel graph
             double sumdiststatic = Math.max(0, (Math.pow(staticupper, 2) - Math.pow(lowerspd, 2)) / (7.2 * beta)); // braking distance in static range
             // Need minimum is 0 or else there may be negative value
-            return Math.max(0, upperspd - lowerspd > 0 ? (Math.pow(upperspd, 2) - Math.pow(lowerspd, 2)) / (7.2 * (sumdistvar + sumdiststatic)) : alpha);
+            return Math.max(0, (Math.pow(upperspd, 2) - Math.pow(lowerspd, 2)) / (7.2 * (sumdistvar + sumdiststatic)));
         } else {
             return alpha;
         }
@@ -715,5 +704,24 @@ class motion {
 
     static int minSpeedLimit(utsvehicle lv) {
         return Math.min(lv.getSpeedlimit(), lv.getSignallimit());
+    }
+
+    static AfterBrakeInitResult getAfterBrakeInitResult(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetRate, double slopeaccel, double current, double targetcurrent) {
+        double adjCurrentRate = -getNotchFromCurrent(current) + current < 0 ? 1 : 0; // adjustment from pure notch to adjusted rate
+        double avgrate = (adjCurrentRate + (targetRate + 1)) / 2; // adjustment from pure notch to adjusted rate, top-to-bottom average = total average
+        double avgdecel = avgRangeDecel(decel, upperSpeed, lowerSpeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel
+        // Time in s to brake init end, but to prevent over-estimation and negative deceleration values
+        double t = Math.min((current - targetcurrent) / currentpertick / ticksin1s, avgdecel > 0 ? (upperSpeed - lowerSpeed) / avgdecel : Double.MAX_VALUE);
+        return new AfterBrakeInitResult(avgdecel, t);
+    }
+
+    static class AfterBrakeInitResult {
+        public final double avgdecel;
+        public final double t;
+
+        public AfterBrakeInitResult(double avgdecel, double t) {
+            this.avgdecel = avgdecel;
+            this.t = t;
+        }
     }
 }

@@ -26,7 +26,8 @@ public final class main extends JavaPlugin implements Listener {
     static final int ticksin1s = 20;
     static final int tickdelay = 20 / ticksin1s;
     static final int maxspeed = 360;
-    static final double cartYPosDiff = 0.0625;
+    static final double cartyposdiff = 0.0625;
+    static final double currentpertick = 40 / 3.0 * tickdelay;
     public static main plugin;
     static HashMap<MinecartGroup, utsvehicle> vehicle = new HashMap<>();
     static HashMap<Player, utsdriver> driver = new HashMap<>();
@@ -43,7 +44,7 @@ public final class main extends JavaPlugin implements Listener {
     atosign sign4 = new atosign();
     utstrain sign5 = new utstrain();
 
-    static String getlang(String path) {
+    static String getLang(String path) {
         langdata.reloadConfig();
         String result;
         try {
@@ -56,7 +57,7 @@ public final class main extends JavaPlugin implements Listener {
 
     static boolean noSignPerm(SignChangeActionEvent e) {
         if (!e.getPlayer().hasPermission("uts.sign")) {
-            e.getPlayer().sendMessage(ChatColor.RED + getlang("noperm"));
+            e.getPlayer().sendMessage(ChatColor.RED + getLang("noperm"));
             e.setCancelled(true);
             return true;
         }
@@ -76,10 +77,10 @@ public final class main extends JavaPlugin implements Listener {
 
 
     static String getSpeedMax() {
-        return ChatColor.RED + getlang("speedmax");
+        return ChatColor.RED + getLang("speedmax");
     }
 
-    static void restoreinitld(utsdriver ld) {
+    static void restoreInitLd(utsdriver ld) {
         // Get train group and stop train and open doors
         if (ld.isPlaying()) {
             if (ld.getLv().getAtodest() == null || ld.getLv().getAtospeed() == -1) {
@@ -109,11 +110,11 @@ public final class main extends JavaPlugin implements Listener {
             } catch (Exception ignored) {
             }
             ld.setPlaying(false);
-            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("activate") + " " + ChatColor.RED + getlang("activate_off"));
+            generalMsg(ld.getP(), ChatColor.YELLOW, getLang("activate") + " " + ChatColor.RED + getLang("activate_off"));
         }
     }
 
-    static void restoreinitlv(utsvehicle lv) {
+    static void restoreInitLv(utsvehicle lv) {
         // Get train group and stop train and open doors
         try {
             MinecartGroup mg = lv.getTrain();
@@ -174,10 +175,10 @@ public final class main extends JavaPlugin implements Listener {
     public void onDisable() {
         // Plugin shutdown logic
         for (Player p : driver.keySet()) {
-            restoreinitld(driver.get(p));
+            restoreInitLd(driver.get(p));
         }
         for (MinecartGroup mg : vehicle.keySet()) {
-            restoreinitlv(vehicle.get(mg));
+            restoreInitLv(vehicle.get(mg));
         }
         SignAction.unregister(sign1);
         SignAction.unregister(sign2);

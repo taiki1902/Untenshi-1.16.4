@@ -69,7 +69,7 @@ class stoppos extends SignAction {
                     lv.setStopoutput(loc2);
                 }
                 lv.setReqstopping(true);
-                generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("stoppos_next"));
+                generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("stoppos_next"));
             }
         }
     }

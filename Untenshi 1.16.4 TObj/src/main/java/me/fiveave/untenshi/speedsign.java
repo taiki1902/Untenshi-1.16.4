@@ -69,7 +69,7 @@ class speedsign extends SignAction {
     }
 
     static void signImproper(SignActionEvent cartevent, utsdriver ld) {
-        String s = utshead + ChatColor.RED + getlang("signimproper") + " (" + cartevent.getLocation().getBlockX() + " " + cartevent.getLocation().getBlockY() + " " + cartevent.getLocation().getBlockZ() + ")";
+        String s = utshead + ChatColor.RED + getLang("signimproper") + " (" + cartevent.getLocation().getBlockX() + " " + cartevent.getLocation().getBlockY() + " " + cartevent.getLocation().getBlockZ() + ")";
         if (ld != null && ld.getP() != null) {
             ld.getP().sendMessage(s);
         }
@@ -115,10 +115,10 @@ class speedsign extends SignAction {
                             // ATC signal and speed limit min value
                             if (lv.getSafetysystype().equals("atc")) {
                                 intspeed = Math.min(lv.getSignallimit(), lv.getSpeedlimit());
-                                String temp = intspeed >= maxspeed ? getlang("speedlimit_del") : intspeed + " km/h";
-                                generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("signal_set") + " " + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + temp);
+                                String temp = intspeed >= maxspeed ? getLang("speedlimit_del") : intspeed + " km/h";
+                                generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("signal_set") + " " + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + temp);
                             } else {
-                                generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("speedlimit_set") + " " + (intspeed == maxspeed ? ChatColor.GREEN + getlang("speedlimit_del") : intspeed + " km/h"));
+                                generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("speedlimit_set") + " " + (intspeed == maxspeed ? ChatColor.GREEN + getLang("speedlimit_del") : intspeed + " km/h"));
                             }
                             if (parseInt(speedsign) != 0) {
                                 lv.setLastspsign(null);
@@ -143,9 +143,9 @@ class speedsign extends SignAction {
                                 // ATC signal and speed limit min value
                                 if (lv.getSafetysystype().equals("atc")) {
                                     warnsp = Math.min(Math.min(lv.getLastsisp(), lv.getLastspsp()), lv.getSignallimit());
-                                    generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("signal_warn") + " " + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + warnsp + " km/h");
+                                    generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("signal_warn") + " " + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + warnsp + " km/h");
                                 } else {
-                                    generalMsg(lv.getLd(), ChatColor.YELLOW, getlang("speedlimit_warn") + " " + warnsp + " km/h");
+                                    generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("speedlimit_warn") + " " + warnsp + " km/h");
                                 }
                             } else {
                                 signImproper(cartevent, lv.getLd());
@@ -175,7 +175,7 @@ class speedsign extends SignAction {
                     e.setCancelled(true);
                 }
                 if (intspeed <= 0 || Math.floorMod(intspeed, 5) != 0) {
-                    p.sendMessage(ChatColor.RED + getlang("argwrong"));
+                    p.sendMessage(ChatColor.RED + getLang("argwrong"));
                     e.setCancelled(true);
                 }
                 opt.setDescription("set speed limit for train");
@@ -188,7 +188,7 @@ class speedsign extends SignAction {
             }
             return opt.handle(e.getPlayer());
         } catch (Exception exception) {
-            p.sendMessage(ChatColor.RED + getlang("signimproper"));
+            p.sendMessage(ChatColor.RED + getLang("signimproper"));
             e.setCancelled(true);
         }
         return true;

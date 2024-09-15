@@ -36,7 +36,7 @@ class events implements Listener {
     static void toEB(utsvehicle lv) {
         if (lv.getLd() != null && noFreemodeOrATO(lv.getLd()) && lv.getMascon() != -9 && lv.getSpeed() > 20 && lv.getAtsforced() != 2 && lv.getAtsping() == 0) {
             // Misuse EB
-            pointCounter(lv.getLd(), ChatColor.YELLOW, getlang("eb_misuse") + " ", -5, "");
+            pointCounter(lv.getLd(), ChatColor.YELLOW, getLang("eb_misuse") + " ", -5, "");
         }
         lv.setMascon(-9);
         lv.setAtsforced(1);
@@ -51,13 +51,13 @@ class events implements Listener {
             if (lv.getAtodest() != null && lv.getAtospeed() != -1) {
                 lv.setAtodest(null);
                 lv.setAtospeed(-1);
-                generalMsg(ld.getP(), ChatColor.GOLD, getlang("ato_patterncancel"));
+                generalMsg(ld.getP(), ChatColor.GOLD, getLang("ato_patterncancel"));
             }
-            String dirtext = lv.getTrain().head().equals(lv.getDriverseat()) ? getlang("dir_front") : getlang("dir_back");
-            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sb_success") + ChatColor.GRAY + " (" + dirtext + " / " + getlang("dir_" + mg.head().getDirection().toString().toLowerCase()) + ")");
+            String dirtext = lv.getTrain().head().equals(lv.getDriverseat()) ? getLang("dir_front") : getLang("dir_back");
+            generalMsg(ld.getP(), ChatColor.YELLOW, getLang("sb_success") + ChatColor.GRAY + " (" + dirtext + " / " + getLang("dir_" + mg.head().getDirection().toString().toLowerCase()) + ")");
             trainSound(lv, "sblever");
         } else {
-            generalMsg(ld.getP(), ChatColor.YELLOW, getlang("sb_inmotion"));
+            generalMsg(ld.getP(), ChatColor.YELLOW, getLang("sb_inmotion"));
         }
     }
 
@@ -65,11 +65,11 @@ class events implements Listener {
         utsdriver ld = lv.getLd();
         if (open) {
             if (lv.getSpeed() > 0.0) {
-                generalMsg(ld, ChatColor.YELLOW, getlang("door_openinmotion"));
+                generalMsg(ld, ChatColor.YELLOW, getLang("door_openinmotion"));
                 return;
             }
             if (lv.isFixstoppos() || lv.isReqstopping()) {
-                generalMsg(ld, ChatColor.YELLOW, getlang("stoppos_reqfix"));
+                generalMsg(ld, ChatColor.YELLOW, getLang("stoppos_reqfix"));
                 return;
             }
             lv.setDoordiropen(true);
@@ -88,11 +88,11 @@ class events implements Listener {
             if (noFreemodeOrATO(ld)) {
                 // In station EB
                 if (lv.isStaeb()) {
-                    pointCounter(ld, ChatColor.YELLOW, getlang("eb_stop") + " ", -5, "");
+                    pointCounter(ld, ChatColor.YELLOW, getLang("eb_stop") + " ", -5, "");
                 }
                 // In station accel
                 if (lv.isStaaccel()) {
-                    pointCounter(ld, ChatColor.YELLOW, getlang("reaccel") + " ", -5, "");
+                    pointCounter(ld, ChatColor.YELLOW, getLang("reaccel") + " ", -5, "");
                 }
             }
             lv.setStaeb(false);
@@ -119,27 +119,27 @@ class events implements Listener {
     }
 
     static ItemStack upWand() {
-        return getItem(Material.STONE_AXE, ChatColor.RED, getlang("item_upwand"));
+        return getItem(Material.STONE_AXE, ChatColor.RED, getLang("item_upwand"));
     }
 
     protected static ItemStack nWand() {
-        return getItem(Material.IRON_AXE, ChatColor.YELLOW, getlang("item_nwand"));
+        return getItem(Material.IRON_AXE, ChatColor.YELLOW, getLang("item_nwand"));
     }
 
     protected static ItemStack downWand() {
-        return getItem(Material.DIAMOND_AXE, ChatColor.GREEN, getlang("item_downwand"));
+        return getItem(Material.DIAMOND_AXE, ChatColor.GREEN, getLang("item_downwand"));
     }
 
     protected static ItemStack doorButton() {
-        return getItem(Material.IRON_TRAPDOOR, ChatColor.GOLD, getlang("item_doorbutton"));
+        return getItem(Material.IRON_TRAPDOOR, ChatColor.GOLD, getLang("item_doorbutton"));
     }
 
     protected static ItemStack sbLever() {
-        return getItem(Material.LEVER, ChatColor.YELLOW, getlang("item_sblever"));
+        return getItem(Material.LEVER, ChatColor.YELLOW, getLang("item_sblever"));
     }
 
     protected static ItemStack ebButton() {
-        return getItem(Material.STONE_BUTTON, ChatColor.DARK_RED, getlang("item_ebbutton"));
+        return getItem(Material.STONE_BUTTON, ChatColor.DARK_RED, getLang("item_ebbutton"));
     }
 
     private static void downWandAction(utsvehicle lv) {
@@ -265,7 +265,7 @@ class events implements Listener {
                     toEB(lv);
                     lv.setCurrent(-480);
                     lv.setSpeed(0);
-                    pointCounter(ld, ChatColor.YELLOW, getlang("collidebuffer") + " ", -10, " " + sp + " km/h");
+                    pointCounter(ld, ChatColor.YELLOW, getLang("collidebuffer") + " ", -10, " " + sp + " km/h");
                 }
             }
         } catch (Exception ignored) {
@@ -331,7 +331,7 @@ class events implements Listener {
         initDriver(p);
         utsdriver ld = driver.get(p);
         if (ld.isPlaying()) {
-            restoreinitld(ld);
+            restoreInitLd(ld);
         }
     }
 }
