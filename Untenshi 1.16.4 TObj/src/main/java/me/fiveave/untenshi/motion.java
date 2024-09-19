@@ -724,4 +724,21 @@ class motion {
             this.t = t;
         }
     }
+
+    static double avgRangeAccel(utsvehicle lv, double accel, double lowerspd, double upperspd, int[] speedsteps) {
+        int rate = (int) getNotchFromCurrent(lv.getCurrent());
+        double middlespd = upperspd > speedsteps[rate - 1] ? speedsteps[rate - 1] : upperspd;
+        double alpha = accelSwitch(lv, lowerspd, rate); // first term of geometric decel sequence, or current decel
+        double k0 = -(accel * speedsteps[rate]) / (40 * Math.pow(speedsteps[5], 2)); // to be deducted by 1
+        // k1, k2 : result of da/dt / 20 + 1, or result of dividing accel of this tick to last tick
+        double k1; // For under range
+        double k2; // For over range
+        k1 = 1 - k0;
+        k2 = 1 - k0 * (2 * middlespd - 2 * speedsteps[5] - speedsteps[rate]) / (speedsteps[rate] - speedsteps[rate - 1]);
+
+        double x = Math.max(0, Math.log(20 * (k - 1) * (upperspd - lowerspd) / alpha + 1) / Math.log(k)); // no. of ticks to lowerspeed / speedsteps[0]
+        double sumdist = ((lowerspd * x) + (alpha * (Math.pow(k, x) - 1 + x * (k - 1))) / (20 * Math.pow(k - 1, 2))) / 72; // braking distance in variable range
+        // Need minimum is 0 or else there may be negative value
+        return Math.max(0, (Math.pow(upperspd, 2) - Math.pow(lowerspd, 2)) / (7.2 * sumdist));
+    }
 }
