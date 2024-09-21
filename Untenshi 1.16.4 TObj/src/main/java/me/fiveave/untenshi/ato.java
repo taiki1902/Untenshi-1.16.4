@@ -88,7 +88,7 @@ class ato {
                 finalmascon = 5;
             }
             // Require braking?
-            if (tempdist < reqdist[6]) {
+            if (tempdist < reqdist[6] + speed1s(lv) / ticksin1s) {
                 lv.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
