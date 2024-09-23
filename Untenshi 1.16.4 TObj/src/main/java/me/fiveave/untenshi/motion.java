@@ -191,10 +191,9 @@ class motion {
                                 // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
                                 int minno = Math.min(result2.halfptnlen - 1, Math.max(0, j - lv2.getRsoccupiedpos()));
                                 // Resettable sign signal of lv2 is supposed to be 0 km/h by resettable sign
-                                if (oldposlist[i].equals(location) && result2.ptnsisp[minno] == 0) {
-                                    if (i < furthestoccupied) {
-                                        furthestoccupied = i;
-                                    }
+                                if (oldposlist[i].equals(location) && i < furthestoccupied && result2.ptnsisp[minno] == 0) {
+                                    furthestoccupied = i;
+                                    break;
                                 }
                             }
                         }
@@ -206,10 +205,9 @@ class motion {
                         for (int i = oldposlist.length - 1; i >= 0; i--) {
                             for (Location location : il2posoccupied) {
                                 // Occupied by interlocking route
-                                if (oldposlist[i].equals(location)) {
-                                    if (i < furthestoccupied) {
-                                        furthestoccupied = i;
-                                    }
+                                if (oldposlist[i].equals(location) && i < furthestoccupied) {
+                                    furthestoccupied = i;
+                                    break;
                                 }
                             }
                         }
@@ -221,16 +219,15 @@ class motion {
                         // Find location for start of blocked section, -1 means none
                         int blocked = -1;
                         for (int i = 0; i < oldposlist.length; i++) {
-                            if (blocked == -1) {
-                                for (int j = 0; j < il2poslist.length - 1; j++) {
-                                    // Check for each location
-                                    if (oldposlist[i].equals(il2poslist[j])) {
-                                        blocked = i;
-                                        break;
-                                    }
-                                }
-                            } else {
+                            if (blocked != -1) {
                                 break;
+                            }
+                            for (int j = 0; j < il2poslist.length - 1; j++) {
+                                // Check for each location
+                                if (oldposlist[i].equals(il2poslist[j])) {
+                                    blocked = i;
+                                    break;
+                                }
                             }
                         }
                         if (blocked != -1) {
