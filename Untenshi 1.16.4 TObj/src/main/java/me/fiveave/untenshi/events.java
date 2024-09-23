@@ -22,7 +22,6 @@ import org.bukkit.event.vehicle.VehicleBlockCollisionEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.text.DecimalFormat;
 import java.util.Objects;
 
 import static me.fiveave.untenshi.ato.atoDepartCountdown;
@@ -259,13 +258,11 @@ class events implements Listener {
                 utsdriver ld = driver.get(p);
                 utsvehicle lv = ld.getLv();
                 if (lv != null && ld.isPlaying() && lv.getSpeed() != 0) {
-                    DecimalFormat df0 = new DecimalFormat("#");
                     double spd = lv.getSpeed();
-                    String sp = df0.format(spd);
                     toEB(lv);
                     lv.setCurrent(-480);
                     lv.setSpeed(0);
-                    pointCounter(ld, ChatColor.YELLOW, getLang("collidebuffer") + " ", -10, " " + sp + " km/h");
+                    pointCounter(ld, ChatColor.YELLOW, getLang("collidebuffer") + " ", -10, " " + String.format("%.0f km/h", spd));
                 }
             }
         } catch (Exception ignored) {

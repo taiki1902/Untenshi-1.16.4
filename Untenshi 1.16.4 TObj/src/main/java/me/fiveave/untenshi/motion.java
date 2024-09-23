@@ -64,14 +64,13 @@ class motion {
         TrainProperties tprop = mg.getProperties();
         // Rounding
         DecimalFormat df3 = new DecimalFormat("#.###");
-        DecimalFormat df2 = new DecimalFormat("#.##");
         DecimalFormat df0 = new DecimalFormat("#");
+        df3.setRoundingMode(RoundingMode.CEILING);
         df0.setRoundingMode(RoundingMode.UP);
         // Electric current brake
         double currentnow = lv.getCurrent();
         // Set current for current mascon
         double ecbtarget = Integer.parseInt(df0.format(getCurrentFromNotch(lv.getMascon())));
-        df0.setRoundingMode(RoundingMode.HALF_EVEN);
         // Set real current
         if (ecbtarget < currentnow) {
             lv.setCurrent((currentnow - ecbtarget) > currentpertick ? currentnow - currentpertick : ecbtarget);
@@ -116,11 +115,10 @@ class motion {
         if (lv.getSpeed() < 0) {
             lv.setSpeed(0.0);
         }
-        df3.setRoundingMode(RoundingMode.CEILING);
         // Cancel TC motion-related sign actions
         if (!stationstop) mg.getActions().clear();
         // Shock when stopping
-        String shock = lv.getSpeed() == 0 && lv.getSpeed() < oldspeed ? " " + ChatColor.GRAY + df2.format(stopdecel) + " km/h/s" : "";
+        String shock = lv.getSpeed() == 0 && lv.getSpeed() < oldspeed ? " " + ChatColor.GRAY + String.format("%.2f km/h/s", stopdecel): "";
         // Combine properties and action bar
         double blockpertick = 0;
         try {
@@ -149,10 +147,8 @@ class motion {
 
     static void driverSystem(utsdriver ld) {
         // Rounding
-        DecimalFormat df3 = new DecimalFormat("#.###");
         DecimalFormat df0 = new DecimalFormat("#");
         df0.setRoundingMode(RoundingMode.HALF_EVEN);
-        df3.setRoundingMode(RoundingMode.CEILING);
         // Combine properties and action bar
         String doortxt = doorText(ld.getLv());
         // Display speed
@@ -300,14 +296,15 @@ class motion {
 
     private static String getCtrlText(utsvehicle lv) {
         String ctrltext = "";
-        if (lv.getMascon() == -9) {
+        int mascon = lv.getMascon();
+        if (mascon == -9) {
             ctrltext = ChatColor.DARK_RED + "EB";
-        } else if (lv.getMascon() >= -8 && lv.getMascon() <= -1) {
-            ctrltext = ChatColor.RED + "B" + -lv.getMascon();
-        } else if (lv.getMascon() == 0) {
+        } else if (mascon <= -1) {
+            ctrltext = ChatColor.RED + "B" + -mascon;
+        } else if (mascon == 0) {
             ctrltext = ChatColor.WHITE + "N";
-        } else if (lv.getMascon() >= 1 && lv.getMascon() <= 5) {
-            ctrltext = ChatColor.GREEN + "P" + lv.getMascon();
+        } else if (mascon <= 5) {
+            ctrltext = ChatColor.GREEN + "P" + mascon;
         }
         return ctrltext;
     }
