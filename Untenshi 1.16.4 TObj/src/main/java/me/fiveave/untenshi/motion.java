@@ -118,7 +118,7 @@ class motion {
         // Cancel TC motion-related sign actions
         if (!stationstop) mg.getActions().clear();
         // Shock when stopping
-        String shock = lv.getSpeed() == 0 && lv.getSpeed() < oldspeed ? " " + ChatColor.GRAY + String.format("%.2f km/h/s", stopdecel): "";
+        String shock = lv.getSpeed() == 0 && lv.getSpeed() < oldspeed ? " " + ChatColor.GRAY + String.format("%.2f km/h/s", stopdecel) : "";
         // Combine properties and action bar
         double blockpertick = 0;
         try {
