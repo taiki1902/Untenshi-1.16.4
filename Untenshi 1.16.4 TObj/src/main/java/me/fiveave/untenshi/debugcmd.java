@@ -1,6 +1,5 @@
 package me.fiveave.untenshi;
 
-import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
 import com.bergerkiller.bukkit.tc.properties.TrainProperties;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -187,11 +186,11 @@ class debugcmd implements CommandExecutor, TabCompleter {
         List<String> ta = new ArrayList<>();
         List<String> result = new ArrayList<>();
         List<String> vehiclelist = new ArrayList<>();
-        for (MinecartGroup mg : vehicle.keySet()) {
+        vehicle.keySet().forEach((mg) -> {
             if (!mg.isUnloaded()) {
                 vehiclelist.add(mg.getProperties().getTrainName());
             }
-        }
+        });
         switch (args.length) {
             case 1:
                 ta.addAll(vehiclelist);
@@ -203,11 +202,11 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 ta.addAll(Arrays.asList("speed", "mascon", "speedlimit", "signallimit", "atospeed", "atodest", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld"));
                 break;
         }
-        for (String a : ta) {
+        ta.forEach((a) -> {
             if (a.toLowerCase().startsWith(args[args.length - 1].toLowerCase())) {
                 result.add(a);
             }
-        }
+        });
         return result;
     }
 

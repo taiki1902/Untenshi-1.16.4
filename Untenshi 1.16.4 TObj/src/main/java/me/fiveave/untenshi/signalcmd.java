@@ -206,11 +206,11 @@ class signalcmd implements CommandExecutor, TabCompleter {
         } else {
             ta.add("");
         }
-        for (String a : ta) {
+        ta.forEach((a) -> {
             if (a.toLowerCase().startsWith(args[args.length - 1].toLowerCase())) {
                 result.add(a);
             }
-        }
+        });
         return result;
     }
 }

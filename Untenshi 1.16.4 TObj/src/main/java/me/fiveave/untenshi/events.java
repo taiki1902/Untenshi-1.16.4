@@ -253,7 +253,7 @@ class events implements Listener {
     void collision(VehicleBlockCollisionEvent event) {
         try {
             MinecartGroup mg = MinecartGroupStore.get(event.getVehicle());
-            for (String s : mg.getProperties().getOwners()) {
+            mg.getProperties().getOwners().forEach((s) -> {
                 Player p = Bukkit.getPlayer(s);
                 utsdriver ld = driver.get(p);
                 utsvehicle lv = ld.getLv();
@@ -264,7 +264,7 @@ class events implements Listener {
                     lv.setSpeed(0);
                     pointCounter(ld, ChatColor.YELLOW, getLang("collidebuffer") + " ", -10, " " + String.format("%.0f km/h", spd));
                 }
-            }
+            });
         } catch (Exception ignored) {
         }
     }

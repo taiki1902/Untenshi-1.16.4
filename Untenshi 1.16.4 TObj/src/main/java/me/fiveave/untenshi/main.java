@@ -148,9 +148,7 @@ public final class main extends JavaPlugin implements Listener {
         plugin = this;
         // If langdata not init twice will cause UTF-8 characters not formatted properly
         config = new abstractfile(this, "config.yml");
-        for (String s : Arrays.asList("en_US", "zh_TW", "JP", plugin.getConfig().getString("lang"))) {
-            langdata = new abstractfile(this, "lang_" + s + ".yml");
-        }
+        Arrays.asList("en_US", "zh_TW", "JP", plugin.getConfig().getString("lang")).forEach(s -> langdata = new abstractfile(this, "lang_" + s + ".yml"));
         traindata = new abstractfile(this, "traindata.yml");
         playerdata = new abstractfile(this, "playerdata.yml");
         signalorder = new abstractfile(this, "signalorder.yml");
@@ -174,12 +172,8 @@ public final class main extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        for (Player p : driver.keySet()) {
-            restoreInitLd(driver.get(p));
-        }
-        for (MinecartGroup mg : vehicle.keySet()) {
-            restoreInitLv(vehicle.get(mg));
-        }
+        driver.keySet().forEach((p) -> restoreInitLd(driver.get(p)));
+        vehicle.keySet().forEach((mg) -> restoreInitLv(vehicle.get(mg)));
         SignAction.unregister(sign1);
         SignAction.unregister(sign2);
         SignAction.unregister(sign3);

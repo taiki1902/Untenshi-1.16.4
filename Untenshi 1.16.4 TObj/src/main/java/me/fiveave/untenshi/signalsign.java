@@ -130,7 +130,7 @@ class signalsign extends SignAction {
     }
 
     static void deleteOthersResettablesign(utsvehicle lv, Location currentloc) {
-        for (MinecartGroup mg2 : vehicle.keySet()) {
+        vehicle.keySet().forEach((mg2) -> {
             initVehicle(mg2);
             utsvehicle lv2 = vehicle.get(mg2);
             if (lv2.getRsposlist() != null && lv2 != lv) {
@@ -145,7 +145,7 @@ class signalsign extends SignAction {
                 }
                 lv2.setRsposlist(newloc);
             }
-        }
+        });
     }
 
     boolean checkType(SignActionEvent e) {

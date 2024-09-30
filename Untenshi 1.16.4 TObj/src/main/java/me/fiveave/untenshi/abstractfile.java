@@ -49,13 +49,13 @@ class abstractfile {
                 // Add back defaults
                 dataconfig.addDefaults(defaultConfig);
                 // Put new data config to default values
-                for (String str : setstr) {
+                setstr.forEach((str) -> {
                     if (!Objects.equals(oldconfig.get(str), dataconfig.get(str))) {
                         if (oldconfig.get(str) != null) {
                             dataconfig.set(str, oldconfig.get(str));
                         }
                     }
-                }
+                });
                 // Save file
                 plugin.saveResource(file.getName(), true);
                 try {

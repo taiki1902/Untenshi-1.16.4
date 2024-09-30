@@ -371,11 +371,11 @@ class cmds implements CommandExecutor, TabCompleter {
         int arglength = args.length;
         if (arglength == 1) {
             ta.addAll(Arrays.asList("help", "activate", "ac", "switchends", "se", "freemode", "reload", "pa", "allowato"));
-            for (String a : ta) {
+            ta.forEach((a) -> {
                 if (a.toLowerCase().startsWith(args[0].toLowerCase())) {
                     result.add(a);
                 }
-            }
+            });
             return result;
         } else if (arglength == 2) {
             switch (args[0].toLowerCase()) {
@@ -391,11 +391,11 @@ class cmds implements CommandExecutor, TabCompleter {
                     ta.add("");
                     break;
             }
-            for (String a : ta) {
+            ta.forEach((a) -> {
                 if (a.toLowerCase().startsWith(args[1].toLowerCase())) {
                     result.add(a);
                 }
-            }
+            });
             return result;
             // Stop spamming player names
         } else if (arglength > 2) {
