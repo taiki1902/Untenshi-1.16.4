@@ -577,7 +577,8 @@ class motion {
                 AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, lowerSpeed, decel, targetRate, slopeaccel, current, targetcurrent);
                 sumdist = (upperSpeed * result.t - result.avgdecel * Math.pow(result.t, 2) / 2) / 3.6; // get distance from basic decel distance formula
             }
-            return sumdist + upperSpeed / 3.6 * extra;
+            // Extra tick for action delay + slope acceleration considered (testing in progress)
+            return sumdist + (upperSpeed + slopeaccel) / 3.6 * (extra + 1.0 / ticksin1s);
         } else {
             // Thinking distance not required
             return 0;

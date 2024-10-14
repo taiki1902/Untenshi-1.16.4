@@ -29,20 +29,20 @@ public final class main extends JavaPlugin implements Listener {
     static final int maxspeed = 360;
     static final double cartyposdiff = 0.0625;
     public static main plugin;
-    static HashMap<MinecartGroup, utsvehicle> vehicle = new HashMap<>();
-    static HashMap<Player, utsdriver> driver = new HashMap<>();
+    static final HashMap<MinecartGroup, utsvehicle> vehicle = new HashMap<>();
+    static final HashMap<Player, utsdriver> driver = new HashMap<>();
     static abstractfile config;
     static abstractfile langdata;
     static abstractfile traindata;
     static abstractfile playerdata;
     static abstractfile signalorder;
-    static String pureutstitle = ChatColor.YELLOW + "[========== " + ChatColor.GREEN + "Untenshi " + ChatColor.YELLOW + "==========]\n";
-    static String utshead = "[" + ChatColor.GREEN + "Untenshi" + ChatColor.WHITE + "] ";
-    stoppos sign1 = new stoppos();
-    speedsign sign2 = new speedsign();
-    signalsign sign3 = new signalsign();
-    atosign sign4 = new atosign();
-    utstrain sign5 = new utstrain();
+    static final String pureutstitle = ChatColor.YELLOW + "[========== " + ChatColor.GREEN + "Untenshi " + ChatColor.YELLOW + "==========]\n";
+    static final String utshead = "[" + ChatColor.GREEN + "Untenshi" + ChatColor.WHITE + "] ";
+    final stoppos sign1 = new stoppos();
+    final speedsign sign2 = new speedsign();
+    final signalsign sign3 = new signalsign();
+    final atosign sign4 = new atosign();
+    final utstrain sign5 = new utstrain();
 
     static String getLang(String path) {
         langdata.reloadConfig();
