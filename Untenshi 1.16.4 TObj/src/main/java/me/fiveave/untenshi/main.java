@@ -140,11 +140,9 @@ public final class main extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         // Plugin startup logic
-        SignAction.register(sign1);
-        SignAction.register(sign2);
-        SignAction.register(sign3);
-        SignAction.register(sign4);
-        SignAction.register(sign5);
+        for (SignAction sa : new SignAction[]{sign1, sign2, sign3, sign4, sign5}) {
+            SignAction.register(sa);
+        }
         plugin = this;
         // If langdata not init twice will cause UTF-8 characters not formatted properly
         config = new abstractfile(this, "config.yml");
@@ -154,14 +152,10 @@ public final class main extends JavaPlugin implements Listener {
         signalorder = new abstractfile(this, "signalorder.yml");
         this.saveDefaultConfig();
         PluginManager pm = this.getServer().getPluginManager();
-        Objects.requireNonNull(this.getCommand("uts")).setExecutor(new cmds());
-        Objects.requireNonNull(this.getCommand("uts")).setTabCompleter(new cmds());
-        Objects.requireNonNull(this.getCommand("utssignal")).setExecutor(new signalcmd());
-        Objects.requireNonNull(this.getCommand("utssignal")).setTabCompleter(new signalcmd());
-        Objects.requireNonNull(this.getCommand("utslogger")).setExecutor(new driverlog());
-        Objects.requireNonNull(this.getCommand("utslogger")).setTabCompleter(new driverlog());
-        Objects.requireNonNull(this.getCommand("utsdebug")).setExecutor(new debugcmd());
-        Objects.requireNonNull(this.getCommand("utsdebug")).setTabCompleter(new debugcmd());
+        for (String cmdstr : new String[]{"uts", "utssignal", "utslogger", "utsdebug"}) {
+            Objects.requireNonNull(this.getCommand(cmdstr)).setExecutor(new cmds());
+            Objects.requireNonNull(this.getCommand(cmdstr)).setTabCompleter(new cmds());
+        }
         try {
             pm.registerEvents(new events(), this);
         } catch (Exception e) {
@@ -174,10 +168,8 @@ public final class main extends JavaPlugin implements Listener {
         // Plugin shutdown logic
         driver.keySet().forEach((p) -> restoreInitLd(driver.get(p)));
         vehicle.keySet().forEach((mg) -> restoreInitLv(vehicle.get(mg)));
-        SignAction.unregister(sign1);
-        SignAction.unregister(sign2);
-        SignAction.unregister(sign3);
-        SignAction.unregister(sign4);
-        SignAction.unregister(sign5);
+        for (SignAction sa : new SignAction[]{sign1, sign2, sign3, sign4, sign5}) {
+            SignAction.unregister(sa);
+        }
     }
 }
