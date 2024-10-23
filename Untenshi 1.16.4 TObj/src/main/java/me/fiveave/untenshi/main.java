@@ -152,10 +152,14 @@ public final class main extends JavaPlugin implements Listener {
         signalorder = new abstractfile(this, "signalorder.yml");
         this.saveDefaultConfig();
         PluginManager pm = this.getServer().getPluginManager();
-        for (String cmdstr : new String[]{"uts", "utssignal", "utslogger", "utsdebug"}) {
-            Objects.requireNonNull(this.getCommand(cmdstr)).setExecutor(new cmds());
-            Objects.requireNonNull(this.getCommand(cmdstr)).setTabCompleter(new cmds());
-        }
+        Objects.requireNonNull(this.getCommand("uts")).setExecutor(new cmds());
+        Objects.requireNonNull(this.getCommand("uts")).setTabCompleter(new cmds());
+        Objects.requireNonNull(this.getCommand("utssignal")).setExecutor(new signalcmd());
+        Objects.requireNonNull(this.getCommand("utssignal")).setTabCompleter(new signalcmd());
+        Objects.requireNonNull(this.getCommand("utslogger")).setExecutor(new driverlog());
+        Objects.requireNonNull(this.getCommand("utslogger")).setTabCompleter(new driverlog());
+        Objects.requireNonNull(this.getCommand("utsdebug")).setExecutor(new debugcmd());
+        Objects.requireNonNull(this.getCommand("utsdebug")).setTabCompleter(new debugcmd());
         try {
             pm.registerEvents(new events(), this);
         } catch (Exception e) {

@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Sign;
-import org.bukkit.util.Vector;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -129,9 +128,6 @@ class motion {
         tprop.setSpeedLimit(blockpertick);
         mg.setForwardForce(blockpertick);
         mg.setProperties(tprop);
-        // Size finding test
-        Vector sizev = mg.head().getHitBox().getSize();
-        System.out.printf("%.2f %.2f %.2f\n", sizev.getX(), sizev.getY(), sizev.getZ());
         // Combine properties and action bar
         doorLogic(lv, tprop);
         // Get signal update when warn (if signal speed isn't same)
@@ -578,7 +574,7 @@ class motion {
                 sumdist = (upperSpeed * result.t - result.avgdecel * Math.pow(result.t, 2) / 2) / 3.6; // get distance from basic decel distance formula
             }
             // Extra tick for action delay + slope acceleration considered (testing in progress)
-            return sumdist + (upperSpeed + slopeaccel) / 3.6 * (extra + 1.0 / ticksin1s);
+            return sumdist + (upperSpeed + slopeaccel) / 3.6 * extra;
         } else {
             // Thinking distance not required
             return 0;
