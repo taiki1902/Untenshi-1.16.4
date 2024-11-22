@@ -531,7 +531,7 @@ class motion {
         int[] speedsteps = lv.getSpeedsteps();
         if (a == 9) {
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel);
-            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, afterBrakeInitSpeed, ebdecel, 9, slopeaccel, hasthinkingdist ? extra : 0);
+            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel, hasthinkingdist ? extra : 0);
             // rate = 7 because no multiplier for avgRangeDecel
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(ebdecel, afterBrakeInitSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
             return brakeInitDistance + afterInitDistance;
@@ -540,7 +540,7 @@ class motion {
             return getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
         } else {
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel);
-            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, afterBrakeInitSpeed, decel, a, slopeaccel, hasthinkingdist ? extra : 0);
+            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel, hasthinkingdist ? extra : 0);
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
             return brakeInitDistance + afterInitDistance;
         }
