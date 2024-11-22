@@ -531,7 +531,7 @@ class motion {
         int[] speedsteps = lv.getSpeedsteps();
         if (a == 9) {
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel);
-            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel, hasthinkingdist ? extra : 0);
+            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, afterBrakeInitSpeed, ebdecel, 9, slopeaccel, hasthinkingdist ? extra : 0);
             // rate = 7 because no multiplier for avgRangeDecel
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(ebdecel, afterBrakeInitSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
             return brakeInitDistance + afterInitDistance;
@@ -540,7 +540,7 @@ class motion {
             return getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
         } else {
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel);
-            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel, hasthinkingdist ? extra : 0);
+            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, afterBrakeInitSpeed, decel, a, slopeaccel, hasthinkingdist ? extra : 0);
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
             return brakeInitDistance + afterInitDistance;
         }
@@ -571,7 +571,7 @@ class motion {
             double sumdist = 0;
             if (current > targetcurrent) {
                 AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, lowerSpeed, decel, targetRate, slopeaccel, current, targetcurrent);
-                sumdist = (upperSpeed * result.t - result.avgdecel * Math.pow(result.t, 2) / 2) / 3.6; // get distance from basic decel distance formula
+                sumdist = (upperSpeed * result.t - result.avgdecel * Math.pow(result.t, 2) / 2) / 3.6; // get distance from basic decel distance formula, v = u*t+1/2*a*t^2, and speed to SI units
             }
             // Extra tick for action delay + slope acceleration considered (testing in progress)
             return sumdist + (upperSpeed + slopeaccel) / 3.6 * extra;
@@ -702,11 +702,11 @@ class motion {
     }
 
     static AfterBrakeInitResult getAfterBrakeInitResult(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetRate, double slopeaccel, double current, double targetcurrent) {
-        double adjCurrentRate = -getNotchFromCurrent(current) + current < 0 ? 1 : 0; // adjustment from pure notch to adjusted rate
-        double avgrate = (adjCurrentRate + (targetRate + 1)) / 2; // adjustment from pure notch to adjusted rate, top-to-bottom average = total average
-        double avgdecel = avgRangeDecel(decel, upperSpeed, lowerSpeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel
+        double brakeinittimetick = (current - targetcurrent) / currentpertick;
+        double avgrate = current < 0 ? (-getNotchFromCurrent(current) + 1 + targetRate) / 2 : (1.25 + targetRate) / brakeinittimetick; // current rate to adjusted rate total average, 1.25 is result of rate after 1 tick after current = 0
+        double avgdecel = avgRangeDecel(decel, upperSpeed, lowerSpeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel, inaccuracy is negligible?
         // Time in s to brake init end, but to prevent over-estimation and negative deceleration values
-        double t = Math.min((current - targetcurrent) / currentpertick / ticksin1s, avgdecel > 0 ? (upperSpeed - lowerSpeed) / avgdecel : Double.MAX_VALUE);
+        double t = Math.min(brakeinittimetick / ticksin1s, avgdecel > 0 ? (upperSpeed - lowerSpeed) / avgdecel : Double.MAX_VALUE); // return value is in s instead of tick
         return new AfterBrakeInitResult(avgdecel, t);
     }
 
