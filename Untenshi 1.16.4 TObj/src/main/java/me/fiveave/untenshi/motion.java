@@ -101,8 +101,8 @@ class motion {
         double stopdecel = decelSwitch(lv, lv.getSpeed(), slopeaccel);
         if (lv.getDooropen() == 0) {
             // If door is closed
-            lv.setSpeed(lv.getSpeed() + accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(currentnow))) / ticksin1s // Acceleration
-                    - stopdecel / ticksin1s) // Deceleration (speed drop included)
+            lv.setSpeed(lv.getSpeed() + accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(currentnow))) * onetickins // Acceleration
+                    - stopdecel * onetickins) // Deceleration (speed drop included)
             ;
         } else {
             // If door is open
@@ -447,7 +447,7 @@ class motion {
             generalMsg(lv.getLd(), ChatColor.RED, getLang("tcblocking"));
         }
         if (lv.getAtsforced() == -1 && lv.getAtsping() > 0 && lv.getMascon() == -9) {
-            lv.setSpeed(Math.max(lv.getSpeed() - ebdecel / ticksin1s * 45 / 7, 0));
+            lv.setSpeed(Math.max(lv.getSpeed() - ebdecel * onetickins * 45 / 7, 0));
         }
         // If no obstacle need braking in 2s then release
         if (lv.getAtsforced() == -1 && !mg.isObstacleAhead(mg.getProperties().getWaitDistance() + getThinkingDistance(lv, lv.getSpeed(), lowerSpeed, decel, 8, slopeaccel, 0) * 2, true, true)) {
@@ -550,27 +550,27 @@ class motion {
         return Math.max((Math.pow(upperSpeed + Math.max(slopeaccel - decel, 0), 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop)), 0);
     }
 
-    static double getSpeedAfterBrakeInit(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetRate, double slopeaccel) {
+    static double getSpeedAfterBrakeInit(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetBrake, double slopeaccel) {
         double speed = upperSpeed;
         // Anti out-of-range causing GIGO
         double current = Math.min(0, lv.getCurrent());
-        double targetcurrent = getCurrentFromNotch(-targetRate);
+        double targetcurrent = getCurrentFromNotch(-targetBrake);
         if (upperSpeed > lowerSpeed && current > targetcurrent) {
-            AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, lowerSpeed, decel, targetRate, slopeaccel, current, targetcurrent);
+            AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, lowerSpeed, decel, slopeaccel, current, targetcurrent);
             speed -= result.avgdecel * result.t; // result
         }
         return speed;
     }
 
-    static double getThinkingDistance(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetRate, double slopeaccel, double extra) {
+    static double getThinkingDistance(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetBrake, double slopeaccel, double extra) {
         // Prevent unable to accel just because near next target, but no need to brake or to neutral
         if (upperSpeed > lowerSpeed) {
             // Anti out-of-range causing GIGO
             double current = Math.min(0, lv.getCurrent());
-            double targetcurrent = getCurrentFromNotch(-targetRate);
+            double targetcurrent = getCurrentFromNotch(-targetBrake);
             double sumdist = 0;
             if (current > targetcurrent) {
-                AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, lowerSpeed, decel, targetRate, slopeaccel, current, targetcurrent);
+                AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, lowerSpeed, decel, slopeaccel, current, targetcurrent);
                 sumdist = (upperSpeed * result.t - result.avgdecel * Math.pow(result.t, 2) / 2) / 3.6; // get distance from basic decel distance formula, v = u*t+1/2*a*t^2, and speed to SI units
             }
             // Extra tick for action delay + slope acceleration considered (testing in progress)
@@ -584,11 +584,11 @@ class motion {
     static double getSpeedAfterPotentialAccel(utsvehicle lv, double currentSpeed, double slopeaccel) {
         double current = Math.max(0, lv.getCurrent());
         // 1 tick delay for compensation for action delay
-        double speed = currentSpeed + (accelSwitch(lv, currentSpeed, (int) (getNotchFromCurrent(current))) + slopeaccel) / ticksin1s;
+        double speed = currentSpeed + (accelSwitch(lv, currentSpeed, (int) (getNotchFromCurrent(current))) + slopeaccel) * onetickins;
         // Anti out-of-range causing GIGO
         // Use while loop because using formula is tedious
         while (current > 0) {
-            speed += (accelSwitch(lv, speed, (int) (getNotchFromCurrent(current))) + slopeaccel) / ticksin1s;
+            speed += (accelSwitch(lv, speed, (int) (getNotchFromCurrent(current))) + slopeaccel) * onetickins;
             current -= currentpertick;
         }
         return speed;
@@ -669,7 +669,7 @@ class motion {
             } else {
                 // SPAD ATS EB (-35 km/h/s)
                 lv.setAtsforced(2);
-                lv.setSpeed(lv.getSpeed() - ebdecel / ticksin1s * 45 / 7);
+                lv.setSpeed(lv.getSpeed() - ebdecel * onetickins * 45 / 7);
             }
         }
         return retdecel - slopeaccel;
@@ -701,12 +701,13 @@ class motion {
         return Math.min(lv.getSpeedlimit(), lv.getSignallimit());
     }
 
-    static AfterBrakeInitResult getAfterBrakeInitResult(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetRate, double slopeaccel, double current, double targetcurrent) {
-        double brakeinittimetick = (current - targetcurrent) / currentpertick;
-        double avgrate = current < 0 ? (-getNotchFromCurrent(current) + 1 + targetRate) / 2 : (1.25 + targetRate) / brakeinittimetick; // current rate to adjusted rate total average, 1.25 is result of rate after 1 tick after current = 0 (WARN: averaging out decel will cause underestimation!!! remember the time you tried decel from 130 to 5 km/h?? probably use integration or geometric sequence sum idk)
+    static AfterBrakeInitResult getAfterBrakeInitResult(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, double slopeaccel, double current, double targetcurrent) {
+        double ticksfrom0 = -current / currentpertick;
+        double ticksatend = -targetcurrent / currentpertick;
+        double avgrate = current < 0 ? ((80 * (ticksatend + ticksfrom0) * onetickins + 27) / 35) : ((80 * (Math.pow(ticksatend, 2) - 1) * onetickins + 27 * (ticksatend - 1)) / 35 / (ticksatend)); // average rate by mean value theorem, separate cases for current < 0 or not
         double avgdecel = avgRangeDecel(decel, upperSpeed, lowerSpeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel, inaccuracy is negligible?
-        // Time in s to brake init end, but to prevent over-estimation and negative deceleration values
-        double t = Math.min(brakeinittimetick / ticksin1s, avgdecel > 0 ? (upperSpeed - lowerSpeed) / avgdecel : Double.MAX_VALUE); // return value is in s instead of tick
+        // Time in s instead of tick to brake init end, but to prevent over-estimation and negative deceleration values
+        double t = Math.min((ticksatend - ticksfrom0) * onetickins, avgdecel > 0 ? (upperSpeed - lowerSpeed) / avgdecel : Double.MAX_VALUE);
         return new AfterBrakeInitResult(avgdecel, t);
     }
 

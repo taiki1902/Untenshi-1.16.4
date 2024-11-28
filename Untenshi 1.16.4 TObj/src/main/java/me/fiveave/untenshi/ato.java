@@ -81,14 +81,14 @@ class ato {
             double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
             boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && (lowerSpeed - lv.getSpeed() > 5 || tempdist > speed1s(lv)) && lv.getMascon() == 0) || lv.getMascon() > 0) && potentialspeed <= currentlimit && (potentialspeed <= lowerSpeed || tempdist > speed1s(lv)) && !lv.isOverrun() && (lv.getDooropen() == 0 && lv.isDoorconfirm());
             // Actual controlling part, extra tick to prevent huge shock on stopping
-            getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, true, 1.0 / ticksin1s);
+            getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, true, onetickins);
             // Require accel? (no need to prepare for braking for next object and ATO target destination + additional thinking distance)
             boolean notnearreqdist = tempdist > reqdist[6] + getThinkingDistance(lv, potentialspeed, lowerSpeed, decel, 6, slopeaccelsel, 3);
             if (notnearreqdist && allowaccel) {
                 finalmascon = 5;
             }
             // Require braking? (with additional thinking time, slope acceleration considered)
-            if (tempdist < reqdist[6] + (lv.getSpeed() + slopeaccelsel) / 3.6 / ticksin1s) {
+            if (tempdist < reqdist[6] + (lv.getSpeed() + slopeaccelsel) / 3.6 * onetickins) {
                 lv.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
