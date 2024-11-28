@@ -703,7 +703,7 @@ class motion {
 
     static AfterBrakeInitResult getAfterBrakeInitResult(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetRate, double slopeaccel, double current, double targetcurrent) {
         double brakeinittimetick = (current - targetcurrent) / currentpertick;
-        double avgrate = current < 0 ? (-getNotchFromCurrent(current) + 1 + targetRate) / 2 : (1.25 + targetRate) / brakeinittimetick; // current rate to adjusted rate total average, 1.25 is result of rate after 1 tick after current = 0
+        double avgrate = current < 0 ? (-getNotchFromCurrent(current) + 1 + targetRate) / 2 : (1.25 + targetRate) / brakeinittimetick; // current rate to adjusted rate total average, 1.25 is result of rate after 1 tick after current = 0 (WARN: averaging out decel will cause underestimation!!! remember the time you tried decel from 130 to 5 km/h?? probably use integration or geometric sequence sum idk)
         double avgdecel = avgRangeDecel(decel, upperSpeed, lowerSpeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel, inaccuracy is negligible?
         // Time in s to brake init end, but to prevent over-estimation and negative deceleration values
         double t = Math.min(brakeinittimetick / ticksin1s, avgdecel > 0 ? (upperSpeed - lowerSpeed) / avgdecel : Double.MAX_VALUE); // return value is in s instead of tick
