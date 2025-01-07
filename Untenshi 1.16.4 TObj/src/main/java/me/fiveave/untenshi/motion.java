@@ -458,7 +458,7 @@ class motion {
             int[] getSiOffset = getSignToRailOffset(lv.getLastsisign(), mg.getWorld());
             Location siLocForSlope = new Location(mg.getWorld(), lv.getLastsisign().getX() + getSiOffset[0], lv.getLastsisign().getY() + getSiOffset[1] + cartyposdiff, lv.getLastsisign().getZ() + getSiOffset[2]);
             slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
-            reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, true, 0);
+            reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, 0);
             signaldist = distFormula(lv.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), lv.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
             signaldistdiff = signaldist - reqsidist;
         }
@@ -466,7 +466,7 @@ class motion {
             int[] getSpOffset = getSignToRailOffset(lv.getLastspsign(), mg.getWorld());
             Location spLocForSlope = new Location(mg.getWorld(), lv.getLastspsign().getX() + getSpOffset[0], lv.getLastspsign().getY() + getSpOffset[1] + cartyposdiff, lv.getLastspsign().getZ() + getSpOffset[2]);
             slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
-            reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, true, 0);
+            reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, 0);
             speeddist = distFormula(lv.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), lv.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
             speeddistdiff = speeddist - reqspdist;
         }
@@ -483,7 +483,7 @@ class motion {
         }
         // Get brake distance (reqdist)
         double[] reqdist = new double[10];
-        getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccel, false, 0);
+        getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccel, 0);
         // Actual controlling part
         // Check if next is red light
         boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;
@@ -519,19 +519,19 @@ class motion {
         lv.setAtspnear(pnear);
     }
 
-    static void getAllReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, double[] reqdist, double slopeaccel, boolean hasthinkingdist, double extra) {
+    static void getAllReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, double[] reqdist, double slopeaccel, double extra) {
         for (int a = 0; a <= 9; a++) {
-            reqdist[a] = getSingleReqdist(lv, upperSpeed, lowerSpeed, speeddrop, a, slopeaccel, hasthinkingdist, extra);
+            reqdist[a] = getSingleReqdist(lv, upperSpeed, lowerSpeed, speeddrop, a, slopeaccel, extra);
         }
     }
 
-    static double getSingleReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, int a, double slopeaccel, boolean hasthinkingdist, double extra) {
+    static double getSingleReqdist(utsvehicle lv, double upperSpeed, double lowerSpeed, double speeddrop, int a, double slopeaccel, double extra) {
         double decel = lv.getDecel();
         double ebdecel = lv.getEbdecel();
         int[] speedsteps = lv.getSpeedsteps();
         if (a == 9) {
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel);
-            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel, hasthinkingdist ? extra : 0);
+            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel, extra);
             // rate = 7 because no multiplier for avgRangeDecel
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(ebdecel, afterBrakeInitSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
             return brakeInitDistance + afterInitDistance;
@@ -540,7 +540,7 @@ class motion {
             return getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
         } else {
             double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel);
-            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel, hasthinkingdist ? extra : 0);
+            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel, extra);
             double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
             return brakeInitDistance + afterInitDistance;
         }
@@ -556,7 +556,7 @@ class motion {
         double current = Math.min(0, lv.getCurrent());
         double targetcurrent = getCurrentFromNotch(-targetBrake);
         if (upperSpeed > lowerSpeed && current > targetcurrent) {
-            AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, lowerSpeed, decel, slopeaccel, current, targetcurrent);
+            AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, decel, slopeaccel, current, targetcurrent);
             speed -= result.avgdecel * result.t; // result
         }
         return speed;
@@ -570,7 +570,7 @@ class motion {
             double targetcurrent = getCurrentFromNotch(-targetBrake);
             double sumdist = 0;
             if (current > targetcurrent) {
-                AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, lowerSpeed, decel, slopeaccel, current, targetcurrent);
+                AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, decel, slopeaccel, current, targetcurrent);
                 sumdist = (upperSpeed * result.t - result.avgdecel * Math.pow(result.t, 2) / 2) / 3.6; // get distance from basic decel distance formula, v = u*t+1/2*a*t^2, and speed to SI units
             }
             // Extra tick for action delay + slope acceleration considered (testing in progress)
@@ -701,13 +701,15 @@ class motion {
         return Math.min(lv.getSpeedlimit(), lv.getSignallimit());
     }
 
-    static AfterBrakeInitResult getAfterBrakeInitResult(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, double slopeaccel, double current, double targetcurrent) {
+    static AfterBrakeInitResult getAfterBrakeInitResult(utsvehicle lv, double upperSpeed, double decel, double slopeaccel, double current, double targetcurrent) {
         double ticksfrom0 = -current / currentpertick;
         double ticksatend = -targetcurrent / currentpertick;
+        double ticksleft = ticksatend - ticksfrom0;
         double avgrate = current < 0 ? ((80 * (ticksatend + ticksfrom0) * onetickins + 27) / 35) : ((80 * (Math.pow(ticksatend, 2) - 1) * onetickins + 27 * (ticksatend - 1)) / 35 / (ticksatend)); // average rate by mean value theorem, separate cases for current < 0 or not
-        double avgdecel = avgRangeDecel(decel, upperSpeed, lowerSpeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel, inaccuracy is negligible?
+        double estlowerspeed = upperSpeed - decel * avgrate / 7 * ticksleft / ticksin1s ; // estimated lower speed (testing)
+        double avgdecel = avgRangeDecel(decel, upperSpeed, estlowerspeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel, inaccuracy is negligible?
         // Time in s instead of tick to brake init end, but to prevent over-estimation and negative deceleration values
-        double t = Math.min((ticksatend - ticksfrom0) * onetickins, avgdecel > 0 ? (upperSpeed - lowerSpeed) / avgdecel : Double.MAX_VALUE);
+        double t = Math.min(ticksleft * onetickins, avgdecel > 0 ? (upperSpeed - estlowerspeed) / avgdecel : Double.MAX_VALUE);
         return new AfterBrakeInitResult(avgdecel, t);
     }
 
