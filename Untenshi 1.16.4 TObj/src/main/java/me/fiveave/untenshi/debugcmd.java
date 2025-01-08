@@ -19,64 +19,25 @@ import static me.fiveave.untenshi.main.vehicle;
 
 class debugcmd implements CommandExecutor, TabCompleter {
 
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        try {
-            if (sender instanceof Player) {
-                if (args.length >= 3) {
-                    if (checkPerm((Player) sender, "uts.debug")) {
-                        noPerm(sender);
-                        return true;
-                    }
-                    utsvehicle lv = null;
-                    try {
-                        lv = vehicle.get(TrainProperties.get(args[0]).getHolder());
-                    } catch (Exception ignored) {
-                    }
-                    if (lv != null) {
-                        switch (args[1].toLowerCase()) {
-                            case "get":
-                                debugGet(sender, args, lv);
-                                break;
-                            case "set":
-                                if (args.length >= 4) {
-                                    try {
-                                        debugSet(sender, args, lv);
-                                    } catch (Exception e) {
-                                        generalMsg(sender, ChatColor.RED, getLang("argwrong"));
-                                    }
-                                } else {
-                                    generalMsg(sender, ChatColor.RED, getLang("argwrong"));
-                                }
-                        }
-                    }
-                } else {
-                    generalMsg(sender, ChatColor.RED, getLang("argwrong"));
-                }
-            } else {
-                generalMsg(sender, ChatColor.RESET, getLang("playeronlycmd"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
-
     private static void debugSet(CommandSender sender, String[] args, utsvehicle lv) {
+        int parseInt = Integer.parseInt(args[3]);
+        boolean parseBoolean = Boolean.parseBoolean(args[3]);
+        double parseDouble = Double.parseDouble(args[3]);
         switch (args[2].toLowerCase()) {
             case "speed":
-                lv.setSpeed(Double.parseDouble(args[3]));
+                lv.setSpeed(parseDouble);
                 break;
             case "mascon":
-                lv.setMascon(Integer.parseInt(args[3]));
+                lv.setMascon(parseInt);
                 break;
             case "speedlimit":
-                lv.setSpeedlimit(Integer.parseInt(args[3]));
+                lv.setSpeedlimit(parseInt);
                 break;
             case "signallimit":
-                lv.setSignallimit(Integer.parseInt(args[3]));
+                lv.setSignallimit(parseInt);
                 break;
             case "atospeed":
-                lv.setAtospeed(Double.parseDouble(args[3]));
+                lv.setAtospeed(parseDouble);
                 break;
             case "atodest":
                 double[] loc1 = new double[3];
@@ -86,17 +47,17 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 lv.setAtodest(loc1);
                 break;
             case "lastspsp":
-                lv.setLastspsp(Integer.parseInt(args[3]));
+                lv.setLastspsp(parseInt);
                 break;
             case "lastspsign":
-                Location loc2 = new Location(lv.getSavedworld(), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
+                Location loc2 = new Location(lv.getSavedworld(), parseInt, Integer.parseInt(args[4]), Integer.parseInt(args[5]));
                 lv.setLastspsign(loc2);
                 break;
             case "lastsisp":
-                lv.setLastsisp(Integer.parseInt(args[3]));
+                lv.setLastsisp(parseInt);
                 break;
             case "lastsisign":
-                Location loc3 = new Location(lv.getSavedworld(), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
+                Location loc3 = new Location(lv.getSavedworld(), parseInt, Integer.parseInt(args[4]), Integer.parseInt(args[5]));
                 lv.setLastsisign(loc3);
                 break;
             case "rslist":
@@ -108,13 +69,52 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 generalMsg(sender, ChatColor.YELLOW, "Option is not available yet.");
                 break;
             case "atsforced":
-                lv.setAtsforced(Integer.parseInt(args[3]));
+                lv.setAtsforced(parseInt);
                 break;
             case "atsping":
-                lv.setAtsping(Integer.parseInt(args[3]));
+                lv.setAtsping(parseInt);
                 break;
             case "atspnear":
-                lv.setAtspnear(Boolean.parseBoolean(args[3]));
+                lv.setAtspnear(parseBoolean);
+                break;
+            case "accel":
+                lv.setAccel(parseDouble);
+                break;
+            case "decel":
+                lv.setDecel(parseDouble);
+                break;
+            case "ebdecel":
+                lv.setEbdecel(parseDouble);
+                break;
+            case "speeddrop":
+                lv.setSpeeddrop(parseDouble);
+                break;
+            case "reqstopping":
+                lv.setReqstopping(parseBoolean);
+                break;
+            case "overrun":
+                lv.setOverrun(parseBoolean);
+                break;
+            case "fixstoppos":
+                lv.setFixstoppos(parseBoolean);
+                break;
+            case "dooropen":
+                lv.setDooropen(parseInt);
+                break;
+            case "doordiropen":
+                lv.setDoordiropen(parseBoolean);
+                break;
+            case "doorconfirm":
+                lv.setDoorconfirm(parseBoolean);
+                break;
+            case "atopisdirect":
+                lv.setAtopisdirect(parseBoolean);
+                break;
+            case "atoforcebrake":
+                lv.setAtoforcebrake(parseBoolean);
+                break;
+            case "atoautodep":
+                lv.setAtoautodep(parseBoolean);
                 break;
             default:
                 generalMsg(sender, ChatColor.RED, getLang("argwrong"));
@@ -182,40 +182,50 @@ class debugcmd implements CommandExecutor, TabCompleter {
             case "ld":
                 retstr = lv.getLd().getP().getName();
                 break;
+            case "accel":
+                retstr = String.valueOf(lv.getAccel());
+                break;
+            case "decel":
+                retstr = String.valueOf(lv.getDecel());
+                break;
+            case "ebdecel":
+                retstr = String.valueOf(lv.getEbdecel());
+                break;
+            case "speeddrop":
+                retstr = String.valueOf(lv.getSpeeddrop());
+                break;
+            case "reqstopping":
+                retstr = String.valueOf(lv.isReqstopping());
+                break;
+            case "overrun":
+                retstr = String.valueOf(lv.isOverrun());
+                break;
+            case "fixstoppos":
+                retstr = String.valueOf(lv.isFixstoppos());
+                break;
+            case "dooropen":
+                retstr = String.valueOf(lv.getDooropen());
+                break;
+            case "doordiropen":
+                retstr = String.valueOf(lv.isDoordiropen());
+                break;
+            case "doorconfirm":
+                retstr = String.valueOf(lv.isDoorconfirm());
+                break;
+            case "atopisdirect":
+                retstr = String.valueOf(lv.isAtopisdirect());
+                break;
+            case "atoforcebrake":
+                retstr = String.valueOf(lv.isAtoforcebrake());
+                break;
+            case "atoautodep":
+                retstr = String.valueOf(lv.isAtoautodep());
+                break;
             default:
                 generalMsg(sender, ChatColor.RED, getLang("argwrong"));
                 break;
         }
         generalMsg(sender, ChatColor.GRAY, args[0] + ": " + ChatColor.YELLOW + args[2].toLowerCase() + ChatColor.WHITE + " = " + ChatColor.GREEN + retstr);
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> ta = new ArrayList<>();
-        List<String> result = new ArrayList<>();
-        List<String> vehiclelist = new ArrayList<>();
-        vehicle.keySet().forEach((mg) -> {
-            if (!mg.isUnloaded()) {
-                vehiclelist.add(mg.getProperties().getTrainName());
-            }
-        });
-        switch (args.length) {
-            case 1:
-                ta.addAll(vehiclelist);
-                break;
-            case 2:
-                ta.addAll(Arrays.asList("get", "set"));
-                break;
-            case 3:
-                ta.addAll(Arrays.asList("speed", "mascon", "speedlimit", "signallimit", "atospeed", "atodest", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld"));
-                break;
-        }
-        ta.forEach((a) -> {
-            if (a.toLowerCase().startsWith(args[args.length - 1].toLowerCase())) {
-                result.add(a);
-            }
-        });
-        return result;
     }
 
     public static String locToString(double[] loc) {
@@ -253,5 +263,76 @@ class debugcmd implements CommandExecutor, TabCompleter {
             retstr.append("null");
         }
         return retstr.toString();
+    }
+
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        try {
+            if (sender instanceof Player) {
+                if (args.length >= 3) {
+                    if (checkPerm((Player) sender, "uts.debug")) {
+                        noPerm(sender);
+                        return true;
+                    }
+                    utsvehicle lv = null;
+                    try {
+                        lv = vehicle.get(TrainProperties.get(args[0]).getHolder());
+                    } catch (Exception ignored) {
+                    }
+                    if (lv != null) {
+                        switch (args[1].toLowerCase()) {
+                            case "get":
+                                debugGet(sender, args, lv);
+                                break;
+                            case "set":
+                                if (args.length >= 4) {
+                                    try {
+                                        debugSet(sender, args, lv);
+                                    } catch (Exception e) {
+                                        generalMsg(sender, ChatColor.RED, getLang("argwrong"));
+                                    }
+                                } else {
+                                    generalMsg(sender, ChatColor.RED, getLang("argwrong"));
+                                }
+                        }
+                    }
+                } else {
+                    generalMsg(sender, ChatColor.RED, getLang("argwrong"));
+                }
+            } else {
+                generalMsg(sender, ChatColor.RESET, getLang("playeronlycmd"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> ta = new ArrayList<>();
+        List<String> result = new ArrayList<>();
+        List<String> vehiclelist = new ArrayList<>();
+        vehicle.keySet().forEach((mg) -> {
+            if (!mg.isUnloaded()) {
+                vehiclelist.add(mg.getProperties().getTrainName());
+            }
+        });
+        switch (args.length) {
+            case 1:
+                ta.addAll(vehiclelist);
+                break;
+            case 2:
+                ta.addAll(Arrays.asList("get", "set"));
+                break;
+            case 3:
+                ta.addAll(Arrays.asList("speed", "mascon", "speedlimit", "signallimit", "atospeed", "atodest", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld", "accel", "decel", "ebdecel", "speeddrop", "reqstopping", "overrun", "fixstoppos", "dooropen", "doordiropen", "doorconfirm", "atopisdirect", "atoforcebrake", "atoautodep"));
+                break;
+        }
+        ta.forEach((a) -> {
+            if (a.toLowerCase().startsWith(args[args.length - 1].toLowerCase())) {
+                result.add(a);
+            }
+        });
+        return result;
     }
 }
