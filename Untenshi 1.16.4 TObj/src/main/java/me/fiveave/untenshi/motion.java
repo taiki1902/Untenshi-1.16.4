@@ -1,6 +1,7 @@
 package me.fiveave.untenshi;
 
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
+import com.bergerkiller.bukkit.tc.controller.MinecartMember;
 import com.bergerkiller.bukkit.tc.properties.TrainProperties;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -143,9 +144,6 @@ class motion {
         atoSys(lv, mg);
         // Stop position
         stopPos(lv, shock);
-        // Model train prep (testing in progress)
-//        MinecartMember<?> mm = lv.getTrain().head();
-//        double trainlength = mm.getHitBox().getSize().getX();
     }
 
     static void driverSystem(utsdriver ld) {
@@ -315,17 +313,8 @@ class motion {
             double[] stopposloc = lv.getStoppos();
             double stopdist = distFormula(lv.getDriverseat().getEntity().getLocation().getX(), stopposloc[0], lv.getDriverseat().getEntity().getLocation().getZ(), stopposloc[2]);
             int stopdistcm = (int) (stopdist * 100);
-            // Distance left (0 is now, 1 is 1 tick before, etc)
-            double[] distlist = lv.getStopdistlist();
-            if (distlist == null) {
-                distlist = new double[]{stopdist, stopdist, stopdist};
-            }
-            distlist[2] = distlist[1];
-            distlist[1] = distlist[0];
-            distlist[0] = stopdist;
-            lv.setStopdistlist(distlist);
-            // Start Overrun (prevent escaping overrun over 144 km/h, testing in progress)
-            if (stopdist < 1 && !lv.isOverrun() && (distlist[2] - distlist[1]) * (distlist[1] - distlist[0]) < 0) {
+            // Start Overrun (prevent escaping overrun over 144 km/h)
+            if (!lv.isOverrun() && stopdist - onetickins * speed1s(lv) < 0) {
                 lv.setOverrun(true);
             }
             // Rewards and penalties

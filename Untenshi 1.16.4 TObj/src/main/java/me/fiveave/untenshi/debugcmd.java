@@ -46,6 +46,20 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 }
                 lv.setAtodest(loc1);
                 break;
+            case "stoppos":
+                double[] loc5 = new double[3];
+                for (int i = 0; i < 3; i++) {
+                    loc5[i] = Integer.parseInt(args[i + 3]);
+                }
+                lv.setStoppos(loc5);
+                break;
+            case "stopoutput":
+                int[] loc4 = new int[3];
+                for (int i = 0; i < 3; i++) {
+                    loc4[i] = Integer.parseInt(args[i + 3]);
+                }
+                lv.setStopoutput(loc4);
+                break;
             case "lastspsp":
                 lv.setLastspsp(parseInt);
                 break;
@@ -143,6 +157,12 @@ class debugcmd implements CommandExecutor, TabCompleter {
             case "atodest":
                 retstr = locToString(lv.getAtodest());
                 break;
+            case "stoppos":
+                retstr = locToString(lv.getStoppos());
+                break;
+            case "stopoutput":
+                retstr = locToString(lv.getStopoutput());
+                break;
             case "lastspsp":
                 retstr = String.valueOf(lv.getLastspsp());
                 break;
@@ -226,6 +246,17 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 break;
         }
         generalMsg(sender, ChatColor.GRAY, args[0] + ": " + ChatColor.YELLOW + args[2].toLowerCase() + ChatColor.WHITE + " = " + ChatColor.GREEN + retstr);
+    }
+
+    public static String locToString(int[] loc) {
+        String retstr = "null";
+        try {
+            for (int i = 0; i < 3; i++) {
+                retstr = loc[0] + " " + loc[1] + " " + loc[2];
+            }
+        } catch (Exception ignored) {
+        }
+        return retstr;
     }
 
     public static String locToString(double[] loc) {
@@ -325,7 +356,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 ta.addAll(Arrays.asList("get", "set"));
                 break;
             case 3:
-                ta.addAll(Arrays.asList("speed", "mascon", "speedlimit", "signallimit", "atospeed", "atodest", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld", "accel", "decel", "ebdecel", "speeddrop", "reqstopping", "overrun", "fixstoppos", "dooropen", "doordiropen", "doorconfirm", "atopisdirect", "atoforcebrake", "atoautodep"));
+                ta.addAll(Arrays.asList("speed", "mascon", "speedlimit", "signallimit", "atospeed", "atodest", "stoppos", "stopoutput", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld", "accel", "decel", "ebdecel", "speeddrop", "reqstopping", "overrun", "fixstoppos", "dooropen", "doordiropen", "doorconfirm", "atopisdirect", "atoforcebrake", "atoautodep"));
                 break;
         }
         ta.forEach((a) -> {
