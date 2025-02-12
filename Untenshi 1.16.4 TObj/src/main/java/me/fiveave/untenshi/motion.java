@@ -143,6 +143,9 @@ class motion {
         atoSys(lv, mg);
         // Stop position
         stopPos(lv, shock);
+        // Model train prep (testing in progress)
+//        MinecartMember<?> mm = lv.getTrain().head();
+//        double trainlength = mm.getHitBox().getSize().getX();
     }
 
     static void driverSystem(utsdriver ld) {
