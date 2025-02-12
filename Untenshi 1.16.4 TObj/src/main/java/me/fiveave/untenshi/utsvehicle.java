@@ -34,6 +34,7 @@ class utsvehicle {
     private double atospeed;
     private double[] stoppos;
     private double[] atodest;
+    private double[] stopdistlist;
     private Location lastsisign;
     private Location lastspsign;
     private Location[] rsposlist;
@@ -138,6 +139,7 @@ class utsvehicle {
         this.setBeinglogged(false);
         this.setRsoccupiedpos(-1);
         this.setAtoautodep(false);
+        this.setStopdistlist(null);
     }
 
     static void initVehicle(MinecartGroup mg) {
@@ -520,5 +522,13 @@ class utsvehicle {
 
     public void setAtoautodep(boolean atoautodep) {
         this.atoautodep = atoautodep;
+    }
+
+    public double[] getStopdistlist() {
+        return stopdistlist;
+    }
+
+    public void setStopdistlist(double[] stopdistlist) {
+        this.stopdistlist = stopdistlist;
     }
 }
