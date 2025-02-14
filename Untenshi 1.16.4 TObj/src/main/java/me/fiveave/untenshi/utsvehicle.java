@@ -19,6 +19,7 @@ class utsvehicle {
     private utsdriver ld;
     private World savedworld;
     private int mascon;
+    private int brake;
     private int speedlimit;
     private int signallimit;
     private int atsforced;
@@ -30,6 +31,7 @@ class utsvehicle {
     private int rsoccupiedpos;
     private int ilpriority;
     private double current;
+    private double bcpressure;
     private double speed;
     private double atospeed;
     private double[] stoppos;
@@ -54,6 +56,7 @@ class utsvehicle {
     private boolean atoforcebrake;
     private boolean atoautodep;
     private boolean beinglogged;
+    private boolean twohandled;
     private MinecartGroup train;
     @SuppressWarnings("rawtypes")
     private MinecartMember driverseat;
@@ -86,6 +89,7 @@ class utsvehicle {
         double tempdecel = 0;
         double tempebdecel = 0;
         int[] tempspeedsteps = new int[6];
+        boolean twohandled = false;
         String tDataInfo = "trains." + seltrainname;
         if (traindata.dataconfig.contains(tDataInfo + ".accel"))
             tempaccel = traindata.dataconfig.getDouble(tDataInfo + ".accel");
@@ -98,11 +102,18 @@ class utsvehicle {
                 tempspeedsteps[i] = traindata.dataconfig.getIntegerList(tDataInfo + ".speeds").get(i);
             }
         }
+        if (traindata.dataconfig.contains(tDataInfo + ".twohandled")) {
+            twohandled = traindata.dataconfig.getBoolean(tDataInfo + ".twohandled");
+        } else {
+            traindata.dataconfig.set(tDataInfo + ".twohandled", false);
+            traindata.save();
+        }
         this.setSpeeddrop(plugin.getConfig().getDouble("speeddroprate"));
         this.setAccel(tempaccel);
         this.setDecel(tempdecel);
         this.setEbdecel(tempebdecel);
         this.setSpeedsteps(tempspeedsteps);
+        this.setTwohandled(twohandled);
         this.setSpeed(0.0);
         this.setSignallimit(maxspeed);
         this.setSpeedlimit(maxspeed);
@@ -112,7 +123,8 @@ class utsvehicle {
         this.setFixstoppos(false);
         this.setStaeb(false);
         this.setStaaccel(false);
-        this.setMascon(-9);
+        this.setBrake(9);
+        this.setMascon(0);
         this.setCurrent(-480.0);
         this.setAtsping(0);
         this.setAtspnear(false);
@@ -520,5 +532,29 @@ class utsvehicle {
 
     public void setAtoautodep(boolean atoautodep) {
         this.atoautodep = atoautodep;
+    }
+
+    public double getBcpressure() {
+        return bcpressure;
+    }
+
+    public void setBcpressure(double bcpressure) {
+        this.bcpressure = bcpressure;
+    }
+
+    public int getBrake() {
+        return brake;
+    }
+
+    public void setBrake(int brake) {
+        this.brake = brake;
+    }
+
+    public boolean isTwohandled() {
+        return twohandled;
+    }
+
+    public void setTwohandled(boolean twohandled) {
+        this.twohandled = twohandled;
     }
 }

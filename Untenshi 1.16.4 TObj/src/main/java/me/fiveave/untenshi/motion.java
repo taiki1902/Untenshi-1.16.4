@@ -1,7 +1,6 @@
 package me.fiveave.untenshi;
 
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
-import com.bergerkiller.bukkit.tc.controller.MinecartMember;
 import com.bergerkiller.bukkit.tc.properties.TrainProperties;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -68,30 +67,40 @@ class motion {
         DecimalFormat df0 = new DecimalFormat("#");
         df3.setRoundingMode(RoundingMode.CEILING);
         df0.setRoundingMode(RoundingMode.UP);
-        // Electric current brake
-        double currentnow = lv.getCurrent();
+        // Electric current
+        double ecnow = lv.getCurrent();
         // Set current for current mascon
-        double ecbtarget = Integer.parseInt(df0.format(getCurrentFromNotch(lv.getMascon())));
+        double ectarget = getCurrentFromNotch(lv.getMascon());
         // Set real current
-        if (ecbtarget < currentnow) {
-            lv.setCurrent((currentnow - ecbtarget) > currentpertick ? currentnow - currentpertick : ecbtarget);
-            if (currentnow - currentpertick < 0 && currentnow - currentpertick > ecbtarget) {
-                trainSound(lv, "brake_apply");
-            }
-            if (currentnow > 0 && currentnow - currentpertick > 0) {
+        if (ectarget < ecnow) {
+            lv.setCurrent((ecnow - ectarget) > currentpertick ? ecnow - currentpertick : ectarget);
+            if (ecnow > 0 && ecnow - currentpertick > 0) {
                 trainSound(lv, "accel_off");
             }
-        } else if (ecbtarget > currentnow) {
-            lv.setCurrent((ecbtarget - currentnow) > currentpertick ? currentnow + currentpertick : ecbtarget);
-            if (currentnow < 0 && currentnow + currentpertick < 0) {
-                trainSound(lv, "brake_release");
-            }
-            if (currentnow + currentpertick > 0 && currentnow + currentpertick < ecbtarget) {
+        } else if (ectarget > ecnow) {
+            lv.setCurrent((ectarget - ecnow) > currentpertick ? ecnow + currentpertick : ectarget);
+            if (ecnow + currentpertick > 0 && ecnow + currentpertick < ectarget) {
                 trainSound(lv, "accel_on");
             }
         }
+        // Brake cylinder pressure
+        double bcpnow = lv.getBcpressure();
+        // Set pressure for current brake
+        double bcptarget = getPressureFromBrake(lv.getBrake());
+        // Set real pressure
+        if (bcptarget < bcpnow) {
+            lv.setBcpressure((bcpnow - bcptarget) > bcppertick ? bcpnow - bcppertick : bcptarget);
+            if (bcpnow > 0 && bcpnow - bcppertick > 0) {
+                trainSound(lv, "brake_release");
+            }
+        } else if (bcptarget > bcpnow) {
+            lv.setBcpressure((bcptarget - bcpnow) > bcppertick ? bcpnow + bcppertick : bcptarget);
+            if (bcpnow + bcppertick > 0 && bcpnow + bcppertick < bcptarget) {
+                trainSound(lv, "brake_apply");
+            }
+        }
         // If brake cancel accel
-        if (currentnow > 0 && ecbtarget < 0) {
+        if (ecnow > 0 && bcptarget > 0) {
             lv.setCurrent(0);
         }
         // Slope speed adjust
@@ -99,11 +108,12 @@ class motion {
         Location tailLoc = mg.tail().getEntity().getLocation();
         double slopeaccel = getSlopeAccel(headLoc, tailLoc);
         // Accel and decel
-        double stopdecel = decelSwitch(lv, lv.getSpeed(), slopeaccel);
+        double accelnow = accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(ecnow)));
+        double decelnow = decelSwitch(lv, lv.getSpeed(), slopeaccel);
         if (lv.getDooropen() == 0) {
             // If door is closed
-            lv.setSpeed(lv.getSpeed() + accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(currentnow))) * onetickins // Acceleration
-                    - stopdecel * onetickins) // Deceleration (speed drop included)
+            lv.setSpeed(lv.getSpeed() + accelnow * onetickins // Acceleration
+                    - decelnow * onetickins) // Deceleration (speed drop included)
             ;
         } else {
             // If door is open
@@ -119,7 +129,7 @@ class motion {
         // Cancel TC motion-related sign actions
         if (!stationstop) mg.getActions().clear();
         // Shock when stopping
-        String shock = lv.getSpeed() == 0 && lv.getSpeed() < oldspeed ? " " + ChatColor.GRAY + String.format("%.2f km/h/s", stopdecel) : "";
+        String shock = lv.getSpeed() == 0 && lv.getSpeed() < oldspeed ? " " + ChatColor.GRAY + String.format("%.2f km/h/s", decelnow) : "";
         // Combine properties and action bar
         double blockpertick = 0;
         try {
@@ -293,17 +303,22 @@ class motion {
     }
 
     private static String getCtrlText(utsvehicle lv) {
-        String ctrltext = "";
+        String ctrltext, braketext;
         int mascon = lv.getMascon();
-        if (mascon == -9) {
-            ctrltext = ChatColor.DARK_RED + "EB";
-        } else if (mascon <= -1) {
-            ctrltext = ChatColor.RED + "B" + -mascon;
-        } else if (mascon == 0) {
+        int brake = lv.getBrake();
+        if (brake == 9) {
+            braketext = ChatColor.DARK_RED + "EB";
+        } else if (brake >= 1) {
+            braketext = ChatColor.RED + "B" + brake;
+        } else {
+            braketext = ChatColor.WHITE + "N";
+        }
+        if (mascon == 0) {
             ctrltext = ChatColor.WHITE + "N";
-        } else if (mascon <= 5) {
+        } else {
             ctrltext = ChatColor.GREEN + "P" + mascon;
         }
+        ctrltext = !lv.isTwohandled() ? (brake == 0 ? ctrltext : braketext) : ctrltext + ChatColor.WHITE + " | " + braketext;
         return ctrltext;
     }
 
@@ -372,7 +387,8 @@ class motion {
                 generalMsg(ld.getP(), ChatColor.RED, s);
             }
             ld.getLv().setAtsforced(2);
-            ld.getLv().setMascon(-9);
+            ld.getLv().setBrake(9);
+            ld.getLv().setMascon(0);
             if (ld.getLv().getSpeed() == 0) {
                 restoreInitLd(ld);
             }
@@ -444,7 +460,8 @@ class motion {
         if (lv.getAtsping() == 0 && lv.getAtsforced() != -1 && (mg.isObstacleAhead(Math.max(mg.getProperties().getWaitDistance(), 0), true, false) || mg.isObstacleAhead(0.001, false, true))) {
             lv.setAtsping(2);
             lv.setAtsforced(-1);
-            lv.setMascon(-9);
+            lv.setBrake(9);
+            lv.setMascon(0);
             generalMsg(lv.getLd(), ChatColor.RED, getLang("tcblocking"));
         }
         if (lv.getAtsforced() == -1 && lv.getAtsping() > 0 && lv.getMascon() == -9) {
@@ -501,11 +518,13 @@ class motion {
         if (((reqbrake > 8 && lv.getSpeed() > lowerSpeed + 3) || isoverspeed3) && lv.getAtsping() == 0) {
             // Or SPAD (0 km/h signal) EB
             if (reqbrake > 9 || lv.getSignallimit() == 0) {
-                lv.setMascon(-9);
+                lv.setBrake(9);
+                lv.setMascon(0);
                 lv.setAtsping(2);
                 pointCounter(lv.getLd(), ChatColor.RED, lv.getSafetysystype().toUpperCase() + " " + getLang("p_eb") + " ", -5, "");
             } else {
-                lv.setMascon(-8);
+                lv.setBrake(8);
+                lv.setMascon(0);
                 lv.setAtsping(1);
                 pointCounter(lv.getLd(), ChatColor.RED, lv.getSafetysystype().toUpperCase() + " " + getLang("p_b8") + " ", -5, "");
             }
@@ -554,10 +573,10 @@ class motion {
     static double getSpeedAfterBrakeInit(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetBrake, double slopeaccel) {
         double speed = upperSpeed;
         // Anti out-of-range causing GIGO
-        double current = Math.min(0, lv.getCurrent());
-        double targetcurrent = getCurrentFromNotch(-targetBrake);
-        if (upperSpeed > lowerSpeed && current > targetcurrent) {
-            AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, decel, slopeaccel, current, targetcurrent);
+        double bcp = Math.max(0, lv.getBcpressure());
+        double bcptarget = getPressureFromBrake(targetBrake);
+        if (upperSpeed > lowerSpeed && bcp < bcptarget) {
+            AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, decel, slopeaccel, bcp, bcptarget);
             speed -= result.avgdecel * result.t; // result
         }
         return speed;
@@ -567,11 +586,11 @@ class motion {
         // Prevent unable to accel just because near next target, but no need to brake or to neutral
         if (upperSpeed > lowerSpeed) {
             // Anti out-of-range causing GIGO
-            double current = Math.min(0, lv.getCurrent());
-            double targetcurrent = getCurrentFromNotch(-targetBrake);
+            double bcp = Math.max(0, lv.getBcpressure());
+            double bcptarget = getPressureFromBrake(targetBrake);
             double sumdist = 0;
-            if (current > targetcurrent) {
-                AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, decel, slopeaccel, current, targetcurrent);
+            if (bcp < bcptarget) {
+                AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, decel, slopeaccel, bcp, bcptarget);
                 sumdist = (upperSpeed * result.t - result.avgdecel * Math.pow(result.t, 2) / 2) / 3.6; // get distance from basic decel distance formula, v = u*t+1/2*a*t^2, and speed to SI units
             }
             // Extra tick for action delay + slope acceleration considered (testing in progress)
@@ -601,6 +620,14 @@ class motion {
 
     static double getNotchFromCurrent(double current) {
         return current * 9 / 480;
+    }
+
+    static double getPressureFromBrake(int b) {
+        return b * 480.0 / 9;
+    }
+
+    static double getBrakeFromPressure(double bcp) {
+        return bcp * 9 / 480;
     }
 
     static double speed1s(utsvehicle lv) {
@@ -657,14 +684,14 @@ class motion {
         double decel = lv.getDecel();
         double ebdecel = lv.getEbdecel();
         double speeddrop = lv.getSpeeddrop();
-        double current = lv.getCurrent();
+        double bcp = lv.getBcpressure();
         int[] speedsteps = lv.getSpeedsteps();
         double retdecel = 0;
-        if (current == 0) {
+        if (bcp == 0) {
             retdecel = speeddrop;
-        } else if (current < 0 && current > -480) {
-            retdecel = globalDecel(decel, speed, -getNotchFromCurrent(current) + 1, speedsteps);
-        } else if (current == -480) {
+        } else if (bcp > 0 && bcp < 480) {
+            retdecel = globalDecel(decel, speed, getBrakeFromPressure(bcp) + 1, speedsteps);
+        } else if (bcp == 480) {
             if (lv.getAtsforced() != 2 && lv.getSignallimit() != 0) {
                 retdecel = globalDecel(ebdecel, speed, 7, speedsteps);
             } else {
@@ -702,11 +729,11 @@ class motion {
         return Math.min(lv.getSpeedlimit(), lv.getSignallimit());
     }
 
-    static AfterBrakeInitResult getAfterBrakeInitResult(utsvehicle lv, double upperSpeed, double decel, double slopeaccel, double current, double targetcurrent) {
-        double ticksfrom0 = -current / currentpertick;
-        double ticksatend = -targetcurrent / currentpertick;
+    static AfterBrakeInitResult getAfterBrakeInitResult(utsvehicle lv, double upperSpeed, double decel, double slopeaccel, double bcp, double bcptarget) {
+        double ticksfrom0 = bcp / bcppertick;
+        double ticksatend = bcptarget / bcppertick;
         double ticksleft = ticksatend - ticksfrom0;
-        double avgrate = current < 0 ? ((80 * (ticksatend + ticksfrom0) * onetickins + 27) / 35) : ((80 * (Math.pow(ticksatend, 2) - 1) * onetickins + 27 * (ticksatend - 1)) / 35 / (ticksatend)); // average rate by mean value theorem, separate cases for current < 0 or not
+        double avgrate = bcp > 0 ? ((80 * (ticksatend + ticksfrom0) * onetickins + 27) / 35) : ((80 * (Math.pow(ticksatend, 2) - 1) * onetickins + 27 * (ticksatend - 1)) / 35 / (ticksatend)); // average rate by mean value theorem, separate cases for bcp < 0 or not
         double estlowerspeed = upperSpeed - decel * avgrate / 7 * ticksleft / ticksin1s; // estimated lower speed (testing)
         double avgdecel = avgRangeDecel(decel, upperSpeed, estlowerspeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel, inaccuracy is negligible?
         // Time in s instead of tick to brake init end, but to prevent over-estimation and negative deceleration values

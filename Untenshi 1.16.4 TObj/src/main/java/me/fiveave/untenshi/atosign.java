@@ -38,7 +38,8 @@ class atosign extends SignAction {
                 if (lv == null && cartevent.getLine(2).equals("reg")) {
                     initVehicle(mg);
                     utsvehicle lv2 = vehicle.get(mg);
-                    lv2.setMascon(-8);
+                    lv2.setBrake(8);
+                    lv2.setMascon(0);
                 } else if (lv != null && lv.getTrain() != null && (lv.getLd() == null || lv.getLd().isAllowatousage())) {
                     switch (cartevent.getLine(2)) {
                         case "reg":

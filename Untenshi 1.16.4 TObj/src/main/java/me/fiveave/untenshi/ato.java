@@ -43,6 +43,7 @@ class ato {
             double distnow = atodist;
             int currentlimit = minSpeedLimit(lv);
             int finalmascon = 0;
+            int finalbrake = 0;
             // Find either ATO, signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
             if (lv.getLastsisign() != null && lv.getLastsisp() != maxspeed) {
                 int[] getSiOffset = getSignToRailOffset(lv.getLastsisign(), mg.getWorld());
@@ -79,7 +80,7 @@ class ato {
             boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;
             // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
             double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
-            boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && (lowerSpeed - lv.getSpeed() > 5 || tempdist > speed1s(lv)) && lv.getMascon() == 0) || lv.getMascon() > 0) && potentialspeed <= currentlimit && (potentialspeed <= lowerSpeed || tempdist > speed1s(lv)) && !lv.isOverrun() && (lv.getDooropen() == 0 && lv.isDoorconfirm());
+            boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && (lowerSpeed - lv.getSpeed() > 5 || tempdist > speed1s(lv)) && lv.getMascon() == 0 && lv.getBrake() == 0) || lv.getMascon() > 0) && potentialspeed <= currentlimit && (potentialspeed <= lowerSpeed || tempdist > speed1s(lv)) && !lv.isOverrun() && (lv.getDooropen() == 0 && lv.isDoorconfirm());
             // Actual controlling part, extra tick to prevent huge shock on stopping
             getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, onetickins);
             // Require accel? (no need to prepare for braking for next object and ATO target destination + additional thinking distance)
@@ -94,10 +95,10 @@ class ato {
             // Direct pattern or forced?
             if (lv.isAtoforcebrake() || lv.isAtopisdirect()) {
                 // If even emergency brake cannot brake in time
-                finalmascon = -9;
+                finalbrake = 9;
                 for (int b = 9; b >= 0; b--) {
                     if (tempdist >= reqdist[b]) {
-                        finalmascon = -b;
+                        finalbrake = b;
                     }
                 }
             }
@@ -114,19 +115,20 @@ class ato {
             if (lv.getSpeed() + slopeaccelnow > currentlimit) {
                 // Redefine reqdist (here for braking distance to speed limit)
                 getAllReqdist(lv, lv.getSpeed() + slopeaccelnow, currentlimit, speeddrop, reqdist, slopeaccelnow, 0);
-                int finalbrake = -8;
+                int thisfinalbrake = 8;
                 for (int a = 8; a >= 1; a--) {
                     // If braking distance is greater than distance in 1 s and if the brake is greater, then use the value
                     if (speed1s(lv) >= reqdist[a]) {
-                        finalbrake = -a;
+                        thisfinalbrake = a;
                     }
                 }
-                if (finalmascon > finalbrake) {
-                    finalmascon = finalbrake;
+                if (finalbrake < thisfinalbrake) {
+                    finalbrake = thisfinalbrake;
                 }
             }
             // Final value
             lv.setMascon(finalmascon);
+            lv.setBrake(finalbrake);
             // EB when overrun
             if (lv.isOverrun() && atodist > 1) {
                 toEB(lv);
@@ -144,7 +146,8 @@ class ato {
         lv.setFixstoppos(false);
         doorControls(lv, true);
         if (lv.getAtospeed() != -1) {
-            lv.setMascon(-8);
+            lv.setMascon(0);
+            lv.setBrake(8);
         }
         lv.setAtodest(null);
         lv.setAtospeed(-1);
@@ -176,12 +179,14 @@ class ato {
                 notindist = (distFormula(lv.getLastsisign().getX(), lv.getDriverseat().getEntity().getLocation().getX(), lv.getLastsisign().getZ(), lv.getDriverseat().getEntity().getLocation().getZ())) > 5;
             }
             // Wait doors fully closed then depart (if have red light in 5 meters do not depart)
-            if (lv.getDooropen() == 0 && lv.isDoorconfirm() && lv.getMascon() != -9 && (lv.getLastsisp() != 0 || notindist) && lv.isAtoautodep() && lv.getAtsforced() == 0) {
+            if (lv.getDooropen() == 0 && lv.isDoorconfirm() && lv.getBrake() != 9 && (lv.getLastsisp() != 0 || notindist) && lv.isAtoautodep() && lv.getAtsforced() == 0) {
+                lv.setBrake(0);
                 lv.setMascon(5);
             } else if (lv.isAtoautodep()) {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> waitDepart(lv), tickdelay);
-                if (lv.getMascon() != -9) {
-                    lv.setMascon(-8);
+                if (lv.getBrake() != 9) {
+                    lv.setMascon(0);
+                    lv.setBrake(8);
                 }
             }
         }

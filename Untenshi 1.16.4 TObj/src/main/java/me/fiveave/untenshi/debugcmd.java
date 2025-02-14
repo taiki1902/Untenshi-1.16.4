@@ -30,6 +30,9 @@ class debugcmd implements CommandExecutor, TabCompleter {
             case "mascon":
                 lv.setMascon(parseInt);
                 break;
+            case "brake":
+                lv.setBrake(parseInt);
+                break;
             case "speedlimit":
                 lv.setSpeedlimit(parseInt);
                 break;
@@ -144,6 +147,9 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 break;
             case "mascon":
                 retstr = String.valueOf(lv.getMascon());
+                break;
+            case "brake":
+                retstr = String.valueOf(lv.getBrake());
                 break;
             case "speedlimit":
                 retstr = String.valueOf(lv.getSpeedlimit());
@@ -356,7 +362,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 ta.addAll(Arrays.asList("get", "set"));
                 break;
             case 3:
-                ta.addAll(Arrays.asList("speed", "mascon", "speedlimit", "signallimit", "atospeed", "atodest", "stoppos", "stopoutput", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld", "accel", "decel", "ebdecel", "speeddrop", "reqstopping", "overrun", "fixstoppos", "dooropen", "doordiropen", "doorconfirm", "atopisdirect", "atoforcebrake", "atoautodep"));
+                ta.addAll(Arrays.asList("speed", "mascon", "brake", "speedlimit", "signallimit", "atospeed", "atodest", "stoppos", "stopoutput", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld", "accel", "decel", "ebdecel", "speeddrop", "reqstopping", "overrun", "fixstoppos", "dooropen", "doordiropen", "doorconfirm", "atopisdirect", "atoforcebrake", "atoautodep"));
                 break;
         }
         ta.forEach((a) -> {

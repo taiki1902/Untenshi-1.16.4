@@ -174,9 +174,17 @@ class cmds implements CommandExecutor, TabCompleter {
                                             p.getInventory().setItem(i, new ItemStack(Material.AIR));
                                         }
                                         // Set wands in place
-                                        p.getInventory().setItem(0, upWand());
-                                        p.getInventory().setItem(1, nWand());
-                                        p.getInventory().setItem(2, downWand());
+                                        if (ld.getLv().isTwohandled()) {
+                                            p.getInventory().setItem(0, downWand());
+                                            p.getInventory().setItem(1, upWand());
+                                            p.getInventory().setItem(2, nWand());
+                                            p.getInventory().setItem(3, leftWand());
+                                            p.getInventory().setItem(4, rightWand());
+                                        } else {
+                                            p.getInventory().setItem(0, upWand());
+                                            p.getInventory().setItem(1, nWand());
+                                            p.getInventory().setItem(2, downWand());
+                                        }
                                         p.getInventory().setItem(6, ebButton());
                                         p.getInventory().setItem(7, sbLever());
                                         p.getInventory().setItem(8, doorButton());

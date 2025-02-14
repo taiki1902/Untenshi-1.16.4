@@ -22,6 +22,7 @@ import org.bukkit.event.vehicle.VehicleBlockCollisionEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import static me.fiveave.untenshi.ato.atoDepartCountdown;
@@ -33,11 +34,12 @@ import static me.fiveave.untenshi.utsdriver.initDriver;
 class events implements Listener {
 
     static void toEB(utsvehicle lv) {
-        if (lv.getLd() != null && noFreemodeOrATO(lv.getLd()) && lv.getMascon() != -9 && lv.getSpeed() > 20 && lv.getAtsforced() != 2 && lv.getAtsping() == 0) {
+        if (lv.getLd() != null && noFreemodeOrATO(lv.getLd()) && lv.getBrake() != 9 && lv.getSpeed() > 20 && lv.getAtsforced() != 2 && lv.getAtsping() == 0) {
             // Misuse EB
             pointCounter(lv.getLd(), ChatColor.YELLOW, getLang("eb_misuse") + " ", -5, "");
         }
-        lv.setMascon(-9);
+        lv.setMascon(0);
+        lv.setBrake(9);
         lv.setAtsforced(1);
         trainSound(lv, "ebbutton");
     }
@@ -117,7 +119,7 @@ class events implements Listener {
         return wand;
     }
 
-    static ItemStack upWand() {
+    protected static ItemStack upWand() {
         return getItem(Material.STONE_AXE, ChatColor.RED, getLang("item_upwand"));
     }
 
@@ -127,6 +129,14 @@ class events implements Listener {
 
     protected static ItemStack downWand() {
         return getItem(Material.DIAMOND_AXE, ChatColor.GREEN, getLang("item_downwand"));
+    }
+
+    protected static ItemStack leftWand() {
+        return getItem(Material.DIAMOND_SHOVEL, ChatColor.GREEN, getLang("item_leftwand"));
+    }
+
+    protected static ItemStack rightWand() {
+        return getItem(Material.STONE_SHOVEL, ChatColor.RED, getLang("item_rightwand"));
     }
 
     protected static ItemStack doorButton() {
@@ -143,8 +153,12 @@ class events implements Listener {
 
     private static void downWandAction(utsvehicle lv) {
         // No ATS-P run or ATS-P Service brake run but in EB
-        if ((lv.getAtsping() == 0 || (lv.getAtsping() == 1 && lv.getMascon() == -9)) && (lv.getDooropen() == 0 || lv.getDooropen() > 0 && lv.getMascon() < 0) && lv.getMascon() < 5) {
-            lv.setMascon(lv.getMascon() + 1);
+        if ((lv.getAtsping() == 0 || (lv.getAtsping() == 1 && lv.getBrake() == 9)) && (lv.getDooropen() == 0 || lv.getDooropen() > 0 && lv.getBrake() > 0)) {
+            if (lv.getMascon() < 5 && (lv.isTwohandled() || lv.getBrake() == 0)) {
+                lv.setMascon(lv.getMascon() + 1);
+            } else if (!lv.isTwohandled() && lv.getBrake() > 0) {
+                lv.setBrake(lv.getBrake() - 1);
+            }
             lv.setAtsforced(0);
             trainSound(lv, "mascon");
         }
@@ -152,6 +166,7 @@ class events implements Listener {
 
     private static void nWandAction(utsvehicle lv) {
         if (lv.getAtsping() == 0) {
+            lv.setBrake(0);
             lv.setMascon(0);
             lv.setAtsforced(0);
             trainSound(lv, "mascon");
@@ -159,10 +174,33 @@ class events implements Listener {
     }
 
     private static void upWandAction(utsvehicle lv) {
-        if (lv.getMascon() > -8) {
+        if (lv.getMascon() > 0) {
             lv.setMascon(lv.getMascon() - 1);
+        } else if (!lv.isTwohandled()) {
+            if (lv.getBrake() < 8) {
+                lv.setBrake(lv.getBrake() + 1);
+            } else {
+                toEB(lv);
+                trainSound(lv, "ebbutton");
+            }
+        }
+        trainSound(lv, "mascon");
+    }
+
+    private static void leftWandAction(utsvehicle lv) {
+        // No ATS-P run or ATS-P Service brake run but in EB
+        if ((lv.getAtsping() == 0 || (lv.getAtsping() == 1 && lv.getBrake() == 9)) && lv.getBrake() > 0) {
+            lv.setBrake(lv.getBrake() - 1);
+            lv.setAtsforced(0);
             trainSound(lv, "mascon");
-        } else if (lv.getMascon() == -8) {
+        }
+    }
+
+    private static void rightWandAction(utsvehicle lv) {
+        if (lv.getBrake() < 8) {
+            lv.setBrake(lv.getBrake() + 1);
+            trainSound(lv, "mascon");
+        } else if (lv.getBrake() == 8) {
             toEB(lv);
             trainSound(lv, "ebbutton");
         }
@@ -232,6 +270,14 @@ class events implements Listener {
                     downWandAction(lv);
                     event.setCancelled(true);
                 }
+                if (leftWand().equals(item)) {
+                    leftWandAction(lv);
+                    event.setCancelled(true);
+                }
+                if (rightWand().equals(item)) {
+                    rightWandAction(lv);
+                    event.setCancelled(true);
+                }
             }
             if (doorButton().equals(item)) {
                 event.setCancelled(true);
@@ -260,7 +306,8 @@ class events implements Listener {
                 if (lv != null && ld.isPlaying() && lv.getSpeed() != 0) {
                     double spd = lv.getSpeed();
                     toEB(lv);
-                    lv.setCurrent(-480);
+                    lv.setCurrent(0);
+                    lv.setBcpressure(480);
                     lv.setSpeed(0);
                     pointCounter(ld, ChatColor.YELLOW, getLang("collidebuffer") + " ", -10, " " + String.format("%.0f km/h", spd));
                 }
@@ -303,22 +350,9 @@ class events implements Listener {
         }
     }
 
-//    @EventHandler
-//    void onScroll(PlayerItemHeldEvent event) {
-//        Player p = event.getPlayer();
-//        initDriver(p);
-//        utsdriver ld = driver.get(p);
-//        assert ld.getLv() != null;
-//        if ((event.getNewSlot() > event.getPreviousSlot() && event.getNewSlot() != 8) || (event.getPreviousSlot() == 8 && event.getNewSlot() == 0)) {
-//            downWandAction(ld.getLv());
-//        }
-//        if ((event.getNewSlot() < event.getPreviousSlot() && event.getNewSlot() != 0) || (event.getPreviousSlot() == 0 && event.getNewSlot() == 8)) {
-//            upWandAction(ld.getLv());
-//        }
-//    }
-
     private boolean isItems(ItemStack item) {
-        return item.equals(upWand()) || item.equals(nWand()) || item.equals(downWand()) || item.equals(doorButton()) || item.equals(sbLever()) || item.equals(ebButton());
+        ItemStack[] is = new ItemStack[]{upWand(), nWand(), downWand(), leftWand(), rightWand(), doorButton(), sbLever(), ebButton()};
+        return Arrays.asList(is).contains(item);
     }
 
     @EventHandler
