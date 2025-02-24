@@ -106,6 +106,12 @@ class debugcmd implements CommandExecutor, TabCompleter {
             case "speeddrop":
                 lv.setSpeeddrop(parseDouble);
                 break;
+            case "current":
+                lv.setCurrent(parseDouble);
+                break;
+            case "bcpressure":
+                lv.setBcpressure(parseDouble);
+                break;
             case "reqstopping":
                 lv.setReqstopping(parseBoolean);
                 break;
@@ -219,6 +225,12 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 break;
             case "speeddrop":
                 retstr = String.valueOf(lv.getSpeeddrop());
+                break;
+            case "current":
+                retstr = String.valueOf(lv.getCurrent());
+                break;
+            case "bcpressure":
+                retstr = String.valueOf(lv.getBcpressure());
                 break;
             case "reqstopping":
                 retstr = String.valueOf(lv.isReqstopping());
@@ -362,7 +374,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 ta.addAll(Arrays.asList("get", "set"));
                 break;
             case 3:
-                ta.addAll(Arrays.asList("speed", "mascon", "brake", "speedlimit", "signallimit", "atospeed", "atodest", "stoppos", "stopoutput", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld", "accel", "decel", "ebdecel", "speeddrop", "reqstopping", "overrun", "fixstoppos", "dooropen", "doordiropen", "doorconfirm", "atopisdirect", "atoforcebrake", "atoautodep"));
+                ta.addAll(Arrays.asList("speed", "mascon", "brake", "speedlimit", "signallimit", "atospeed", "atodest", "stoppos", "stopoutput", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld", "accel", "decel", "ebdecel", "speeddrop", "current", "bcpressure", "reqstopping", "overrun", "fixstoppos", "dooropen", "doordiropen", "doorconfirm", "atopisdirect", "atoforcebrake", "atoautodep"));
                 break;
         }
         ta.forEach((a) -> {

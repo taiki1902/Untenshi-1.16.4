@@ -567,6 +567,7 @@ class motion {
     }
 
     static double getReqdist(double upperSpeed, double lowerSpeed, double decel, double slopeaccel, double speeddrop) {
+        // Does not consider additional decel upslope, does not consider net deceleration smaller than speeddrop
         return Math.max((Math.pow(upperSpeed + Math.max(slopeaccel - decel, 0), 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop)), 0);
     }
 
