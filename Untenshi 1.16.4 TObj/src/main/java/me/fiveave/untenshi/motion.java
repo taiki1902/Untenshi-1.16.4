@@ -1,6 +1,9 @@
 package me.fiveave.untenshi;
 
+import com.bergerkiller.bukkit.common.math.Quaternion;
+import com.bergerkiller.bukkit.tc.attachments.config.AttachmentModel;
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
+import com.bergerkiller.bukkit.tc.controller.MinecartMember;
 import com.bergerkiller.bukkit.tc.properties.TrainProperties;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -104,8 +107,8 @@ class motion {
             lv.setCurrent(0);
         }
         // Slope speed adjust
-        Location headLoc = mg.head().getEntity().getLocation();
-        Location tailLoc = mg.tail().getEntity().getLocation();
+        Location headLoc = getCartActualRefPos(mg.head(), false);
+        Location tailLoc = getCartActualRefPos(mg.tail(), true);
         double slopeaccel = getSlopeAccel(headLoc, tailLoc);
         // Accel and decel
         double accelnow = accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(ecnow)));
@@ -326,7 +329,8 @@ class motion {
         if (lv.isReqstopping()) {
             // Get stop location
             double[] stopposloc = lv.getStoppos();
-            double stopdist = distFormula(lv.getDriverseat().getEntity().getLocation().getX(), stopposloc[0], lv.getDriverseat().getEntity().getLocation().getZ(), stopposloc[2]);
+            Location actualcartpos = getCartActualRefPos(lv.getDriverseat(), false);
+            double stopdist = distFormula(actualcartpos.getX(), stopposloc[0], actualcartpos.getZ(), stopposloc[2]);
             int stopdistcm = (int) (stopdist * 100);
             // Start Overrun (prevent escaping overrun over 144 km/h)
             if (!lv.isOverrun() && stopdist - onetickins * speed1s(lv) < 0) {
@@ -444,8 +448,8 @@ class motion {
         double speeddrop = lv.getSpeeddrop();
         double lowerSpeed = minSpeedLimit(lv);
         // 0.0625 from result of getting mg.head() y-location
-        Location headLoc = mg.head().getEntity().getLocation();
-        Location tailLoc = mg.tail().getEntity().getLocation();
+        Location headLoc = getCartActualRefPos(mg.head(), false);
+        Location tailLoc = getCartActualRefPos(mg.tail(), true);
         double slopeaccel = 0;
         double slopeaccelsi = 0;
         double slopeaccelsp = 0;
@@ -740,6 +744,30 @@ class motion {
         // Time in s instead of tick to brake init end, but to prevent over-estimation and negative deceleration values
         double t = Math.min(ticksleft * onetickins, avgdecel > 0 ? (upperSpeed - estlowerspeed) / avgdecel : Double.MAX_VALUE);
         return new AfterBrakeInitResult(avgdecel, t);
+    }
+
+    static Location getCartActualRefPos(MinecartMember<?> mm, boolean flipdir) {
+        double newx, newy, newz;
+        AttachmentModel am = mm.getProperties().getModel();
+        Location loc = mm.getEntity().getLocation();
+        double cartlen = am.getCartLength();
+        // Assuming carts with length within 1 m are minecarts
+        if (cartlen <= 1) {
+            return loc;
+        } else {
+            // 0.5 * cart length * direction flip multiplier
+            double resultmul = 0.5 * cartlen * (flipdir ? -1 : 1);
+            Quaternion ori = mm.getOrientation();
+            // Roll is ignored as a cart is considered as a line, not a surface
+            double yaw = ori.getYaw();
+            double pitch = ori.getPitch();
+            // -90 is west, 0 is south, 90 is east, 180 is north (degrees)
+            newx = loc.getX() + resultmul * Math.cos(Math.toRadians(yaw - 90)) * Math.cos(Math.toRadians(pitch));
+            newy = loc.getY() + resultmul * Math.sin(Math.toRadians(pitch));
+            newz = loc.getZ() - resultmul * Math.cos(Math.toRadians(yaw)) * Math.cos(Math.toRadians(pitch));
+            // Note that wrong value is returned if not all carts are in the same orientation
+            return new Location(mm.getWorld(), newx, newy, newz);
+        }
     }
 
     static class AfterBrakeInitResult {

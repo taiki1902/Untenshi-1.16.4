@@ -24,8 +24,8 @@ class ato {
             double lowerSpeed = lv.getAtospeed();
             double decel = lv.getDecel();
             // 0.0625 from result of getting mg.head() y-location
-            Location headLoc = mg.head().getEntity().getLocation();
-            Location tailLoc = mg.tail().getEntity().getLocation();
+            Location headLoc = getCartActualRefPos(mg.head(), false);
+            Location tailLoc = getCartActualRefPos(mg.tail(), true);
             Location atoLocForSlope = new Location(mg.getWorld(), lv.getAtodest()[0] + 0.5, lv.getAtodest()[1] + cartyposdiff, lv.getAtodest()[2] + 0.5);
             double slopeaccelnow = getSlopeAccel(headLoc, tailLoc);
             double slopeaccelsel = getSlopeAccel(atoLocForSlope, tailLoc);
@@ -176,7 +176,8 @@ class ato {
             double[] reqdist = new double[10];
             getAllReqdist(lv, minSpeedLimit(lv), 0, lv.getSpeeddrop(), reqdist, 0, 0);
             if (lv.getLastsisign() != null) {
-                notindist = (distFormula(lv.getLastsisign().getX(), lv.getDriverseat().getEntity().getLocation().getX(), lv.getLastsisign().getZ(), lv.getDriverseat().getEntity().getLocation().getZ())) > 5;
+                Location cartactualpos = getCartActualRefPos(lv.getDriverseat(), false);
+                notindist = (distFormula(lv.getLastsisign().getX(), cartactualpos.getX(), lv.getLastsisign().getZ(), cartactualpos.getZ())) > 5;
             }
             // Wait doors fully closed then depart (if have red light in 5 meters do not depart)
             if (lv.getDooropen() == 0 && lv.isDoorconfirm() && lv.getBrake() != 9 && (lv.getLastsisp() != 0 || notindist) && lv.isAtoautodep() && lv.getAtsforced() == 0) {
