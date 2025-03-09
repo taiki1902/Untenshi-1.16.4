@@ -246,7 +246,7 @@ class signalsign extends SignAction {
                                 }
                             }
                             // Train leaves, but in many ways (group leave, destroyed, etc), delete location from resettablesign
-                            else if ((cartevent.isAction(SignActionType.GROUP_LEAVE, SignActionType.REDSTONE_OFF) || !cartevent.hasRailedMember() || !cartevent.isPowered()) && lv.getRsposlist() != null && lv.getRsposlist().length > 1) {
+                            else if ((cartevent.isAction(SignActionType.GROUP_LEAVE, SignActionType.REDSTONE_OFF) || !cartevent.hasRailedMember() || !cartevent.isPowered()) && lv.getRsposlist() != null && lv.getRsposlist().length > 0) {
                                 Location[] oldloc = lv.getRsposlist();
                                 signalOrderPtnResult result = getSignalOrderPtnResult(lv);
                                 // Make blocked section shorter by 1
