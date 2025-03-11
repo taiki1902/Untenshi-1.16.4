@@ -80,10 +80,14 @@ class ato {
             boolean nextredlight = lv.getLastsisp() == 0 && priority == signaldistdiff;
             // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
             double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
-            boolean allowaccel = ((currentlimit - lv.getSpeed() > 5 && (lowerSpeed - lv.getSpeed() > 5 || tempdist > speed1s(lv)) && lv.getMascon() == 0 && lv.getBrake() == 0) || lv.getMascon() > 0) && potentialspeed <= currentlimit && (potentialspeed <= lowerSpeed || tempdist > speed1s(lv)) && !lv.isOverrun() && (lv.getDooropen() == 0 && lv.isDoorconfirm());
             // Actual controlling part, extra tick to prevent huge shock on stopping
             getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, onetickins);
             // Require accel? (no need to prepare for braking for next object and ATO target destination + additional thinking distance)
+            boolean allowaccel = Math.max(lv.getSpeed() + 5, potentialspeed) <= currentlimit // Speed is 5 km/h, or potentially under speed limit
+                    && (Math.max(lv.getSpeed() + 5, potentialspeed) <= lowerSpeed || tempdist > speed1s(lv)) // Speed is 5 km/h, or potentially under target speed
+                    && (lv.getMascon() == 0 && lv.getBrake() == 0 || lv.getMascon() > 0) // Neutral or already accelerating
+                    && !lv.isOverrun() // Not overrunning
+                    && lv.getDooropen() == 0 && lv.isDoorconfirm(); // Doors closed
             boolean notnearreqdist = tempdist > reqdist[6] + getThinkingDistance(lv, potentialspeed, lowerSpeed, decel, 6, slopeaccelsel, 3);
             if (notnearreqdist && allowaccel) {
                 finalmascon = 5;
@@ -96,14 +100,17 @@ class ato {
             if (lv.isAtoforcebrake() || lv.isAtopisdirect()) {
                 // If even emergency brake cannot brake in time
                 finalbrake = 9;
+                // For more accurate result (prevent EB misuse especially at low speeds when smaller brakes can do)
+                double minreqdist = Double.MAX_VALUE;
                 for (int b = 9; b >= 0; b--) {
-                    if (tempdist >= reqdist[b]) {
+                    if (tempdist >= reqdist[b] || reqdist[b] < minreqdist) {
                         finalbrake = b;
+                        minreqdist = reqdist[b];
                     }
                 }
             }
             // Cancel braking? (Slope acceleration considered)
-            if (tempdist > reqdist[6] + getThinkingDistance(lv, lv.getSpeed() + slopeaccelsel, lowerSpeed, decel, 6, slopeaccelsel, 3)) {
+            if (tempdist > reqdist[6] + getThinkingDistance(lv, lv.getSpeed() + slopeaccelsel, lowerSpeed, decel, 6, slopeaccelsel, 3) && !lv.isOverrun()) {
                 lv.setAtoforcebrake(false);
             }
             // Red light waiting procedure

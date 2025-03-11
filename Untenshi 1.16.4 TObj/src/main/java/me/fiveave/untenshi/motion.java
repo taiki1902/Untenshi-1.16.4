@@ -598,8 +598,8 @@ class motion {
                 AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, decel, slopeaccel, bcp, bcptarget);
                 sumdist = (upperSpeed * result.t - result.avgdecel * Math.pow(result.t, 2) / 2) / 3.6; // get distance from basic decel distance formula, v = u*t+1/2*a*t^2, and speed to SI units
             }
-            // Extra tick for action delay + slope acceleration considered (testing in progress)
-            return sumdist + (upperSpeed + slopeaccel) / 3.6 * extra;
+            // Extra tick for action delay + slope acceleration considered, prevent negative distance
+            return Math.max(0, sumdist + (upperSpeed + slopeaccel) / 3.6 * extra);
         } else {
             // Thinking distance not required
             return 0;
@@ -723,7 +723,7 @@ class motion {
             double beta = globalDecel(decel, speedsteps[0], rate, speedsteps); // decel in static range
             double staticupper = Math.min(upperspd, speedsteps[0]); // upper end speed in static range in decel graph
             double sumdiststatic = Math.max(0, (Math.pow(staticupper, 2) - Math.pow(lowerspd, 2)) / (7.2 * beta)); // braking distance in static range
-            // Need minimum is 0 or else there may be negative value
+            // Prevent negative value
             return Math.max(0, (Math.pow(upperspd, 2) - Math.pow(lowerspd, 2)) / (7.2 * (sumdistvar + sumdiststatic)));
         } else {
             return alpha;

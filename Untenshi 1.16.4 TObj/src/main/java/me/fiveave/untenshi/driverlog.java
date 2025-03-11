@@ -85,7 +85,7 @@ class driverlog implements CommandExecutor, TabCompleter {
             LocalDateTime myDateObj = LocalDateTime.now();
             DateTimeFormatter myFormatObj = DateTimeFormatter.ofPattern("HH:mm:ss.SS");
             String timestampnow = myDateObj.format(myFormatObj);
-            String s = String.format("%s,%1.2f,%d,%d,%d", timestampnow, lv.getSpeed(), lv.getMascon(), lv.getSpeedlimit(), lv.getSignallimit());
+            String s = String.format("%s,%1.2f,%d,%d,%d,%d", timestampnow, lv.getSpeed(), lv.getMascon(), lv.getBrake(), lv.getSpeedlimit(), lv.getSignallimit());
             try {
                 write(lv, timestamp, s);
                 Bukkit.getScheduler().runTaskLater(plugin, () -> logging(sender, lv, timestamp), tickdelay);
@@ -109,7 +109,7 @@ class driverlog implements CommandExecutor, TabCompleter {
         File file = new File(dir, lv.getTrain().getProperties().getTrainName() + "_" + timestamp.replaceAll(":", "_") + ".csv");
         if (!file.exists() && file.createNewFile()) {
             BufferedWriter bw = new BufferedWriter(new FileWriter(file));
-            bw.write("t,v,notch,splim,silim");
+            bw.write("t,v,notch,brake,splim,silim");
             bw.close();
         }
     }

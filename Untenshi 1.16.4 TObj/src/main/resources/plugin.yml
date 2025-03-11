@@ -1,5 +1,5 @@
 name: Untenshi
-version: 1.10.5_05-TObj
+version: 1.10.5_06-TObj
 main: me.fiveave.untenshi.main
 api-version: 1.15
 description: Untenshi Plugin
@@ -14,7 +14,7 @@ commands:
     usage: /utssignal <x> <y> <z> <mode> <signal> <speed>
   utslogger:
     description: Untenshi Logger
-    usage: /utslogger <player>
+    usage: /utslogger <vehicle_name>
   utsdebug:
     description: Untenshi Debugger
     usage: /utsdebug <vehicle_name> <get/set> <variable>
