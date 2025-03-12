@@ -662,11 +662,7 @@ class motion {
     }
 
     static boolean noFreemodeOrATO(utsdriver ld) {
-        if (ld != null) {
-            return !ld.isFreemode() && ld.getLv().getAtodest() == null;
-        } else {
-            return true;
-        }
+        return ld == null || !ld.isFreemode() && ld.getLv().getAtodest() == null;
     }
 
     static double accelSwitch(utsvehicle lv, double speed, int dcurrent) {
@@ -738,9 +734,9 @@ class motion {
         double ticksfrom0 = bcp / bcppertick;
         double ticksatend = bcptarget / bcppertick;
         double ticksleft = ticksatend - ticksfrom0;
-        double avgrate = bcp > 0 ? ((80 * (ticksatend + ticksfrom0) * onetickins + 27) / 35) : ((80 * (Math.pow(ticksatend, 2) - 1) * onetickins + 27 * (ticksatend - 1)) / 35 / (ticksatend)); // average rate by mean value theorem, separate cases for bcp < 0 or not
-        double estlowerspeed = upperSpeed - decel * avgrate / 7 * ticksleft / ticksin1s; // estimated lower speed (testing)
-        double avgdecel = avgRangeDecel(decel, upperSpeed, estlowerspeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel, inaccuracy is negligible?
+        double avgrate = bcp > 0 ? (80 * (ticksatend + ticksfrom0) * onetickins + 27) / 35 : (80 * (Math.pow(ticksatend, 2) - 1) * onetickins + 27 * (ticksatend - 1)) / 35 / ticksatend; // average rate by mean value theorem, separate cases for bcp < 0 or not
+        double estlowerspeed = upperSpeed - (decel * avgrate / 7 - slopeaccel) * ticksleft / ticksin1s; // estimated lower speed (testing)
+        double avgdecel = avgRangeDecel(decel, upperSpeed, estlowerspeed, avgrate, lv.getSpeedsteps()); // gives better estimation than globalDecel, inaccuracy is negligible?
         // Time in s instead of tick to brake init end, but to prevent over-estimation and negative deceleration values
         double t = Math.min(ticksleft * onetickins, avgdecel > 0 ? (upperSpeed - estlowerspeed) / avgdecel : Double.MAX_VALUE);
         return new AfterBrakeInitResult(avgdecel, t);
