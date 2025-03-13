@@ -107,9 +107,8 @@ class motion {
             lv.setCurrent(0);
         }
         // Slope speed adjust
-        Location headLoc = getCartActualRefPos(mg.head(), false);
-        Location tailLoc = getCartActualRefPos(mg.tail(), true);
-        double slopeaccel = getSlopeAccel(headLoc, tailLoc);
+        HeadAndTailResult result = getHeadAndTailResult(mg);
+        double slopeaccel = getSlopeAccel(result.headLoc, result.tailLoc);
         // Accel and decel
         double accelnow = accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(ecnow)));
         double decelnow = decelSwitch(lv, lv.getSpeed(), slopeaccel);
@@ -329,11 +328,11 @@ class motion {
         if (lv.isReqstopping()) {
             // Get stop location
             double[] stopposloc = lv.getStoppos();
-            Location actualcartpos = getCartActualRefPos(lv.getDriverseat(), false);
-            double stopdist = distFormula(actualcartpos.getX(), stopposloc[0], actualcartpos.getZ(), stopposloc[2]);
+            Location cartactualpos = getDriverseatActualPos(lv);
+            double stopdist = distFormula(cartactualpos.getX(), stopposloc[0], cartactualpos.getZ(), stopposloc[2]);
             int stopdistcm = (int) (stopdist * 100);
             // Start Overrun (prevent escaping overrun over 144 km/h)
-            if (!lv.isOverrun() && stopdist - onetickins * speed1s(lv) < 0) {
+            if (!lv.isOverrun() && (stopdist - onetickins * speed1s(lv) < 0 || stopdist < 1)) {
                 lv.setOverrun(true);
             }
             // Rewards and penalties
@@ -448,8 +447,7 @@ class motion {
         double speeddrop = lv.getSpeeddrop();
         double lowerSpeed = minSpeedLimit(lv);
         // 0.0625 from result of getting mg.head() y-location
-        Location headLoc = getCartActualRefPos(mg.head(), false);
-        Location tailLoc = getCartActualRefPos(mg.tail(), true);
+        HeadAndTailResult result = getHeadAndTailResult(mg);
         double slopeaccel = 0;
         double slopeaccelsi = 0;
         double slopeaccelsp = 0;
@@ -479,17 +477,17 @@ class motion {
         if (lv.getLastsisign() != null && lv.getLastsisp() != maxspeed) {
             int[] getSiOffset = getSignToRailOffset(lv.getLastsisign(), mg.getWorld());
             Location siLocForSlope = new Location(mg.getWorld(), lv.getLastsisign().getX() + getSiOffset[0], lv.getLastsisign().getY() + getSiOffset[1] + cartyposdiff, lv.getLastsisign().getZ() + getSiOffset[2]);
-            slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
+            slopeaccelsi = getSlopeAccel(siLocForSlope, result.tailLoc);
             reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, 0);
-            signaldist = distFormula(lv.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), lv.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
+            signaldist = distFormula(lv.getLastsisign().getX() + getSiOffset[0] + 0.5, result.headLoc.getX(), lv.getLastsisign().getZ() + getSiOffset[2] + 0.5, result.headLoc.getZ());
             signaldistdiff = signaldist - reqsidist;
         }
         if (lv.getLastspsign() != null && lv.getLastspsp() != maxspeed) {
             int[] getSpOffset = getSignToRailOffset(lv.getLastspsign(), mg.getWorld());
             Location spLocForSlope = new Location(mg.getWorld(), lv.getLastspsign().getX() + getSpOffset[0], lv.getLastspsign().getY() + getSpOffset[1] + cartyposdiff, lv.getLastspsign().getZ() + getSpOffset[2]);
-            slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
+            slopeaccelsp = getSlopeAccel(spLocForSlope, result.tailLoc);
             reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, 0);
-            speeddist = distFormula(lv.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), lv.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
+            speeddist = distFormula(lv.getLastspsign().getX() + getSpOffset[0] + 0.5, result.headLoc.getX(), lv.getLastspsign().getZ() + getSpOffset[2] + 0.5, result.headLoc.getZ());
             speeddistdiff = speeddist - reqspdist;
         }
         double priority = Math.min(signaldistdiff, speeddistdiff);
@@ -766,6 +764,45 @@ class motion {
         }
     }
 
+    static HeadAndTailResult getHeadAndTailResult(MinecartGroup mg) {
+        // Might be any combination, so all scenarios have to be tested
+        // Get longest length to get actual head and tail
+        Location retHeadLoc = null;
+        Location retTailLoc = null;
+        double length = 0;
+        for (boolean h : new boolean[]{false, true}) {
+            for (boolean t : new boolean[]{false, true}) {
+                Location testHeadLoc = getCartActualRefPos(mg.head(), h);
+                Location testTailLoc = getCartActualRefPos(mg.tail(), t);
+                double testlength = distFormula(testHeadLoc.getX(), testTailLoc.getX(), testHeadLoc.getZ(), testTailLoc.getZ());
+                if (testlength > length) {
+                    length = testlength;
+                    retHeadLoc = testHeadLoc;
+                    retTailLoc = testTailLoc;
+                }
+            }
+        }
+        return new HeadAndTailResult(retHeadLoc, retTailLoc);
+    }
+
+
+    static Location getDriverseatActualPos(utsvehicle lv) {
+        // Driver seat may be flipped, therefore must test
+        // Get longest length to get actual head and driver seat
+        HeadAndTailResult result = getHeadAndTailResult(lv.getTrain());
+        Location retDriverseat = null;
+        double length = 0;
+        for (boolean d : new boolean[]{false, true}) {
+                Location testDriverseat = getCartActualRefPos(lv.getDriverseat(), d);
+                double testlength = distFormula(testDriverseat.getX(), result.tailLoc.getX(), testDriverseat.getZ(), result.tailLoc.getZ());
+                if (testlength > length) {
+                    length = testlength;
+                    retDriverseat = testDriverseat;
+            }
+        }
+        return retDriverseat;
+    }
+
     static class AfterBrakeInitResult {
         public final double avgdecel;
         public final double t;
@@ -773,6 +810,16 @@ class motion {
         public AfterBrakeInitResult(double avgdecel, double t) {
             this.avgdecel = avgdecel;
             this.t = t;
+        }
+    }
+
+    static class HeadAndTailResult {
+        public final Location headLoc;
+        public final Location tailLoc;
+
+        public HeadAndTailResult(Location headLoc, Location tailLoc) {
+            this.headLoc = headLoc;
+            this.tailLoc = tailLoc;
         }
     }
 }

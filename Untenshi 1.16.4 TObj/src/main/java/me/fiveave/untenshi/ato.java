@@ -24,11 +24,10 @@ class ato {
             double lowerSpeed = lv.getAtospeed();
             double decel = lv.getDecel();
             // 0.0625 from result of getting mg.head() y-location
-            Location headLoc = getCartActualRefPos(mg.head(), false);
-            Location tailLoc = getCartActualRefPos(mg.tail(), true);
+            HeadAndTailResult result = getHeadAndTailResult(mg);
             Location atoLocForSlope = new Location(mg.getWorld(), lv.getAtodest()[0] + 0.5, lv.getAtodest()[1] + cartyposdiff, lv.getAtodest()[2] + 0.5);
-            double slopeaccelnow = getSlopeAccel(headLoc, tailLoc);
-            double slopeaccelsel = getSlopeAccel(atoLocForSlope, tailLoc);
+            double slopeaccelnow = getSlopeAccel(result.headLoc, result.tailLoc);
+            double slopeaccelsel = getSlopeAccel(atoLocForSlope, result.tailLoc);
             double slopeaccelsi = 0;
             double slopeaccelsp = 0;
             double reqatodist = getSingleReqdist(lv, lv.getSpeed(), lv.getAtospeed(), speeddrop, 6, slopeaccelsel, 0) + getThinkingDistance(lv, lv.getSpeed(), lv.getAtospeed(), decel, 6, slopeaccelsel, 0);
@@ -36,7 +35,7 @@ class ato {
             double signaldistdiff = Double.MAX_VALUE;
             double speeddist = Double.MAX_VALUE;
             double speeddistdiff = Double.MAX_VALUE;
-            double atodist = distFormula(lv.getAtodest()[0] + 0.5, headLoc.getX(), lv.getAtodest()[2] + 0.5, headLoc.getZ());
+            double atodist = distFormula(lv.getAtodest()[0] + 0.5, result.headLoc.getX(), lv.getAtodest()[2] + 0.5, result.headLoc.getZ());
             double atodistdiff = atodist - reqatodist;
             double reqsidist;
             double reqspdist;
@@ -48,17 +47,17 @@ class ato {
             if (lv.getLastsisign() != null && lv.getLastsisp() != maxspeed) {
                 int[] getSiOffset = getSignToRailOffset(lv.getLastsisign(), mg.getWorld());
                 Location siLocForSlope = new Location(mg.getWorld(), lv.getLastsisign().getX() + getSiOffset[0], lv.getLastsisign().getY() + getSiOffset[1] + cartyposdiff, lv.getLastsisign().getZ() + getSiOffset[2]);
-                slopeaccelsi = getSlopeAccel(siLocForSlope, tailLoc);
+                slopeaccelsi = getSlopeAccel(siLocForSlope, result.tailLoc);
                 reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, 0) + getThinkingDistance(lv, lv.getSpeed(), lv.getLastsisp(), decel, 6, slopeaccelsi, 0);
-                signaldist = distFormula(lv.getLastsisign().getX() + getSiOffset[0] + 0.5, headLoc.getX(), lv.getLastsisign().getZ() + getSiOffset[2] + 0.5, headLoc.getZ());
+                signaldist = distFormula(lv.getLastsisign().getX() + getSiOffset[0] + 0.5, result.headLoc.getX(), lv.getLastsisign().getZ() + getSiOffset[2] + 0.5, result.headLoc.getZ());
                 signaldistdiff = signaldist - reqsidist;
             }
             if (lv.getLastspsign() != null && lv.getLastspsp() != maxspeed) {
                 int[] getSpOffset = getSignToRailOffset(lv.getLastspsign(), mg.getWorld());
                 Location spLocForSlope = new Location(mg.getWorld(), lv.getLastspsign().getX() + getSpOffset[0], lv.getLastspsign().getY() + getSpOffset[1] + cartyposdiff, lv.getLastspsign().getZ() + getSpOffset[2]);
-                slopeaccelsp = getSlopeAccel(spLocForSlope, tailLoc);
+                slopeaccelsp = getSlopeAccel(spLocForSlope, result.tailLoc);
                 reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, 0) + getThinkingDistance(lv, lv.getSpeed(), lv.getLastspsp(), decel, 6, slopeaccelsp, 0);
-                speeddist = distFormula(lv.getLastspsign().getX() + getSpOffset[0] + 0.5, headLoc.getX(), lv.getLastspsign().getZ() + getSpOffset[2] + 0.5, headLoc.getZ());
+                speeddist = distFormula(lv.getLastspsign().getX() + getSpOffset[0] + 0.5, result.headLoc.getX(), lv.getLastspsign().getZ() + getSpOffset[2] + 0.5, result.headLoc.getZ());
                 speeddistdiff = speeddist - reqspdist;
             }
             double priority = (atodistdiff < signaldistdiff) ? (Math.min(atodistdiff, speeddistdiff)) : (Math.min(signaldistdiff, speeddistdiff));
@@ -183,7 +182,7 @@ class ato {
             double[] reqdist = new double[10];
             getAllReqdist(lv, minSpeedLimit(lv), 0, lv.getSpeeddrop(), reqdist, 0, 0);
             if (lv.getLastsisign() != null) {
-                Location cartactualpos = getCartActualRefPos(lv.getDriverseat(), false);
+                Location cartactualpos = getDriverseatActualPos(lv);
                 notindist = (distFormula(lv.getLastsisign().getX(), cartactualpos.getX(), lv.getLastsisign().getZ(), cartactualpos.getZ())) > 5;
             }
             // Wait doors fully closed then depart (if have red light in 5 meters do not depart)
