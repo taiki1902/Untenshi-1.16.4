@@ -790,15 +790,13 @@ class motion {
         // Driver seat may be flipped, therefore must test
         // Get longest length to get actual head and driver seat
         HeadAndTailResult result = getHeadAndTailResult(lv.getTrain());
-        Location retDriverseat = null;
-        double length = 0;
-        for (boolean d : new boolean[]{false, true}) {
-                Location testDriverseat = getCartActualRefPos(lv.getDriverseat(), d);
-                double testlength = distFormula(testDriverseat.getX(), result.tailLoc.getX(), testDriverseat.getZ(), result.tailLoc.getZ());
-                if (testlength > length) {
-                    length = testlength;
-                    retDriverseat = testDriverseat;
-            }
+        Location retDriverseat = getCartActualRefPos(lv.getDriverseat(), false);
+        double length = distFormula(retDriverseat.getX(), result.tailLoc.getX(), retDriverseat.getZ(), result.tailLoc.getZ());
+        // Test for flipped case
+        Location testDriverseat = getCartActualRefPos(lv.getDriverseat(), true);
+        double testlength = distFormula(testDriverseat.getX(), result.tailLoc.getX(), testDriverseat.getZ(), result.tailLoc.getZ());
+        if (testlength > length) {
+            retDriverseat = testDriverseat;
         }
         return retDriverseat;
     }
