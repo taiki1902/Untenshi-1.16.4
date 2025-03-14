@@ -20,27 +20,24 @@ import static me.fiveave.untenshi.main.vehicle;
 class debugcmd implements CommandExecutor, TabCompleter {
 
     private static void debugSet(CommandSender sender, String[] args, utsvehicle lv) {
-        int parseInt = Integer.parseInt(args[3]);
-        boolean parseBoolean = Boolean.parseBoolean(args[3]);
-        double parseDouble = Double.parseDouble(args[3]);
         switch (args[2].toLowerCase()) {
             case "speed":
-                lv.setSpeed(parseDouble);
+                lv.setSpeed(Double.parseDouble(args[3]));
                 break;
             case "mascon":
-                lv.setMascon(parseInt);
+                lv.setMascon(Integer.parseInt(args[3]));
                 break;
             case "brake":
-                lv.setBrake(parseInt);
+                lv.setBrake(Integer.parseInt(args[3]));
                 break;
             case "speedlimit":
-                lv.setSpeedlimit(parseInt);
+                lv.setSpeedlimit(Integer.parseInt(args[3]));
                 break;
             case "signallimit":
-                lv.setSignallimit(parseInt);
+                lv.setSignallimit(Integer.parseInt(args[3]));
                 break;
             case "atospeed":
-                lv.setAtospeed(parseDouble);
+                lv.setAtospeed(Double.parseDouble(args[3]));
                 break;
             case "atodest":
                 double[] loc1 = new double[3];
@@ -64,17 +61,17 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 lv.setStopoutput(loc4);
                 break;
             case "lastspsp":
-                lv.setLastspsp(parseInt);
+                lv.setLastspsp(Integer.parseInt(args[3]));
                 break;
             case "lastspsign":
-                Location loc2 = new Location(lv.getSavedworld(), parseInt, Integer.parseInt(args[4]), Integer.parseInt(args[5]));
+                Location loc2 = new Location(lv.getSavedworld(), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
                 lv.setLastspsign(loc2);
                 break;
             case "lastsisp":
-                lv.setLastsisp(parseInt);
+                lv.setLastsisp(Integer.parseInt(args[3]));
                 break;
             case "lastsisign":
-                Location loc3 = new Location(lv.getSavedworld(), parseInt, Integer.parseInt(args[4]), Integer.parseInt(args[5]));
+                Location loc3 = new Location(lv.getSavedworld(), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
                 lv.setLastsisign(loc3);
                 break;
             case "rslist":
@@ -86,58 +83,58 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 generalMsg(sender, ChatColor.YELLOW, "Option is not available yet.");
                 break;
             case "atsforced":
-                lv.setAtsforced(parseInt);
+                lv.setAtsforced(Integer.parseInt(args[3]));
                 break;
             case "atsping":
-                lv.setAtsping(parseInt);
+                lv.setAtsping(Integer.parseInt(args[3]));
                 break;
             case "atspnear":
-                lv.setAtspnear(parseBoolean);
+                lv.setAtspnear(Boolean.parseBoolean(args[3]));
                 break;
             case "accel":
-                lv.setAccel(parseDouble);
+                lv.setAccel(Double.parseDouble(args[3]));
                 break;
             case "decel":
-                lv.setDecel(parseDouble);
+                lv.setDecel(Double.parseDouble(args[3]));
                 break;
             case "ebdecel":
-                lv.setEbdecel(parseDouble);
+                lv.setEbdecel(Double.parseDouble(args[3]));
                 break;
             case "speeddrop":
-                lv.setSpeeddrop(parseDouble);
+                lv.setSpeeddrop(Double.parseDouble(args[3]));
                 break;
             case "current":
-                lv.setCurrent(parseDouble);
+                lv.setCurrent(Double.parseDouble(args[3]));
                 break;
             case "bcpressure":
-                lv.setBcpressure(parseDouble);
+                lv.setBcpressure(Double.parseDouble(args[3]));
                 break;
             case "reqstopping":
-                lv.setReqstopping(parseBoolean);
+                lv.setReqstopping(Boolean.parseBoolean(args[3]));
                 break;
             case "overrun":
-                lv.setOverrun(parseBoolean);
+                lv.setOverrun(Boolean.parseBoolean(args[3]));
                 break;
             case "fixstoppos":
-                lv.setFixstoppos(parseBoolean);
+                lv.setFixstoppos(Boolean.parseBoolean(args[3]));
                 break;
             case "dooropen":
-                lv.setDooropen(parseInt);
+                lv.setDooropen(Integer.parseInt(args[3]));
                 break;
             case "doordiropen":
-                lv.setDoordiropen(parseBoolean);
+                lv.setDoordiropen(Boolean.parseBoolean(args[3]));
                 break;
             case "doorconfirm":
-                lv.setDoorconfirm(parseBoolean);
+                lv.setDoorconfirm(Boolean.parseBoolean(args[3]));
                 break;
             case "atopisdirect":
-                lv.setAtopisdirect(parseBoolean);
+                lv.setAtopisdirect(Boolean.parseBoolean(args[3]));
                 break;
             case "atoforcebrake":
-                lv.setAtoforcebrake(parseBoolean);
+                lv.setAtoforcebrake(Boolean.parseBoolean(args[3]));
                 break;
             case "atoautodep":
-                lv.setAtoautodep(parseBoolean);
+                lv.setAtoautodep(Boolean.parseBoolean(args[3]));
                 break;
             default:
                 generalMsg(sender, ChatColor.RED, getLang("argwrong"));
