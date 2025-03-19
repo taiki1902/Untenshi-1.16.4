@@ -94,6 +94,32 @@ class speedsign extends SignAction {
         return e.getLine(2).split(" ")[2];
     }
 
+    static boolean speedOverMax(CommandSender p, int signalspeed) {
+        if (signalspeed > maxspeed) {
+            if (p != null) {
+                p.sendMessage(getSpeedMax());
+            }
+            return true;
+        }
+        return false;
+    }
+
+    static boolean reqDiv5(CommandSender p, int speedlimit) {
+        if (speedlimit < 0 || Math.floorMod(speedlimit, 5) != 0) {
+            if (p != null) {
+                generalMsg(p, ChatColor.RESET, getLang("argwrong"));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    static boolean limitSpeedIncorrect(CommandSender sender, int signalspeed) {
+        boolean retval = speedOverMax(sender, signalspeed);
+        if (reqDiv5(sender, signalspeed)) retval = true;
+        return retval;
+    }
+
     @Override
     public boolean match(SignActionEvent info) {
         return info.isType("speedsign");
@@ -115,19 +141,19 @@ class speedsign extends SignAction {
                             signImproper(cartevent, lv.getLd());
                             return;
                         }
-                            lv.setSpeedlimit(intspeed);
-                            // ATC signal and speed limit min value
-                            if (lv.getSafetysystype().equals("atc")) {
-                                intspeed = Math.min(lv.getSignallimit(), lv.getSpeedlimit());
-                                String temp = intspeed >= maxspeed ? getLang("speedlimit_del") : intspeed + " km/h";
-                                generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("signal_set") + " " + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + temp);
-                            } else {
-                                generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("speedlimit_set") + " " + (intspeed == maxspeed ? ChatColor.GREEN + getLang("speedlimit_del") : intspeed + " km/h"));
-                            }
-                            if (parseInt(speedsign) != 0) {
-                                lv.setLastspsign(null);
-                                lv.setLastspsp(maxspeed);
-                            }
+                        lv.setSpeedlimit(intspeed);
+                        // ATC signal and speed limit min value
+                        if (lv.getSafetysystype().equals("atc")) {
+                            intspeed = Math.min(lv.getSignallimit(), lv.getSpeedlimit());
+                            String temp = intspeed >= maxspeed ? getLang("speedlimit_del") : intspeed + " km/h";
+                            generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("signal_set") + " " + ChatColor.GOLD + "ATC" + ChatColor.GRAY + " " + temp);
+                        } else {
+                            generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("speedlimit_set") + " " + (intspeed == maxspeed ? ChatColor.GREEN + getLang("speedlimit_del") : intspeed + " km/h"));
+                        }
+                        if (parseInt(speedsign) != 0) {
+                            lv.setLastspsign(null);
+                            lv.setLastspsp(maxspeed);
+                        }
                     } catch (NumberFormatException e) {
                         signImproper(cartevent, lv.getLd());
                     }
@@ -186,31 +212,5 @@ class speedsign extends SignAction {
             e.setCancelled(true);
         }
         return true;
-    }
-
-    static boolean speedOverMax(CommandSender p, int signalspeed) {
-        if (signalspeed > maxspeed) {
-            if (p != null) {
-                p.sendMessage(getSpeedMax());
-            }
-            return true;
-        }
-        return false;
-    }
-
-    static boolean reqDiv5(CommandSender p, int speedlimit) {
-        if (speedlimit < 0 || Math.floorMod(speedlimit, 5) != 0) {
-            if (p != null) {
-                generalMsg(p, ChatColor.RESET, getLang("argwrong"));
-            }
-            return true;
-        }
-        return false;
-    }
-
-    static boolean limitSpeedIncorrect(CommandSender sender, int signalspeed) {
-        boolean retval = speedOverMax(sender, signalspeed);
-        if (reqDiv5(sender, signalspeed)) retval = true;
-        return retval;
     }
 }

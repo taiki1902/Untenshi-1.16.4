@@ -66,6 +66,14 @@ class cmds implements CommandExecutor, TabCompleter {
         return false;
     }
 
+    private static boolean reqActivate(utsdriver ld) {
+        if (!ld.isPlaying()) {
+            generalMsg(ld.getP(), ChatColor.YELLOW, getLang("activate_onfirst"));
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
@@ -340,14 +348,6 @@ class cmds implements CommandExecutor, TabCompleter {
             e.printStackTrace();
         }
         return true;
-    }
-
-    private static boolean reqActivate(utsdriver ld) {
-        if (!ld.isPlaying()) {
-            generalMsg(ld.getP(), ChatColor.YELLOW, getLang("activate_onfirst"));
-            return true;
-        }
-        return false;
     }
 
     private boolean cannotSetTrain(String[] args, utsdriver ld) {

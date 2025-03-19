@@ -210,16 +210,16 @@ class events implements Listener {
         if (lv.getTrain() != null) {
             switch (type) {
                 case "brake_apply":
-                    lv.getTrain().forEach(mm-> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 0.75f));
+                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 0.75f));
                     break;
                 case "brake_release":
-                    lv.getTrain().forEach(mm-> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 1.5f));
+                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 1.5f));
                     break;
                 case "accel_on":
-                    lv.getTrain().forEach(mm-> mm.getEntity().makeSound(Sound.BLOCK_PISTON_EXTEND, 0.01f, 2f));
+                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_EXTEND, 0.01f, 2f));
                     break;
                 case "accel_off":
-                    lv.getTrain().forEach(mm-> mm.getEntity().makeSound(Sound.BLOCK_PISTON_CONTRACT, 0.01f, 2f));
+                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_CONTRACT, 0.01f, 2f));
                     break;
                 case "mascon":
                     if (lv.getLd() != null) {
@@ -299,7 +299,7 @@ class events implements Listener {
     void collision(VehicleBlockCollisionEvent event) {
         try {
             MinecartGroup mg = MinecartGroupStore.get(event.getVehicle());
-            mg.getProperties().getOwners().forEach(s-> {
+            mg.getProperties().getOwners().forEach(s -> {
                 Player p = Bukkit.getPlayer(s);
                 utsdriver ld = driver.get(p);
                 utsvehicle lv = ld.getLv();
