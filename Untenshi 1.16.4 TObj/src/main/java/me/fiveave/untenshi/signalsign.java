@@ -130,7 +130,7 @@ class signalsign extends SignAction {
     }
 
     static void deleteOthersResettablesign(utsvehicle lv, Location currentloc) {
-        vehicle.keySet().forEach((mg2) -> {
+        vehicle.keySet().forEach(mg2 -> {
             initVehicle(mg2);
             utsvehicle lv2 = vehicle.get(mg2);
             if (lv2.getRsposlist() != null && lv2 != lv) {
@@ -166,7 +166,11 @@ class signalsign extends SignAction {
             if (lv != null) {
                 int signalspeed = l1(cartevent).equals("set") ? parseInt(l3(cartevent)) : 0;
                 // Main content starts here
-                if ((!(l1(cartevent).equals("warn") || l1(cartevent).equals("interlock")) && l2(cartevent).equals("del")) || (signalspeed <= maxspeed && signalspeed >= 0 && Math.floorMod(signalspeed, 5) == 0 && (checkType(cartevent)))) {
+                if (limitSpeedIncorrect(null, signalspeed)) {
+                    signImproper(cartevent, lv.getLd());
+                    return;
+                }
+                if ((!(l1(cartevent).equals("warn") || l1(cartevent).equals("interlock")) && l2(cartevent).equals("del")) || checkType(cartevent)) {
                     String signalmsg;
                     // Put signal speed limit
                     switch (l1(cartevent)) {
@@ -379,15 +383,8 @@ class signalsign extends SignAction {
             }
             // Check speed conditions
             if (l1(e).equals("set")) {
-                if (parseInt(l3(e)) > maxspeed) {
-                    p.sendMessage(getSpeedMax());
-                    e.setCancelled(true);
-                }
-                if (parseInt(l3(e)) < 0 || Math.floorMod(parseInt(l3(e)), 5) != 0) {
-                    p.sendMessage(ChatColor.RED + getLang("argwrong"));
-                    e.setCancelled(true);
-                }
-
+                int signalspeed = parseInt(l3(e));
+                if (limitSpeedIncorrect(p, signalspeed)) e.setCancelled(true);
             }
             // Check line 4 (coord) is int only
             String[] s2 = e.getLine(2).split(" ");
@@ -417,15 +414,8 @@ class signalsign extends SignAction {
                     if (!isSignalType(s3[1].toLowerCase())) {
                         p.sendMessage(ChatColor.RED + getLang("signal_typewrong"));
                     }
-                    parseInt(s3[2]);
-                    if (parseInt(s3[2]) > maxspeed) {
-                        p.sendMessage(getSpeedMax());
-                        e.setCancelled(true);
-                    }
-                    if (parseInt(s3[2]) < 0 || Math.floorMod(parseInt(s3[2]), 5) != 0) {
-                        p.sendMessage(ChatColor.RED + getLang("argwrong"));
-                        e.setCancelled(true);
-                    }
+                    int setspeed = parseInt(s3[2]);
+                    if (limitSpeedIncorrect(p, setspeed)) e.setCancelled(true);
                     opt.setDescription("set signal speed limit for train");
                     break;
             }

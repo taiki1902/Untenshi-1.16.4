@@ -173,8 +173,8 @@ public final class main extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        driver.keySet().forEach((p) -> restoreInitLd(driver.get(p)));
-        vehicle.keySet().forEach((mg) -> restoreInitLv(vehicle.get(mg)));
+        driver.keySet().forEach(p -> restoreInitLd(driver.get(p)));
+        vehicle.keySet().forEach(mg -> restoreInitLv(vehicle.get(mg)));
         for (SignAction sa : new SignAction[]{sign1, sign2, sign3, sign4, sign5}) {
             SignAction.unregister(sa);
         }

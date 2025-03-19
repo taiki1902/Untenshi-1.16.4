@@ -49,7 +49,7 @@ class abstractfile {
                 // Add back defaults
                 dataconfig.addDefaults(defaultConfig);
                 // Put new data config to default values
-                setstr.forEach((str) -> {
+                setstr.forEach(str -> {
                     if (!Objects.equals(oldconfig.get(str), dataconfig.get(str))) {
                         if (oldconfig.get(str) != null) {
                             dataconfig.set(str, oldconfig.get(str));

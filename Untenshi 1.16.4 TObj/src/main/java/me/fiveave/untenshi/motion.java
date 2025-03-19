@@ -49,12 +49,10 @@ class motion {
                 e.printStackTrace();
                 restoreInitLd(ld);
             }
-        } else if (!ld.getP().isInsideVehicle() && !ld.isFrozen()) {
+        } else if (!ld.getP().isInsideVehicle()) {
             restoreInitLd(ld);
         } else if (ld.isFrozen()) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClockLd(ld), tickdelay);
-        } else {
-            restoreInitLd(ld);
         }
     }
 
@@ -114,19 +112,19 @@ class motion {
         double decelnow = decelSwitch(lv, lv.getSpeed(), slopeaccel);
         if (lv.getDooropen() == 0) {
             // If door is closed
-            lv.setSpeed(lv.getSpeed() + accelnow * onetickins // Acceleration
-                    - decelnow * onetickins) // Deceleration (speed drop included)
-            ;
+            lv.setSpeed(lv.getSpeed()
+                    + accelnow * onetickins // Acceleration
+                    - decelnow * onetickins); // Deceleration (speed drop included)
+            // Prevent negative speed
+            if (lv.getSpeed() < 0) {
+                lv.setSpeed(0.0);
+            }
         } else {
             // If door is open
             lv.setSpeed(0);
             if (lv.getMascon() > 0) {
                 lv.setMascon(0);
             }
-        }
-        // Prevent negative speed
-        if (lv.getSpeed() < 0) {
-            lv.setSpeed(0.0);
         }
         // Cancel TC motion-related sign actions
         if (!stationstop) mg.getActions().clear();

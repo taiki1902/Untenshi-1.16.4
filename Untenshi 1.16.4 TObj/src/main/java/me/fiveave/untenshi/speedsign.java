@@ -15,6 +15,7 @@ import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.Rail;
 import org.bukkit.block.data.type.WallSign;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import static java.lang.Integer.parseInt;
@@ -110,7 +111,10 @@ class speedsign extends SignAction {
                 if (!cartevent.getLine(2).equals("warn")) {
                     try {
                         int intspeed = parseInt(speedsign);
-                        if (intspeed <= maxspeed && intspeed >= 0 && Math.floorMod(intspeed, 5) == 0) {
+                        if (limitSpeedIncorrect(null, intspeed)) {
+                            signImproper(cartevent, lv.getLd());
+                            return;
+                        }
                             lv.setSpeedlimit(intspeed);
                             // ATC signal and speed limit min value
                             if (lv.getSafetysystype().equals("atc")) {
@@ -124,9 +128,6 @@ class speedsign extends SignAction {
                                 lv.setLastspsign(null);
                                 lv.setLastspsp(maxspeed);
                             }
-                        } else {
-                            signImproper(cartevent, lv.getLd());
-                        }
                     } catch (NumberFormatException e) {
                         signImproper(cartevent, lv.getLd());
                     }
@@ -170,14 +171,7 @@ class speedsign extends SignAction {
             SignBuildOptions opt = SignBuildOptions.create().setName(ChatColor.GOLD + "Speed limit sign");
             if (!e.getLine(2).equals("warn")) {
                 intspeed = parseInt(e.getLine(2));
-                if (intspeed > maxspeed) {
-                    p.sendMessage(getSpeedMax());
-                    e.setCancelled(true);
-                }
-                if (intspeed <= 0 || Math.floorMod(intspeed, 5) != 0) {
-                    p.sendMessage(ChatColor.RED + getLang("argwrong"));
-                    e.setCancelled(true);
-                }
+                if (limitSpeedIncorrect(p, intspeed)) e.setCancelled(true);
                 opt.setDescription("set speed limit for train");
             } else {
                 String[] temp = e.getLine(3).split(" ");
@@ -192,5 +186,31 @@ class speedsign extends SignAction {
             e.setCancelled(true);
         }
         return true;
+    }
+
+    static boolean speedOverMax(CommandSender p, int signalspeed) {
+        if (signalspeed > maxspeed) {
+            if (p != null) {
+                p.sendMessage(getSpeedMax());
+            }
+            return true;
+        }
+        return false;
+    }
+
+    static boolean reqDiv5(CommandSender p, int speedlimit) {
+        if (speedlimit < 0 || Math.floorMod(speedlimit, 5) != 0) {
+            if (p != null) {
+                generalMsg(p, ChatColor.RESET, getLang("argwrong"));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    static boolean limitSpeedIncorrect(CommandSender sender, int signalspeed) {
+        boolean retval = speedOverMax(sender, signalspeed);
+        if (reqDiv5(sender, signalspeed)) retval = true;
+        return retval;
     }
 }

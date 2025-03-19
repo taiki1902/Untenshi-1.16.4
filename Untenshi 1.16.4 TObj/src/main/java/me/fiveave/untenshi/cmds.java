@@ -209,23 +209,21 @@ class cmds implements CommandExecutor, TabCompleter {
                         sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getLang("help_usage") + " " + ChatColor.GOLD + "/uts activate <true/false>" + ChatColor.YELLOW + "]\n" + getLang("activate_info1") + "\n" + getLang("activate_info2"));
                         break;
                     case "ac":
-                        try {
-                            if (ld.getLv().getSignallimit() != 0 && ld.getLv().getAtsforced() == 2) {
-                                ld.getLv().setAtsforced(0);
-                                generalMsg(sender, ChatColor.GOLD, ld.getLv().getSafetysystype().toUpperCase() + " " + getLang("ac_success"));
-                            } else if (ld.getLv().getSignallimit() == 0) {
-                                generalMsg(sender, ChatColor.RED, ld.getLv().getSafetysystype().toUpperCase() + " " + getLang("ac_failed"));
-                            } else {
-                                generalMsg(sender, ChatColor.YELLOW, ld.getLv().getSafetysystype().toUpperCase() + " " + getLang("ac_noneed"));
-                            }
-                        } catch (Exception e) {
+                        if (reqActivate(ld)) {
                             generalMsg(sender, ChatColor.YELLOW, getLang("activate_sitincart"));
+                            break;
+                        }
+                        if (ld.getLv().getSignallimit() != 0 && ld.getLv().getAtsforced() == 2) {
+                            ld.getLv().setAtsforced(0);
+                            generalMsg(sender, ChatColor.GOLD, ld.getLv().getSafetysystype().toUpperCase() + " " + getLang("ac_success"));
+                        } else if (ld.getLv().getSignallimit() == 0) {
+                            generalMsg(sender, ChatColor.RED, ld.getLv().getSafetysystype().toUpperCase() + " " + getLang("ac_failed"));
+                        } else {
+                            generalMsg(sender, ChatColor.YELLOW, ld.getLv().getSafetysystype().toUpperCase() + " " + getLang("ac_noneed"));
                         }
                         break;
                     case "freemode":
-                        if (reqDeactivate(ld)) {
-                            break;
-                        }
+                        if (reqDeactivate(ld)) break;
                         if (cannotSetTrain(args, ld) || !args[1].equalsIgnoreCase("true") && !args[1].equalsIgnoreCase("false")) {
                             sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getLang("help_usage") + " " + ChatColor.GOLD + "/uts freemode <true/false>" + ChatColor.YELLOW + "]\n" + getLang("freemode_info1") + "\n" + getLang("freemode_info2"));
                         } else {
@@ -234,9 +232,7 @@ class cmds implements CommandExecutor, TabCompleter {
                         }
                         break;
                     case "allowato":
-                        if (reqDeactivate(ld)) {
-                            break;
-                        }
+                        if (reqDeactivate(ld)) break;
                         if (cannotSetTrain(args, ld) || !args[1].equalsIgnoreCase("true") && !args[1].equalsIgnoreCase("false")) {
                             sender.sendMessage(pureutstitle + ChatColor.YELLOW + "[" + getLang("help_usage") + " " + ChatColor.GOLD + "/uts allowato <true/false>" + ChatColor.YELLOW + "]\n" + getLang("ato_info1") + "\n" + getLang("ato_info2"));
                         } else {
@@ -246,81 +242,79 @@ class cmds implements CommandExecutor, TabCompleter {
                         break;
                     case "switchends":
                     case "se":
-                        if (ld.isPlaying()) {
-                            if (ld.getLv().getSpeed() == 0) {
-                                Entity selcart = p.getVehicle();
-                                MinecartGroup mg = MinecartGroupStore.get(selcart);
-                                MinecartMember<?> mm = MinecartMemberStore.getFromEntity(selcart);
-                                MinecartMember<?> mm2 = mm;
-                                assert mm != null;
-                                // Check if head or tail is not current cart and they are minecarts
-                                if ((mg.head() != mm || mg.tail() != mm) && !ld.isFrozen()) {
-                                    // Must clear passenger in cart, or else player will bug out
-                                    if (mg.head() != mm) {
-                                        mm2 = mg.head();
-                                        mm2.eject();
-                                    } else if (mg.tail() != mm) {
-                                        mm2 = mg.tail();
-                                        mm2.eject();
-                                    }
-                                    if (mm2.getEntity().getEntity() instanceof RideableMinecart) {
-                                        // MUST wait after eject, and teleport, and finally enter, or else will bug
-                                        ld.setFrozen(true);
-                                        mm.eject();
-                                        MinecartMember<?> finalMm2 = mm2;
-                                        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                            ld.getP().teleport(finalMm2.getEntity().getLocation());
-                                            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                                                finalMm2.addPassengerForced(ld.getP());
-                                                generalMsg(ld.getP(), ChatColor.YELLOW, getLang("se_success"));
-                                                ld.setFrozen(false);
-                                                ld.getLv().setDriverseat(finalMm2);
-                                            }, tickdelay);
-                                        }, tickdelay);
-                                        break;
-                                    }
-                                }
-                                generalMsg(sender, ChatColor.RED, getLang("se_failed"));
-                            } else {
-                                generalMsg(sender, ChatColor.YELLOW, getLang("se_inmotion"));
-                            }
-                        } else {
-                            generalMsg(sender, ChatColor.YELLOW, getLang("activate_onfirst"));
+                        if (reqActivate(ld)) break;
+                        if (ld.getLv().getSpeed() != 0) {
+                            generalMsg(sender, ChatColor.YELLOW, getLang("se_inmotion"));
+                            break;
                         }
-                        break;
+                    {
+                        Entity selcart = p.getVehicle();
+                        MinecartGroup mg = MinecartGroupStore.get(selcart);
+                        MinecartMember<?> mm = MinecartMemberStore.getFromEntity(selcart);
+                        MinecartMember<?> mm2 = mm;
+                        assert mm != null;
+                        // Check if head or tail is not current cart and they are minecarts
+                        if ((mg.head() != mm || mg.tail() != mm) && !ld.isFrozen()) {
+                            // Must clear passenger in cart, or else player will bug out
+                            if (mg.head() != mm) {
+                                mm2 = mg.head();
+                                mm2.eject();
+                            } else if (mg.tail() != mm) {
+                                mm2 = mg.tail();
+                                mm2.eject();
+                            }
+                            if (mm2.getEntity().getEntity() instanceof RideableMinecart) {
+                                // MUST wait after eject, and teleport, and finally enter, or else will bug
+                                ld.setFrozen(true);
+                                mm.eject();
+                                MinecartMember<?> finalMm2 = mm2;
+                                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                                    ld.getP().teleport(finalMm2.getEntity().getLocation());
+                                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                                        finalMm2.addPassengerForced(ld.getP());
+                                        generalMsg(ld.getP(), ChatColor.YELLOW, getLang("se_success"));
+                                        ld.setFrozen(false);
+                                        ld.getLv().setDriverseat(finalMm2);
+                                    }, tickdelay);
+                                }, tickdelay);
+                                break;
+                            }
+                            generalMsg(sender, ChatColor.RED, getLang("se_failed"));
+                        }
+                    }
+                    break;
                     case "pa":
                         if (checkPerm(p, "uts.pa")) break;
-                        if (ld.isPlaying()) {
-                            MinecartGroup mg = MinecartGroupStore.get(p.getVehicle());
-                            mg.forEach((mm) -> {
-                                if (!mm.getEntity().getPassengers().isEmpty()) {
-                                    Player p2 = (Player) mm.getEntity().getPassengers().get(0);
-                                    String s;
-                                    int arglength = args.length;
-                                    if (arglength > 1 && args[1] != null) {
-                                        StringBuilder sBuilder = null;
-                                        for (int i = 1; i < arglength; i++) {
-                                            if (sBuilder != null) {
-                                                sBuilder.append(" ").append(args[i]);
-                                            } else {
-                                                sBuilder = new StringBuilder(args[i]);
-                                            }
+                        if (reqActivate(ld)) break;
+                    {
+                        MinecartGroup mg = MinecartGroupStore.get(p.getVehicle());
+                        mg.forEach(mm -> {
+                            if (!mm.getEntity().getPassengers().isEmpty()) {
+                                Player p2 = (Player) mm.getEntity().getPassengers().get(0);
+                                String s;
+                                int arglength = args.length;
+                                if (arglength > 1 && args[1] != null) {
+                                    StringBuilder sBuilder = null;
+                                    for (int i = 1; i < arglength; i++) {
+                                        if (sBuilder != null) {
+                                            sBuilder.append(" ").append(args[i]);
+                                        } else {
+                                            sBuilder = new StringBuilder(args[i]);
                                         }
-                                        s = sBuilder.toString();
-                                        // To keep & type \&
-                                        s = s.replaceAll("\\\\&", "\\\\and");
-                                        s = s.replaceAll("&", "§");
-                                        s = s.replaceAll("\\\\and", "&");
-                                        generalMsg(p2, ChatColor.YELLOW, getLang("help_painfo") + ": " + s);
-                                    } else {
-                                        generalMsg(p, ChatColor.RED, getLang("panoempty"));
                                     }
+                                    s = sBuilder.toString();
+                                    // To keep & type \&
+                                    s = s.replaceAll("\\\\&", "\\\\and");
+                                    s = s.replaceAll("&", "§");
+                                    s = s.replaceAll("\\\\and", "&");
+                                    generalMsg(p2, ChatColor.YELLOW, getLang("help_painfo") + ": " + s);
+                                } else {
+                                    generalMsg(p, ChatColor.RED, getLang("panoempty"));
                                 }
-                            });
-                        } else {
-                            generalMsg(sender, ChatColor.YELLOW, getLang("activate_onfirst"));
-                        }
-                        break;
+                            }
+                        });
+                    }
+                    break;
                     case "reload":
                         if (checkPerm(p, "uts.reload")) break;
                         plugin.reloadConfig();
@@ -346,6 +340,14 @@ class cmds implements CommandExecutor, TabCompleter {
             e.printStackTrace();
         }
         return true;
+    }
+
+    private static boolean reqActivate(utsdriver ld) {
+        if (!ld.isPlaying()) {
+            generalMsg(ld.getP(), ChatColor.YELLOW, getLang("activate_onfirst"));
+            return true;
+        }
+        return false;
     }
 
     private boolean cannotSetTrain(String[] args, utsdriver ld) {
@@ -379,7 +381,7 @@ class cmds implements CommandExecutor, TabCompleter {
         int arglength = args.length;
         if (arglength == 1) {
             ta.addAll(Arrays.asList("help", "activate", "ac", "switchends", "se", "freemode", "reload", "pa", "allowato"));
-            ta.forEach((a) -> {
+            ta.forEach(a -> {
                 if (a.toLowerCase().startsWith(args[0].toLowerCase())) {
                     result.add(a);
                 }
@@ -399,7 +401,7 @@ class cmds implements CommandExecutor, TabCompleter {
                     ta.add("");
                     break;
             }
-            ta.forEach((a) -> {
+            ta.forEach(a -> {
                 if (a.toLowerCase().startsWith(args[1].toLowerCase())) {
                     result.add(a);
                 }

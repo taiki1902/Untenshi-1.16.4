@@ -43,14 +43,7 @@ class signalcmd implements CommandExecutor, TabCompleter {
                 // Input position combined
                 String inputpos = args[0] + " " + args[1] + " " + args[2];
                 // Main content starts here
-                if (signalspeed > maxspeed) {
-                    sender.sendMessage(getSpeedMax());
-                    return true;
-                }
-                if (signalspeed < 0 || Math.floorMod(signalspeed, 5) != 0) {
-                    generalMsg(sender, ChatColor.RESET, getLang("argwrong"));
-                    return true;
-                }
+                if (limitSpeedIncorrect(sender, signalspeed)) return true;
                 if (args[3].equals("warn") || args[3].equals("sign") || args[3].equals("getilclear") || args[3].equals("getilclearlossy")) {
                     World world = ((BlockCommandSender) sender).getBlock().getWorld();
                     String signalmsg;
@@ -165,8 +158,6 @@ class signalcmd implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    // Simplify
-
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> ta = new ArrayList<>();
@@ -206,7 +197,7 @@ class signalcmd implements CommandExecutor, TabCompleter {
         } else {
             ta.add("");
         }
-        ta.forEach((a) -> {
+        ta.forEach(a -> {
             if (a.toLowerCase().startsWith(args[args.length - 1].toLowerCase())) {
                 result.add(a);
             }

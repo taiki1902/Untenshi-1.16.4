@@ -60,13 +60,13 @@ class driverlog implements CommandExecutor, TabCompleter {
         List<String> ta = new ArrayList<>();
         List<String> result = new ArrayList<>();
         List<String> vehiclelist = new ArrayList<>();
-        vehicle.keySet().forEach((mg) -> vehiclelist.add(mg.getProperties().getTrainName()));
+        vehicle.keySet().forEach(mg -> vehiclelist.add(mg.getProperties().getTrainName()));
         if (args.length == 1) {
             ta.addAll(vehiclelist);
         } else {
             ta.add("");
         }
-        ta.forEach((a) -> {
+        ta.forEach(a -> {
             if (a.toLowerCase().startsWith(args[args.length - 1].toLowerCase())) {
                 result.add(a);
             }

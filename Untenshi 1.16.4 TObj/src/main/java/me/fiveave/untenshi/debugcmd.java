@@ -358,7 +358,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
         List<String> ta = new ArrayList<>();
         List<String> result = new ArrayList<>();
         List<String> vehiclelist = new ArrayList<>();
-        vehicle.keySet().forEach((mg) -> {
+        vehicle.keySet().forEach(mg-> {
             if (!mg.isUnloaded()) {
                 vehiclelist.add(mg.getProperties().getTrainName());
             }
@@ -374,7 +374,7 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 ta.addAll(Arrays.asList("speed", "mascon", "brake", "speedlimit", "signallimit", "atospeed", "atodest", "stoppos", "stopoutput", "lastspsp", "lastspsign", "lastsisp", "lastsisign", "rslist", "ilposlist", "ilposoccupied", "ilpriority", "ilenterqueuetime", "atsforced", "atsping", "atspnear", "ld", "accel", "decel", "ebdecel", "speeddrop", "current", "bcpressure", "reqstopping", "overrun", "fixstoppos", "dooropen", "doordiropen", "doorconfirm", "atopisdirect", "atoforcebrake", "atoautodep"));
                 break;
         }
-        ta.forEach((a) -> {
+        ta.forEach(a-> {
             if (a.toLowerCase().startsWith(args[args.length - 1].toLowerCase())) {
                 result.add(a);
             }
