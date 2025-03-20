@@ -94,29 +94,20 @@ class speedsign extends SignAction {
         return e.getLine(2).split(" ")[2];
     }
 
-    static boolean speedOverMax(CommandSender p, int signalspeed) {
-        if (signalspeed > maxspeed) {
+    static boolean limitSpeedIncorrect(CommandSender p, int speedlimit) {
+        boolean retval = false;
+        if (speedlimit > maxspeed) {
             if (p != null) {
                 p.sendMessage(getSpeedMax());
             }
-            return true;
+            retval = true;
         }
-        return false;
-    }
-
-    static boolean reqDiv5(CommandSender p, int speedlimit) {
         if (speedlimit < 0 || Math.floorMod(speedlimit, 5) != 0) {
             if (p != null) {
                 generalMsg(p, ChatColor.RESET, getLang("argwrong"));
             }
-            return true;
+            retval = true;
         }
-        return false;
-    }
-
-    static boolean limitSpeedIncorrect(CommandSender sender, int signalspeed) {
-        boolean retval = speedOverMax(sender, signalspeed);
-        if (reqDiv5(sender, signalspeed)) retval = true;
         return retval;
     }
 

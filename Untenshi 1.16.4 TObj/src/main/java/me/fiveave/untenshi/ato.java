@@ -82,9 +82,8 @@ class ato {
             // Actual controlling part, extra tick to prevent huge shock on stopping
             getAllReqdist(lv, lv.getSpeed(), lowerSpeed, speeddrop, reqdist, slopeaccelsel, onetickins);
             // Require accel? (no need to prepare for braking for next object and ATO target destination + additional thinking distance)
-            boolean allowaccel = Math.max(lv.getSpeed() + 5, potentialspeed) <= currentlimit // Speed is 5 km/h, or potentially under speed limit
+            boolean allowaccel = Math.max(lv.getSpeed() + 5, potentialspeed) <= currentlimit || lv.getMascon() > 0 // Speed is 5 km/h, or potentially under speed limit
                     && (Math.max(lv.getSpeed() + 5, potentialspeed) <= lowerSpeed || tempdist > speed1s(lv)) // Speed is 5 km/h, or potentially under target speed
-                    && (lv.getMascon() == 0 && lv.getBrake() == 0 || lv.getMascon() > 0) // Neutral or already accelerating
                     && !lv.isOverrun() // Not overrunning
                     && lv.getDooropen() == 0 && lv.isDoorconfirm(); // Doors closed
             boolean notnearreqdist = tempdist > reqdist[6] + getThinkingDistance(lv, potentialspeed, lowerSpeed, decel, 6, slopeaccelsel, 3);
