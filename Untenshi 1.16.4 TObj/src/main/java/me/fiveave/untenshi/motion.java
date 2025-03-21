@@ -49,10 +49,10 @@ class motion {
                 e.printStackTrace();
                 restoreInitLd(ld);
             }
-        } else if (!ld.getP().isInsideVehicle()) {
-            restoreInitLd(ld);
         } else if (ld.isFrozen()) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClockLd(ld), tickdelay);
+        } else if (!ld.getP().isInsideVehicle()) {
+            restoreInitLd(ld);
         }
     }
 
