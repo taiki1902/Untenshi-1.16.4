@@ -40,17 +40,11 @@ class debugcmd implements CommandExecutor, TabCompleter {
                 lv.setAtospeed(Double.parseDouble(args[3]));
                 break;
             case "atodest":
-                double[] loc1 = new double[3];
-                for (int i = 0; i < 3; i++) {
-                    loc1[i] = Integer.parseInt(args[i + 3]);
-                }
+                Location loc1 = new Location(lv.getSavedworld(), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
                 lv.setAtodest(loc1);
                 break;
             case "stoppos":
-                double[] loc5 = new double[3];
-                for (int i = 0; i < 3; i++) {
-                    loc5[i] = Integer.parseInt(args[i + 3]);
-                }
+                Location loc5 = new Location(lv.getSavedworld(), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]));
                 lv.setStoppos(loc5);
                 break;
             case "stopoutput":
@@ -264,17 +258,6 @@ class debugcmd implements CommandExecutor, TabCompleter {
     }
 
     public static String locToString(int[] loc) {
-        String retstr = "null";
-        try {
-            for (int i = 0; i < 3; i++) {
-                retstr = loc[0] + " " + loc[1] + " " + loc[2];
-            }
-        } catch (Exception ignored) {
-        }
-        return retstr;
-    }
-
-    public static String locToString(double[] loc) {
         String retstr = "null";
         try {
             for (int i = 0; i < 3; i++) {

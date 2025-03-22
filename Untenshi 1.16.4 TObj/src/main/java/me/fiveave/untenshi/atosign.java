@@ -9,6 +9,7 @@ import com.bergerkiller.bukkit.tc.signactions.SignActionType;
 import com.bergerkiller.bukkit.tc.utils.SignBuildOptions;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
@@ -77,7 +78,7 @@ class atosign extends SignAction {
                                 lv.setAtopisdirect(val < 0);
                                 lv.setAtospeed(Math.abs(val));
                                 curveRailPosFix(lv, loc);
-                                lv.setAtodest(loc);
+                                lv.setAtodest(new Location(cartevent.getWorld(), loc[0], loc[1], loc[2]));
                                 generalMsg(lv.getLd(), ChatColor.GOLD, getLang("ato_detectpattern"));
                                 break;
                             }

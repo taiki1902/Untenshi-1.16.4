@@ -34,8 +34,8 @@ class utsvehicle {
     private double bcpressure;
     private double speed;
     private double atospeed;
-    private double[] stoppos;
-    private double[] atodest;
+    private Location stoppos;
+    private Location atodest;
     private Location lastsisign;
     private Location lastspsign;
     private Location[] rsposlist;
@@ -226,11 +226,11 @@ class utsvehicle {
         this.stopoutput = stopoutput;
     }
 
-    public double[] getAtodest() {
+    public Location getAtodest() {
         return atodest;
     }
 
-    public void setAtodest(double[] atodest) {
+    public void setAtodest(Location atodest) {
         this.atodest = atodest;
     }
 
@@ -266,11 +266,11 @@ class utsvehicle {
         this.atospeed = atospeed;
     }
 
-    public double[] getStoppos() {
+    public Location getStoppos() {
         return stoppos;
     }
 
-    public void setStoppos(double[] stoppos) {
+    public void setStoppos(Location stoppos) {
         this.stoppos = stoppos;
     }
 

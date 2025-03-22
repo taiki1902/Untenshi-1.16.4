@@ -77,7 +77,7 @@ class events implements Listener {
             lv.setDoorconfirm(false);
             // Provide output when open door
             if (lv.getStopoutput() != null) {
-                Block b = lv.getTrain().getWorld().getBlockAt(lv.getStopoutput()[0], lv.getStopoutput()[1], lv.getStopoutput()[2]);
+                Block b = lv.getSavedworld().getBlockAt(lv.getStopoutput()[0], lv.getStopoutput()[1], lv.getStopoutput()[2]);
                 b.getChunk().load();
                 b.setType(Material.REDSTONE_BLOCK);
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {

@@ -7,6 +7,7 @@ import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import com.bergerkiller.bukkit.tc.signactions.SignActionType;
 import com.bergerkiller.bukkit.tc.utils.SignBuildOptions;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Rail;
 
@@ -17,7 +18,7 @@ import static me.fiveave.untenshi.main.*;
 class stoppos extends SignAction {
 
     static void curveRailPosFix(utsvehicle lv, double[] loc) {
-        BlockData bs = lv.getTrain().getWorld().getBlockAt((int) loc[0], (int) loc[1], (int) loc[2]).getBlockData();
+        BlockData bs = lv.getSavedworld().getBlockAt((int) loc[0], (int) loc[1], (int) loc[2]).getBlockData();
         if (bs instanceof Rail) {
             switch (((Rail) bs).getShape()) {
                 case NORTH_EAST:
@@ -63,8 +64,9 @@ class stoppos extends SignAction {
                 }
                 curveRailPosFix(lv, loc);
                 loc[0] += 0.5;
+                loc[1] += cartyposdiff;
                 loc[2] += 0.5;
-                lv.setStoppos(loc);
+                lv.setStoppos(new Location(cartevent.getWorld(), loc[0], loc[1], loc[2]));
                 if (!cartevent.getLine(3).isEmpty()) {
                     lv.setStopoutput(loc2);
                 }

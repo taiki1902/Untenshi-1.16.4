@@ -38,7 +38,7 @@ class speedsign extends SignAction {
         return bl instanceof Chest ? (Chest) bl : null;
     }
 
-    static int[] getSignToRailOffset(Location loc, World w) {
+    static Location getSignActualRefPos(Location loc, World w) {
         int[] blkoffset = new int[3];
         if (w.getBlockAt(loc) instanceof Sign) {
             Sign sign = (Sign) w.getBlockAt(loc);
@@ -66,7 +66,7 @@ class speedsign extends SignAction {
                 blkoffset[1]++;
             }
         }
-        return blkoffset;
+        return new Location(w, loc.getX() + blkoffset[0] + 0.5, loc.getY() + blkoffset[1] + cartyposdiff, loc.getZ() + blkoffset[2] + 0.5);
     }
 
     static void signImproper(SignActionEvent cartevent, utsdriver ld) {

@@ -21,8 +21,8 @@ import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.events.trainSound;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.*;
+import static me.fiveave.untenshi.speedsign.getSignActualRefPos;
 import static me.fiveave.untenshi.speedsign.getSignFromLoc;
-import static me.fiveave.untenshi.speedsign.getSignToRailOffset;
 
 class motion {
 
@@ -112,8 +112,7 @@ class motion {
         double decelnow = decelSwitch(lv, lv.getSpeed(), slopeaccel);
         if (lv.getDooropen() == 0) {
             // If door is closed
-            lv.setSpeed(lv.getSpeed()
-                    + accelnow * onetickins // Acceleration
+            lv.setSpeed(lv.getSpeed() + accelnow * onetickins // Acceleration
                     - decelnow * onetickins); // Deceleration (speed drop included)
             // Prevent negative speed
             if (lv.getSpeed() < 0) {
@@ -325,9 +324,9 @@ class motion {
     private static void stopPos(utsvehicle lv, String shock) {
         if (lv.isReqstopping()) {
             // Get stop location
-            double[] stopposloc = lv.getStoppos();
+            Location stoppos = lv.getStoppos();
             Location cartactualpos = getDriverseatActualPos(lv);
-            double stopdist = distFormula(cartactualpos.getX(), stopposloc[0], cartactualpos.getZ(), stopposloc[2]);
+            double stopdist = distFormula(stoppos, cartactualpos);
             int stopdistcm = (int) (stopdist * 100);
             // Start Overrun (prevent escaping overrun over 144 km/h)
             if (!lv.isOverrun() && (stopdist - onetickins * speed1s(lv) < 0 || stopdist < 1)) {
@@ -473,19 +472,17 @@ class motion {
         }
         // Find either signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
         if (lv.getLastsisign() != null && lv.getLastsisp() != maxspeed) {
-            int[] getSiOffset = getSignToRailOffset(lv.getLastsisign(), mg.getWorld());
-            Location siLocForSlope = new Location(mg.getWorld(), lv.getLastsisign().getX() + getSiOffset[0], lv.getLastsisign().getY() + getSiOffset[1] + cartyposdiff, lv.getLastsisign().getZ() + getSiOffset[2]);
-            slopeaccelsi = getSlopeAccel(siLocForSlope, result.tailLoc);
+            Location actualSiRefPos = getSignActualRefPos(lv.getLastsisign(), mg.getWorld());
+            slopeaccelsi = getSlopeAccel(actualSiRefPos, result.tailLoc);
             reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, 0);
-            signaldist = distFormula(lv.getLastsisign().getX() + getSiOffset[0] + 0.5, result.headLoc.getX(), lv.getLastsisign().getZ() + getSiOffset[2] + 0.5, result.headLoc.getZ());
+            signaldist = distFormula(actualSiRefPos, result.headLoc);
             signaldistdiff = signaldist - reqsidist;
         }
         if (lv.getLastspsign() != null && lv.getLastspsp() != maxspeed) {
-            int[] getSpOffset = getSignToRailOffset(lv.getLastspsign(), mg.getWorld());
-            Location spLocForSlope = new Location(mg.getWorld(), lv.getLastspsign().getX() + getSpOffset[0], lv.getLastspsign().getY() + getSpOffset[1] + cartyposdiff, lv.getLastspsign().getZ() + getSpOffset[2]);
-            slopeaccelsp = getSlopeAccel(spLocForSlope, result.tailLoc);
+            Location actualSpRefPos = getSignActualRefPos(lv.getLastspsign(), mg.getWorld());
+            slopeaccelsp = getSlopeAccel(actualSpRefPos, result.tailLoc);
             reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, 0);
-            speeddist = distFormula(lv.getLastspsign().getX() + getSpOffset[0] + 0.5, result.headLoc.getX(), lv.getLastspsign().getZ() + getSpOffset[2] + 0.5, result.headLoc.getZ());
+            speeddist = distFormula(actualSpRefPos, result.headLoc);
             speeddistdiff = speeddist - reqspdist;
         }
         double priority = Math.min(signaldistdiff, speeddistdiff);
@@ -641,8 +638,12 @@ class motion {
         return 35.30394 * height / (Math.hypot(height, length)); // 3.6 * gravity
     }
 
-    static double distFormula(double x1, double x2, double y1, double y2) {
-        return Math.hypot(x1 - x2, y1 - y2);
+    static double distFormula(double x1, double x2, double z1, double z2) {
+        return Math.hypot(x1 - x2, z1 - z2);
+    }
+
+    static double distFormula(Location loc1, Location loc2) {
+        return Math.hypot(Math.hypot(loc1.getX() - loc2.getX(), loc1.getY() - loc2.getY()), loc1.getZ() - loc2.getZ());
     }
 
     static void showStopPos(utsvehicle lv, String stopposeval, int stopdistcm, String shock, int pts) {
@@ -772,7 +773,7 @@ class motion {
             for (boolean t : new boolean[]{false, true}) {
                 Location testHeadLoc = getCartActualRefPos(mg.head(), h);
                 Location testTailLoc = getCartActualRefPos(mg.tail(), t);
-                double testlength = distFormula(testHeadLoc.getX(), testTailLoc.getX(), testHeadLoc.getZ(), testTailLoc.getZ());
+                double testlength = distFormula(testHeadLoc, testTailLoc);
                 if (testlength > length) {
                     length = testlength;
                     retHeadLoc = testHeadLoc;
@@ -789,10 +790,10 @@ class motion {
         // Get longest length to get actual head and driver seat
         HeadAndTailResult result = getHeadAndTailResult(lv.getTrain());
         Location retDriverseat = getCartActualRefPos(lv.getDriverseat(), false);
-        double length = distFormula(retDriverseat.getX(), result.tailLoc.getX(), retDriverseat.getZ(), result.tailLoc.getZ());
+        double length = distFormula(retDriverseat, result.tailLoc);
         // Test for flipped case
         Location testDriverseat = getCartActualRefPos(lv.getDriverseat(), true);
-        double testlength = distFormula(testDriverseat.getX(), result.tailLoc.getX(), testDriverseat.getZ(), result.tailLoc.getZ());
+        double testlength = distFormula(testDriverseat, result.tailLoc);
         if (testlength > length) {
             retDriverseat = testDriverseat;
         }
