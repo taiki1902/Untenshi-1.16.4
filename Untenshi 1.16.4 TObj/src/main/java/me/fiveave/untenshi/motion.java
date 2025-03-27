@@ -109,7 +109,7 @@ class motion {
         double slopeaccel = getSlopeAccel(result.headLoc, result.tailLoc);
         // Accel and decel
         double accelnow = accelSwitch(lv, lv.getSpeed(), (int) (getNotchFromCurrent(ecnow)));
-        double decelnow = decelSwitch(lv, lv.getSpeed(), slopeaccel);
+        double decelnow = decelSwitch(lv, slopeaccel);
         if (lv.getDooropen() == 0) {
             // If door is closed
             lv.setSpeed(lv.getSpeed() + accelnow * onetickins // Acceleration
@@ -678,7 +678,7 @@ class motion {
         return retaccel;
     }
 
-    static double decelSwitch(utsvehicle lv, double speed, double slopeaccel) {
+    static double decelSwitch(utsvehicle lv, double slopeaccel) {
         double decel = lv.getDecel();
         double ebdecel = lv.getEbdecel();
         double speeddrop = lv.getSpeeddrop();
@@ -688,10 +688,10 @@ class motion {
         if (bcp == 0) {
             retdecel = speeddrop;
         } else if (bcp > 0 && bcp < 480) {
-            retdecel = globalDecel(decel, speed, getBrakeFromPressure(bcp) + 1, speedsteps);
+            retdecel = globalDecel(decel, lv.getSpeed(), getBrakeFromPressure(bcp) + 1, speedsteps);
         } else if (bcp == 480) {
             if (lv.getAtsforced() != 2 && lv.getSignallimit() != 0) {
-                retdecel = globalDecel(ebdecel, speed, 7, speedsteps);
+                retdecel = globalDecel(ebdecel, lv.getSpeed(), 7, speedsteps);
             } else {
                 // SPAD ATS EB (-35 km/h/s)
                 lv.setAtsforced(2);
