@@ -63,6 +63,7 @@ se_inmotion: 運転中に運転席を切り替えないでください!
 p_b8: 常用ブレーキ動作
 p_eb: 非常ブレーキ動作
 p_near: パターン接近
+stoppos: '停止位置:'
 stoppos_next: 次は、停車です!
 stoppos_perfect: '停止位置: Excellent!'
 stoppos_great: '停止位置: Great!'

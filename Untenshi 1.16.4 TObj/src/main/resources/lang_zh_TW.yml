@@ -63,6 +63,7 @@ se_inmotion: 行車時不能換位!
 p_b8: 常用煞車動作
 p_eb: 緊急煞車動作
 p_near: Pattern 接近
+stoppos: '停車位置:'
 stoppos_next: 下一站，停車!
 stoppos_perfect: '停車位置: 完美!'
 stoppos_great: '停車位置: 很好!'

@@ -63,6 +63,7 @@ se_inmotion: Do not switch seats in motion!
 p_b8: Service Brake Run
 p_eb: Emergency Brake Run
 p_near: Pattern Approaching
+stoppos: 'Stop position:'
 stoppos_next: Stopping at next station!
 stoppos_perfect: 'Stop position: Excellent!'
 stoppos_great: 'Stop position: Great!'

@@ -170,9 +170,19 @@ class motion {
         } else {
             speedcolor += ChatColor.WHITE;
         }
-        String displaySpeed = speedcolor + df0.format(ld.getLv().getSpeed());
+        String formattedSpeed = speedcolor + df0.format(ld.getLv().getSpeed());
+        String displaySpeed = add3ZeroPadding(formattedSpeed);
+        boolean showstoppos = false;
+        int stopdistcm = 0;
+        if (ld.getLv().getStoppos() != null) {
+            StopPosResult spresult = getStopPosResult(ld.getLv());
+            stopdistcm = spresult.stopdistcm;
+            if (spresult.stopdist <= 5 && ld.getLv().getSpeed() != 0) showstoppos = true;
+        }
         // Action bar
-        String actionbarmsg = getCtrlText(ld.getLv()) + ChatColor.WHITE + " | " + ChatColor.YELLOW + getLang("speed") + " " + displaySpeed + ChatColor.WHITE + " km/h" + " | " + ChatColor.YELLOW + getLang("points") + " " + ChatColor.WHITE + ld.getPoints() + " | " + ChatColor.YELLOW + getLang("door") + " " + doortxt;
+        String actionbarmsg = getCtrlText(ld.getLv()) + ChatColor.WHITE + " | " + ChatColor.YELLOW + getLang("speed") + " " + displaySpeed + ChatColor.WHITE + " km/h" + " | "
+                + ChatColor.YELLOW + getLang("points") + " " + add3ZeroPadding(ChatColor.WHITE + String.valueOf(ld.getPoints())) + " | "
+                + (showstoppos ? ChatColor.YELLOW + getLang("stoppos") + " " + add3ZeroPadding(ChatColor.WHITE + String.valueOf(stopdistcm)) + ChatColor.WHITE + " cm" : ChatColor.YELLOW + getLang("door") + " " + doortxt);
         ld.getP().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionbarmsg));
         // Catch point <= 0 and end game
         if (noFreemodeOrATO(ld) && ld.getPoints() <= 0) {
@@ -324,12 +334,9 @@ class motion {
     private static void stopPos(utsvehicle lv, String shock) {
         if (lv.isReqstopping()) {
             // Get stop location
-            Location stoppos = lv.getStoppos();
-            Location cartactualpos = getDriverseatActualPos(lv);
-            double stopdist = distFormula(stoppos, cartactualpos);
-            int stopdistcm = (int) (stopdist * 100);
+            StopPosResult spresult = getStopPosResult(lv);
             // Start Overrun (prevent escaping overrun over 144 km/h)
-            if (!lv.isOverrun() && (stopdist - onetickins * speed1s(lv) < 0 || stopdist < 1)) {
+            if (!lv.isOverrun() && (spresult.stopdist - onetickins * speed1s(lv) < 0 || spresult.stopdist < 1)) {
                 lv.setOverrun(true);
             }
             // Rewards and penalties
@@ -343,34 +350,34 @@ class motion {
             }
             // Stop positions
             // <= 1 m
-            if (stopdist <= 1.00 && lv.getSpeed() == 0) {
+            if (spresult.stopdist <= 1.00 && lv.getSpeed() == 0) {
                 // 25 cm
-                if (stopdist <= 0.25) {
+                if (spresult.stopdist <= 0.25) {
                     // Need to fix stop pos? If no then add points
-                    showStopPos(lv, "stoppos_perfect", stopdistcm, shock, 10);
+                    showStopPos(lv, "stoppos_perfect", spresult.stopdistcm, shock, 10);
                 }
                 // 50 cm
-                else if (stopdist <= 0.50) {
-                    showStopPos(lv, "stoppos_great", stopdistcm, shock, 5);
+                else if (spresult.stopdist <= 0.50) {
+                    showStopPos(lv, "stoppos_great", spresult.stopdistcm, shock, 5);
                 }
                 // 1 m
                 else {
-                    showStopPos(lv, "stoppos_good", stopdistcm, shock, 3);
+                    showStopPos(lv, "stoppos_good", spresult.stopdistcm, shock, 3);
                 }
                 openDoorProcedure(lv);
             }
             // < 50 m
-            else if (stopdist < 50 && lv.getSpeed() == 0 && lv.isOverrun() && !lv.isFixstoppos()) {
+            else if (spresult.stopdist < 50 && lv.getSpeed() == 0 && lv.isOverrun() && !lv.isFixstoppos()) {
                 lv.setFixstoppos(true);
                 lv.setStaaccel(false);
                 if (noFreemodeOrATO(lv.getLd())) {
-                    pointCounter(lv.getLd(), ChatColor.YELLOW, getLang("stoppos_over") + " ", Math.toIntExact(-Math.round(stopdist)), shock);
+                    pointCounter(lv.getLd(), ChatColor.YELLOW, getLang("stoppos_over") + " ", Math.toIntExact(-Math.round(spresult.stopdist)), shock);
                 } else {
-                    generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("stoppos_over") + " " + ChatColor.RED + Math.round(stopdist) + " m" + shock);
+                    generalMsg(lv.getLd(), ChatColor.YELLOW, getLang("stoppos_over") + " " + ChatColor.RED + Math.round(spresult.stopdist) + " m" + shock);
                 }
             }
             // Cho-heta-dane!
-            else if (stopdist >= 50 && lv.isOverrun()) {
+            else if (spresult.stopdist >= 50 && lv.isOverrun()) {
                 if (noFreemodeOrATO(lv.getLd())) {
                     ebUntilRestoreInit(lv.getLd(), getLang("stoppos_seriousover"));
                 } else {
@@ -379,6 +386,15 @@ class motion {
                 }
             }
         }
+    }
+
+    private static StopPosResult getStopPosResult(utsvehicle lv) {
+        Location stoppos = lv.getStoppos();
+        Location cartactualpos = getDriverseatActualPos(lv);
+        double stopdist = distFormula(stoppos, cartactualpos);
+        int stopdistcm = (int) (stopdist * 100);
+        StopPosResult spresult = new StopPosResult(stopdist, stopdistcm);
+        return spresult;
     }
 
     private static void ebUntilRestoreInit(utsdriver ld, String s) {
@@ -784,7 +800,6 @@ class motion {
         return new HeadAndTailResult(retHeadLoc, retTailLoc);
     }
 
-
     static Location getDriverseatActualPos(utsvehicle lv) {
         // Driver seat may be flipped, therefore must test
         // Get longest length to get actual head and driver seat
@@ -798,6 +813,28 @@ class motion {
             retDriverseat = testDriverseat;
         }
         return retDriverseat;
+    }
+
+    static String add3ZeroPadding(String str) {
+        int len = str.length();
+        String zero = ChatColor.DARK_GRAY + "0";
+        StringBuilder newstr = new StringBuilder();
+        // 2 * ChatColor also counts in string length
+        for (int i = 0; i < 5 - len; i++) {
+            newstr.append(zero);
+        }
+        newstr.append(str);
+        return newstr.toString();
+    }
+
+    private static class StopPosResult {
+        public final double stopdist;
+        public final int stopdistcm;
+
+        public StopPosResult(double stopdist, int stopdistcm) {
+            this.stopdist = stopdist;
+            this.stopdistcm = stopdistcm;
+        }
     }
 
     static class AfterBrakeInitResult {
