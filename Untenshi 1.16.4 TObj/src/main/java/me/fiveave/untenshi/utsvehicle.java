@@ -11,56 +11,65 @@ import java.util.Set;
 import static me.fiveave.untenshi.main.*;
 
 class utsvehicle {
-    private double accel;
-    private double decel;
-    private double ebdecel;
-    private double speeddrop;
-    private int[] speedsteps;
-    private utsdriver ld;
-    private World savedworld;
-    private int mascon;
-    private int brake;
-    private int speedlimit;
-    private int signallimit;
-    private int atsforced;
-    private int lastsisp;
-    private int lastspsp;
-    private int dooropen;
-    private int[] stopoutput;
-    private int atostoptime;
-    private int rsoccupiedpos;
-    private int ilpriority;
-    private double current;
-    private double bcpressure;
-    private double speed;
-    private double atospeed;
-    private Location stoppos;
-    private Location atodest;
-    private Location lastsisign;
-    private Location lastspsign;
-    private Location[] rsposlist;
-    private Location[] ilposlist;
-    private Location[] ilposoccupied;
-    private String safetysystype;
-    private String signalorderptn;
-    private boolean reqstopping;
-    private boolean overrun;
-    private boolean fixstoppos;
-    private boolean staaccel;
-    private boolean staeb;
-    private int atsping;
-    private boolean atspnear;
-    private boolean doordiropen;
-    private boolean doorconfirm;
-    private boolean atopisdirect;
-    private boolean atoforcebrake;
-    private boolean atoautodep;
-    private boolean beinglogged;
-    private boolean twohandled;
-    private MinecartGroup train;
+    private double accel; // Acceleration from traindata.yml
+    private double decel; // Deceleration from traindata.yml
+    private double ebdecel; // EB Deceleration from traindata.yml
+    private double speeddrop; // Natural speed drop rate
+    private int[] speedsteps; // Speed steps for acceleration and deceleration
+    private utsdriver ld; // Driver
+    private World savedworld; // World
+    private int mascon; // Master controller notch
+    private int brake; // Brake handle notch
+    private int speedlimit; // Speed limit
+    private int signallimit; // Signal speed limit
+    private int atsforced; // ATS (ATC) forced status (-1: TrainCarts forced stop, 0: normal, 1: EB applied, 2: ATS Run)
+    private int lastsisp; // Speed limit of last recognized signal sign
+    private int lastspsp; // Speed limit of last recognized speed limit sign
+    private int dooropen; // Door open status (0 (closed) - 30 (open))
+    private int[] stopoutput; // Redstone output position after stopping at station
+    private int atostoptime; // ATO stopping time at station
+    /*  rs = "resettable sign" means signal signs that will be reset after train moves out of signal blocks
+        New entries for rs are added after train passes a new signal, and old entries are removed when train at back occupies those positions
+        il = "interlock" = interlocking
+        New entries for il are first added into ilposlist for queue, then added into ilposoccupied once path is clear,
+        but ilposlist and ilposoccupied will not be removed, until whole train passes the signal corresponding to them
+        Diagram for "resettable sign" and interlocking positions
+                   rs    ------>          il
+        <--- ... 3 2 1 0 [Train] 0 1 2 3 ... --->
+     */
+    private int rsoccupiedpos; // Furthest occupied position in rsposlist
+    private int ilpriority; // Priority for interlocking
+    private double current; // Electric current
+    private double bcpressure; // Brake cylinder pressure
+    private double speed; // Train speed
+    private double atospeed; // ATO target speed
+    private Location stoppos; // Stop position at station
+    private Location atodest; // ATO target destination
+    private Location lastsisign; // Location of last recognized signal sign
+    private Location lastspsign; // Location of last recognized speed limit sign
+    private Location[] rsposlist; // List of positions for "resettable sign"
+    private Location[] ilposlist; // List of positions (including both in queue and occupied) for interlocking
+    private Location[] ilposoccupied; // Occupied positions for interlocking
+    private String safetysystype; // Type of safety system (ATS-P / ATC)
+    private String signalorderptn; // Signal order pattern
+    private boolean reqstopping; // Stopping at station required
+    private boolean overrun; // Overrun
+    private boolean fixstoppos; // Fixing stop position needed
+    private boolean staaccel; // In-station acceleration
+    private boolean staeb; // In-station EB applications
+    private int atsping; // ATS-P (ATC) brake run
+    private boolean atspnear; // ATS-P (ATC) pattern near
+    private boolean doordiropen; // Door opening
+    private boolean doorconfirm; // Door open / close status confirmed
+    private boolean atopisdirect; // ATO Pattern is Direct Pattern
+    private boolean atoforcebrake; // ATO brake is forced
+    private boolean atoautodep; // ATO auto departure after doors closed
+    private boolean beinglogged; // Train being logged
+    private boolean twohandled; // Train is two-handled
+    private MinecartGroup train; // MinecartGroup of this utsvehicle
     @SuppressWarnings("rawtypes")
-    private MinecartMember driverseat;
-    private long ilenterqueuetime;
+    private MinecartMember driverseat; // Cart belonging to driver seat
+    private long ilenterqueuetime; // Enter queue time for interlocking
 
     utsvehicle(MinecartGroup mg) {
         try {

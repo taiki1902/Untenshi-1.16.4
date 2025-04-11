@@ -6,14 +6,10 @@ import com.bergerkiller.bukkit.tc.events.SignChangeActionEvent;
 import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import com.bergerkiller.bukkit.tc.signactions.SignActionType;
 import com.bergerkiller.bukkit.tc.utils.SignBuildOptions;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
 import org.bukkit.block.Sign;
-import org.bukkit.block.data.Rail;
 import org.bukkit.block.data.type.WallSign;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -38,10 +34,10 @@ class speedsign extends SignAction {
         return bl instanceof Chest ? (Chest) bl : null;
     }
 
-    static Location getSignActualRefPos(Location loc, World w) {
-        int[] blkoffset = new int[3];
-        if (w.getBlockAt(loc) instanceof Sign) {
-            Sign sign = (Sign) w.getBlockAt(loc);
+    static Location getActualRefPos(Location loc, World w) {
+        int[] blkoffset = new int[]{0, 0, 0};
+        if (w.getBlockAt(loc).getState() instanceof Sign) {
+            Sign sign = (Sign) w.getBlockAt(loc).getState();
             if (sign instanceof WallSign) {
                 blkoffset[1] = 1;
                 WallSign ws = (WallSign) sign;
@@ -62,9 +58,18 @@ class speedsign extends SignAction {
             } else {
                 blkoffset[1] = 2;
             }
-            while (!(sign.getWorld().getBlockAt(blkoffset[0], blkoffset[1], blkoffset[2]) instanceof Rail)) {
+            do {
+                int railsuccess = 0;
+                for (Material mat : new Material[]{Material.RAIL, Material.ACTIVATOR_RAIL, Material.DETECTOR_RAIL, Material.POWERED_RAIL}) {
+                    if (sign.getWorld().getBlockAt(loc.getBlockX() + blkoffset[0], loc.getBlockY() + blkoffset[1], loc.getBlockZ() + blkoffset[2]).getType().equals(mat)) {
+                        railsuccess++;
+                    }
+                }
+                if (railsuccess > 0) break;
                 blkoffset[1]++;
-            }
+                // Anti over height limit
+                if (loc.getY() + blkoffset[1] > 320) blkoffset[1] = 1;
+            } while (true);
         }
         return new Location(w, loc.getX() + blkoffset[0] + 0.5, loc.getY() + blkoffset[1] + cartyposdiff, loc.getZ() + blkoffset[2] + 0.5);
     }

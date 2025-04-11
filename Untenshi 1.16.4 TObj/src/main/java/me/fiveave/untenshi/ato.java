@@ -10,7 +10,7 @@ import static me.fiveave.untenshi.events.doorControls;
 import static me.fiveave.untenshi.events.toEB;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.motion.*;
-import static me.fiveave.untenshi.speedsign.getSignActualRefPos;
+import static me.fiveave.untenshi.speedsign.getActualRefPos;
 
 class ato {
 
@@ -23,9 +23,8 @@ class ato {
             */
             double lowerSpeed = lv.getAtospeed();
             double decel = lv.getDecel();
-            // 0.0625 from result of getting mg.head() y-location
             HeadAndTailResult result = getHeadAndTailResult(mg);
-            Location actualAtoRefPos = getSignActualRefPos(lv.getAtodest(), mg.getWorld());
+            Location actualAtoRefPos = getActualRefPos(lv.getAtodest(), mg.getWorld());
             double slopeaccelnow = getSlopeAccel(result.headLoc, result.tailLoc);
             double slopeaccelsel = getSlopeAccel(actualAtoRefPos, result.tailLoc);
             double slopeaccelsi = 0;
@@ -45,7 +44,7 @@ class ato {
             int finalbrake = 0;
             // Find either ATO, signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
             if (lv.getLastsisign() != null && lv.getLastsisp() != maxspeed) {
-                Location actualSiRefPos = getSignActualRefPos(lv.getLastsisign(), mg.getWorld());
+                Location actualSiRefPos = getActualRefPos(lv.getLastsisign(), mg.getWorld());
                 slopeaccelsi = getSlopeAccel(actualSiRefPos, result.tailLoc);
                 reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, 0)
                         + getThinkingDistance(lv, lv.getSpeed(), lv.getLastsisp(), decel, 6, slopeaccelsi, 0);
@@ -53,7 +52,7 @@ class ato {
                 signaldistdiff = signaldist - reqsidist;
             }
             if (lv.getLastspsign() != null && lv.getLastspsp() != maxspeed) {
-                Location actualSpRefPos = getSignActualRefPos(lv.getLastspsign(), mg.getWorld());
+                Location actualSpRefPos = getActualRefPos(lv.getLastspsign(), mg.getWorld());
                 slopeaccelsp = getSlopeAccel(actualSpRefPos, result.tailLoc);
                 reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, 0)
                         + getThinkingDistance(lv, lv.getSpeed(), lv.getLastspsp(), decel, 6, slopeaccelsp, 0);
@@ -182,7 +181,7 @@ class ato {
             double[] reqdist = new double[10];
             getAllReqdist(lv, minSpeedLimit(lv), 0, lv.getSpeeddrop(), reqdist, 0, 0);
             if (lv.getLastsisign() != null) {
-                Location actualSiRefPos = getSignActualRefPos(lv.getLastsisign(), lv.getSavedworld());
+                Location actualSiRefPos = getActualRefPos(lv.getLastsisign(), lv.getSavedworld());
                 Location cartactualpos = getDriverseatActualPos(lv);
                 notindist = (distFormula(actualSiRefPos, cartactualpos)) > 5;
             }

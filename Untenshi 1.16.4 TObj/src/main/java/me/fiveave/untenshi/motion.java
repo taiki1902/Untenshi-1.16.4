@@ -21,7 +21,7 @@ import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.events.trainSound;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.*;
-import static me.fiveave.untenshi.speedsign.getSignActualRefPos;
+import static me.fiveave.untenshi.speedsign.getActualRefPos;
 import static me.fiveave.untenshi.speedsign.getSignFromLoc;
 
 class motion {
@@ -290,7 +290,7 @@ class motion {
                 }
                 // Set as occupied
                 Location[] newiloccupied = new Location[furthestoccupied];
-                // Put in interlocking occupied
+                // Put in ilposoccupied
                 System.arraycopy(oldposlist, 0, newiloccupied, 0, furthestoccupied);
                 lv.setIlposoccupied(newiloccupied);
                 // Delete other's resettable sign (check all locations to prevent bug)
@@ -472,14 +472,14 @@ class motion {
         }
         // Find either signal or speed limit distance, figure out which has the greatest priority (distnow - reqdist is the smallest value)
         if (lv.getLastsisign() != null && lv.getLastsisp() != maxspeed) {
-            Location actualSiRefPos = getSignActualRefPos(lv.getLastsisign(), mg.getWorld());
+            Location actualSiRefPos = getActualRefPos(lv.getLastsisign(), mg.getWorld());
             slopeaccelsi = getSlopeAccel(actualSiRefPos, result.tailLoc);
             reqsidist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastsisp(), speeddrop, 6, slopeaccelsi, 0);
             signaldist = distFormula(actualSiRefPos, result.headLoc);
             signaldistdiff = signaldist - reqsidist;
         }
         if (lv.getLastspsign() != null && lv.getLastspsp() != maxspeed) {
-            Location actualSpRefPos = getSignActualRefPos(lv.getLastspsign(), mg.getWorld());
+            Location actualSpRefPos = getActualRefPos(lv.getLastspsign(), mg.getWorld());
             slopeaccelsp = getSlopeAccel(actualSpRefPos, result.tailLoc);
             reqspdist = getSingleReqdist(lv, lv.getSpeed(), lv.getLastspsp(), speeddrop, 6, slopeaccelsp, 0);
             speeddist = distFormula(actualSpRefPos, result.headLoc);

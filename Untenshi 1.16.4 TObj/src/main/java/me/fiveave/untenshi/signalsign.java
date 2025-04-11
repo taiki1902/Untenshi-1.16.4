@@ -83,7 +83,12 @@ class signalsign extends SignAction {
         return false;
     }
 
-    private static void ilListRemoveShift(utsvehicle lv, Location targetloc) {
+    static void iLListandOccupiedRemoveShift(utsvehicle lv, Location targetloc) {
+        ilListRemoveShift(lv, targetloc);
+        ilOccupiedRemoveShift(lv, targetloc);
+    }
+
+    static void ilListRemoveShift(utsvehicle lv, Location targetloc) {
         if (lv.getIlposlist() != null) {
             Location[] oldpos = lv.getIlposlist();
             // Interlocking list
@@ -96,6 +101,9 @@ class signalsign extends SignAction {
                 }
             }
         }
+    }
+
+    static void ilOccupiedRemoveShift(utsvehicle lv, Location targetloc) {
         if (lv.getIlposoccupied() != null) {
             // Occupied list
             Location[] oldoccupied = lv.getIlposoccupied();
@@ -274,7 +282,7 @@ class signalsign extends SignAction {
                                 }
                                 // Must put here or else points that are not signals also get cleared wrongly too early
                                 // If location is in interlocking list, then remove location and shift list
-                                ilListRemoveShift(lv, cartevent.getLocation());
+                                iLListandOccupiedRemoveShift(lv, cartevent.getLocation());
                             }
                             break;
                         // Signal speed limit warn
@@ -311,7 +319,7 @@ class signalsign extends SignAction {
                                 String[] l2 = cartevent.getLine(2).split(" ");
                                 Chest refchest = getChestFromLoc(fullloc);
                                 if (l2.length == 3 && l2[2].equals("del")) {
-                                    ilListRemoveShift(lv, fullloc);
+                                    iLListandOccupiedRemoveShift(lv, fullloc);
                                 } else if ((l2.length == 2 || l2.length == 3) && refchest != null) {
                                     for (int itemno = 0; itemno < 27; itemno++) {
                                         ItemMeta mat = null;
