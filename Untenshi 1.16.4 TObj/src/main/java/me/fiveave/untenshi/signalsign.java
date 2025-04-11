@@ -335,6 +335,11 @@ class signalsign extends SignAction {
                                                 Location[] oldilpos = lv.getIlposlist();
                                                 Location[] newilpos;
                                                 Location setloc = getFullLoc(cartevent.getWorld(), str);
+                                                // Anti duplicating causing interlock pattern to be set twice, thus bugging out
+                                                Location[] iloccupied = lv.getIlposoccupied();
+                                                if (iloccupied != null && iloccupied.length > 0 && setloc.equals(iloccupied[0])) {
+                                                    break;
+                                                }
                                                 // Null or not? If null just put new
                                                 if (oldilpos == null || oldilpos.length == 0) {
                                                     newilpos = new Location[1];
