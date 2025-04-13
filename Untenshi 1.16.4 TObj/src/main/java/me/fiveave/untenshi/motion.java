@@ -585,9 +585,10 @@ class motion {
     }
 
     static double getSpeedAfterBrakeInit(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetBrake, double slopeaccel) {
+        // Prediction tested to be
+        // down, flat: too LOW, up: too HIGH
         double speed = upperSpeed;
-        // Anti out-of-range causing GIGO
-        double bcp = Math.max(0, lv.getBcpressure());
+        double bcp = lv.getBcpressure();
         double bcptarget = getPressureFromBrake(targetBrake);
         if (upperSpeed > lowerSpeed && bcp < bcptarget) {
             AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, decel, slopeaccel, bcp, bcptarget);
@@ -597,10 +598,11 @@ class motion {
     }
 
     static double getThinkingDistance(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetBrake, double slopeaccel, double extra) {
+        // Prediction tested to be
+        // down, flat: too LONG, up: too SHORT
         // Prevent unable to accel just because near next target, but no need to brake or to neutral
         if (upperSpeed > lowerSpeed) {
-            // Anti out-of-range causing GIGO
-            double bcp = Math.max(0, lv.getBcpressure());
+            double bcp = lv.getBcpressure();
             double bcptarget = getPressureFromBrake(targetBrake);
             double sumdist = 0;
             if (bcp < bcptarget) {

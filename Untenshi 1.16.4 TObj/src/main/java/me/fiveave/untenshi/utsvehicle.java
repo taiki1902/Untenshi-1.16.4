@@ -57,7 +57,7 @@ class utsvehicle {
     private boolean fixstoppos; // Fixing stop position needed
     private boolean staaccel; // In-station acceleration
     private boolean staeb; // In-station EB applications
-    private int atsping; // ATS-P (ATC) brake run
+    private int atsping; // ATS-P (ATC) brake run (0: none, 1: B8, 2: EB)
     private boolean atspnear; // ATS-P (ATC) pattern near
     private boolean doordiropen; // Door opening
     private boolean doorconfirm; // Door open / close status confirmed
