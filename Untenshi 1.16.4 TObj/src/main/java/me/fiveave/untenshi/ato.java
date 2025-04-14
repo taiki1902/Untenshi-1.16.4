@@ -90,8 +90,8 @@ class ato {
             if (notnearreqdist && allowaccel) {
                 finalmascon = 5;
             }
-            // Require braking? (with additional thinking time, non-negative slope acceleration considered)
-            if (tempdist < reqdist[6] + (lv.getSpeed() + Math.max(slopeaccelsel, 0)) / 3.6 * onetickins) {
+            // Require braking? (with additional thinking time, non-negative slope acceleration considered, action delay is 2 ticks)
+            if (tempdist < reqdist[6] + 2 * onetickins * getThinkingDistance(lv, lv.getSpeed(), lowerSpeed, decel, 6, slopeaccelsel, 0)) {
                 lv.setAtoforcebrake(true);
             }
             // Direct pattern or forced?
@@ -107,7 +107,7 @@ class ato {
                     }
                 }
             }
-            // Cancel braking? (Slope acceleration considered)
+            // Cancel braking? (With extra slope acceleration considered)
             if (tempdist > reqdist[6] + getThinkingDistance(lv, lv.getSpeed() + slopeaccelsel, lowerSpeed, decel, 6, slopeaccelsel, 3) && !lv.isOverrun()) {
                 lv.setAtoforcebrake(false);
             }
