@@ -54,6 +54,7 @@ class atosign extends SignAction {
                             }
                             break;
                         case "dir":
+                            // Only activate if train is stopped
                             if (lv.getSpeed() == 0) {
                                 BlockFace bf = BlockFace.valueOf(cartevent.getLine(3).toUpperCase());
                                 if (mm.getDirection().getOppositeFace().equals(bf)) {
@@ -66,7 +67,8 @@ class atosign extends SignAction {
                             }
                             break;
                         default:
-                            if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON)) {
+                            // Only activate if train is not overrun
+                            if (!lv.isOverrun() && cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON)) {
                                 double[] loc = new double[3];
                                 String[] sloc = cartevent.getLine(3).split(" ");
                                 for (int a = 0; a <= 2; a++) {

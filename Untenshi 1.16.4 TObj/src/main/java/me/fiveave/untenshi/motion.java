@@ -393,8 +393,7 @@ class motion {
         Location cartactualpos = getDriverseatActualPos(lv);
         double stopdist = distFormula(stoppos, cartactualpos);
         int stopdistcm = (int) (stopdist * 100);
-        StopPosResult spresult = new StopPosResult(stopdist, stopdistcm);
-        return spresult;
+        return new StopPosResult(stopdist, stopdistcm);
     }
 
     private static void ebUntilRestoreInit(utsdriver ld, String s) {
@@ -562,26 +561,27 @@ class motion {
         double decel = lv.getDecel();
         double ebdecel = lv.getEbdecel();
         int[] speedsteps = lv.getSpeedsteps();
-        if (a == 9) {
-            double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel);
-            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel, extra);
-            // rate = 7 because no multiplier for avgRangeDecel
-            double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(ebdecel, afterBrakeInitSpeed, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
-            return brakeInitDistance + afterInitDistance;
-        } else if (a == 0) {
-            // Get speed drop distance
-            return getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
-        } else {
-            double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel);
-            double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel, extra);
-            double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
-            return brakeInitDistance + afterInitDistance;
+        switch (a) {
+            case 9:
+                double afterBrakeInitSpeed9 = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel);
+                double brakeInitDistance9 = getThinkingDistance(lv, upperSpeed, lowerSpeed, ebdecel, 9, slopeaccel, extra);
+                // rate = 7 because no multiplier for avgRangeDecel
+                double afterInitDistance9 = getReqdist(afterBrakeInitSpeed9, lowerSpeed, avgRangeDecel(ebdecel, afterBrakeInitSpeed9, lowerSpeed, 7, speedsteps), slopeaccel, speeddrop);
+                return brakeInitDistance9 + afterInitDistance9;
+            case 0:
+                // Get speed drop distance
+                return getReqdist(upperSpeed, lowerSpeed, speeddrop, slopeaccel, speeddrop);
+            default:
+                double afterBrakeInitSpeed = getSpeedAfterBrakeInit(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel);
+                double brakeInitDistance = getThinkingDistance(lv, upperSpeed, lowerSpeed, decel, a, slopeaccel, extra);
+                double afterInitDistance = getReqdist(afterBrakeInitSpeed, lowerSpeed, avgRangeDecel(decel, afterBrakeInitSpeed, lowerSpeed, a + 1, speedsteps), slopeaccel, speeddrop);
+                return brakeInitDistance + afterInitDistance;
         }
     }
 
     static double getReqdist(double upperSpeed, double lowerSpeed, double decel, double slopeaccel, double speeddrop) {
         // Does not consider additional decel upslope, does not consider net deceleration smaller than speeddrop
-        return Math.max((Math.pow(upperSpeed + Math.max(slopeaccel - decel, 0), 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop)), 0);
+        return Math.max((Math.pow(upperSpeed, 2) - Math.pow(lowerSpeed, 2)) / (7.2 * Math.max(decel - slopeaccel, speeddrop)), 0);
     }
 
     static double getSpeedAfterBrakeInit(utsvehicle lv, double upperSpeed, double lowerSpeed, double decel, int targetBrake, double slopeaccel) {
@@ -745,15 +745,19 @@ class motion {
         return Math.min(lv.getSpeedlimit(), lv.getSignallimit());
     }
 
+    static double getBrakeInitTime(double bcp, double bcptarget) {
+        return (bcptarget - bcp) / bcppertick * onetickins;
+    }
+
     static AfterBrakeInitResult getAfterBrakeInitResult(utsvehicle lv, double upperSpeed, double decel, double slopeaccel, double bcp, double bcptarget) {
         double ticksfrom0 = bcp / bcppertick;
         double ticksatend = bcptarget / bcppertick;
-        double ticksleft = ticksatend - ticksfrom0;
+        double timeleft = getBrakeInitTime(bcp, bcptarget);
         double avgrate = bcp > 0 ? (80 * (ticksatend + ticksfrom0) * onetickins + 27) / 35 : (80 * (Math.pow(ticksatend, 2) - 1) * onetickins + 27 * (ticksatend - 1)) / 35 / ticksatend; // average rate by mean value theorem, separate cases for bcp < 0 or not
-        double estlowerspeed = upperSpeed - (decel * avgrate / 7 - slopeaccel) * ticksleft / ticksin1s; // estimated lower speed (testing)
+        double estlowerspeed = upperSpeed - (decel * avgrate / 7 - slopeaccel) * timeleft; // estimated lower speed, may not be final
         double avgdecel = avgRangeDecel(decel, upperSpeed, estlowerspeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel, inaccuracy is negligible?
         // Time in s instead of tick to brake init end, but to prevent over-estimation and negative deceleration values
-        double t = Math.min(ticksleft * onetickins, avgdecel > 0 ? (upperSpeed - estlowerspeed) / avgdecel : Double.MAX_VALUE);
+        double t = Math.min(timeleft, avgdecel > 0 ? upperSpeed / avgdecel : Double.MAX_VALUE);
         return new AfterBrakeInitResult(avgdecel, t);
     }
 
