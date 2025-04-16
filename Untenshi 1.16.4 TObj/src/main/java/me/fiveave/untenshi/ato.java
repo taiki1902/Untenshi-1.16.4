@@ -79,6 +79,7 @@ class ato {
             // tempdist is for anti-ATS-run, stop at 1 m before 0 km/h signal
             double tempdist = nextredlight ? (distnow - 1 < 0 ? 0 : distnow - 1) : distnow;
             // Speed with slope acceleration considered
+            // Do integration for jerk (bcp / brake / rate change)
             double bcp6 = getPressureFromBrake(6); // BC Pressure for B6
             double brakeinittime = Math.max(2 * onetickins, Math.max(slopeaccelnow, slopeaccelsel) / decel) * getBrakeInitTime(lv.getBcpressure(), bcp6); // Time for brake initialization
             double brakeinittime0 = getBrakeInitTime(0, bcp6); // Time for brake initialization from N to B6
