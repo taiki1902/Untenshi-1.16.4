@@ -93,7 +93,7 @@ class ato {
             if (notnearreqdist && allowaccel) {
                 finalmascon = 5;
             }
-            // Require braking? (with additional thinking time) (why does multiplying by brakeintinittime work? idk?)
+            // Require braking? (with additional thinking time)
             if (tempdist < reqdist[6] + getThinkingDistance(lv, lv.getSpeed(), lowerSpeed, decel, 6, slopeaccelsel, onetickins)) {
                 lv.setAtoforcebrake(true);
             }
@@ -111,14 +111,13 @@ class ato {
                 }
             }
             // Cancel braking? (with additional thinking time) (why does multiplying by brakeintinittime0 work? idk?)
-            if (tempdist > reqdist[6] + getThinkingDistance(lv, lv.getSpeed(), lowerSpeed, decel, 6, slopeaccelsel, 3) && !lv.isOverrun()) {
+            if (tempdist > reqdist[6] + getThinkingDistance(lv, saspeed + safeslopeaccelsel, lowerSpeed, decel, 6, slopeaccelsel, 3) && !lv.isOverrun()) {
                 lv.setAtoforcebrake(false);
             }
             // Red light waiting procedure
             if (nextredlight && lv.getSpeed() == 0) {
                 waitDepart(lv);
             }
-            // Large brake application too common when not needed
             // Slightly speeding auto braking (not related to ATS-P or ATC)
             if (lv.getSpeed() + slopeaccelnow > currentlimit) {
                 // Redefine reqdist (here for braking distance to speed limit)
