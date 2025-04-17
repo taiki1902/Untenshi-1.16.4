@@ -592,7 +592,7 @@ class motion {
         double bcptarget = getPressureFromBrake(targetBrake);
         if (upperSpeed > lowerSpeed && bcp < bcptarget) {
             AfterBrakeInitResult result = getAfterBrakeInitResult(lv, upperSpeed, decel, slopeaccel, bcp, bcptarget);
-            speed -= result.avgdecel * result.t; // result
+            speed -= result.avgdecel * result.realt; // result
         }
         return speed;
     }
@@ -754,11 +754,11 @@ class motion {
         double ticksatend = bcptarget / bcppertick;
         double timeleft = getBrakeInitTime(bcp, bcptarget);
         double avgrate = bcp > 0 ? (80 * (ticksatend + ticksfrom0) * onetickins + 27) / 35 : (80 * (Math.pow(ticksatend, 2) - 1) * onetickins + 27 * (ticksatend - 1)) / 35 / ticksatend; // average rate by mean value theorem, separate cases for bcp < 0 or not
-        double estlowerspeed = upperSpeed - (decel * avgrate / 7 - slopeaccel) * timeleft; // estimated lower speed, may not be final
-        double avgdecel = avgRangeDecel(decel, upperSpeed, estlowerspeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel, inaccuracy is negligible?
+        double estlowerspeed = Math.max(0, upperSpeed - (decel * avgrate / 7 - slopeaccel) * timeleft); // estimated lower speed, rough result only for avgRangeDecel, prevent negative
+        double avgdecel = avgRangeDecel(decel, Math.max(0, upperSpeed + slopeaccel), estlowerspeed, avgrate, lv.getSpeedsteps()) - slopeaccel; // gives better estimation than globalDecel, inaccuracy is negligible?
         // Time in s instead of tick to brake init end, but to prevent over-estimation and negative deceleration values
-        double t = Math.min(timeleft, avgdecel > 0 ? upperSpeed / avgdecel : Double.MAX_VALUE);
-        return new AfterBrakeInitResult(avgdecel, t);
+        double realt = avgdecel > 0 ? Math.min(timeleft, upperSpeed / avgdecel) : timeleft;
+        return new AfterBrakeInitResult(avgdecel, realt, timeleft);
     }
 
     static Location getCartActualRefPos(MinecartMember<?> mm, boolean flipdir) {
@@ -845,10 +845,12 @@ class motion {
 
     static class AfterBrakeInitResult {
         public final double avgdecel;
+        public final double realt;
         public final double t;
 
-        public AfterBrakeInitResult(double avgdecel, double t) {
+        public AfterBrakeInitResult(double avgdecel, double realt, double t) {
             this.avgdecel = avgdecel;
+            this.realt = realt;
             this.t = t;
         }
     }
