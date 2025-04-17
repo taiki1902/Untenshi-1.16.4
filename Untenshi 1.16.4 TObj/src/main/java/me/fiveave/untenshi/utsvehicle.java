@@ -63,6 +63,7 @@ class utsvehicle {
     private boolean doorconfirm; // Door open / close status confirmed
     private boolean atopisdirect; // ATO Pattern is Direct Pattern
     private boolean atoforcebrake; // ATO brake is forced
+    private boolean atoforceslopebrake; // ATO brake on slope is forced
     private boolean atoautodep; // ATO auto departure after doors closed
     private boolean beinglogged; // Train being logged
     private boolean twohandled; // Train is two-handled
@@ -144,6 +145,7 @@ class utsvehicle {
         this.setAtsforced(0);
         this.setAtopisdirect(false);
         this.setAtoforcebrake(false);
+        this.setAtoforceslopebrake(false);
         this.setStoppos(null);
         this.setAtospeed(-1);
         this.setAtodest(null);
@@ -565,5 +567,13 @@ class utsvehicle {
 
     public void setTwohandled(boolean twohandled) {
         this.twohandled = twohandled;
+    }
+
+    public boolean isAtoforceslopebrake() {
+        return atoforceslopebrake;
+    }
+
+    public void setAtoforceslopebrake(boolean atoforceslopebrake) {
+        this.atoforceslopebrake = atoforceslopebrake;
     }
 }
