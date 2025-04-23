@@ -202,10 +202,6 @@ class ato {
                 lv.setMascon(5);
             } else if (lv.isAtoautodep()) {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> waitDepart(lv), tickdelay);
-                if (lv.getBrake() != 9) {
-                    lv.setMascon(0);
-                    lv.setBrake(8);
-                }
             }
         }
     }

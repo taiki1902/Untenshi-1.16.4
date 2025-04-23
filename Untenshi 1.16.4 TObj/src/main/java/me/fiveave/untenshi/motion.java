@@ -305,7 +305,7 @@ class motion {
                 lv.setIlposoccupied(newiloccupied);
                 // Delete other's resettable sign (check all locations to prevent bug)
                 for (Location eachloc : newiloccupied) {
-                    deleteOthersResettablesign(lv, eachloc);
+                    deleteOthersRs(lv, eachloc);
                 }
             }
         }

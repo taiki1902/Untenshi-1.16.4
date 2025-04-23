@@ -67,8 +67,11 @@ class speedsign extends SignAction {
                 }
                 if (railsuccess > 0) break;
                 blkoffset[1]++;
-                // Anti over height limit
-                if (loc.getY() + blkoffset[1] > 320) blkoffset[1] = 1;
+                // Anti over height limit / finding rail failed
+                if (loc.getY() + blkoffset[1] > 320) {
+                    blkoffset[1] = 1;
+                    break;
+                }
             } while (true);
         }
         return new Location(w, loc.getX() + blkoffset[0] + 0.5, loc.getY() + blkoffset[1] + cartyposdiff, loc.getZ() + blkoffset[2] + 0.5);
