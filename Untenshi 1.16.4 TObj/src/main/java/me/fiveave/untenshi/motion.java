@@ -51,7 +51,7 @@ class motion {
             }
         } else if (ld.isFrozen()) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> recursiveClockLd(ld), tickdelay);
-        } else if (!ld.getP().isInsideVehicle()) {
+        } else if (!ld.getP().isInsideVehicle() || !MinecartGroup.get(ld.getP().getVehicle()).equals(ld.getLv().getTrain())) { // Not in (same) vehicle
             restoreInitLd(ld);
         }
     }
@@ -238,12 +238,25 @@ class motion {
                     if (il2poslist != null) {
                         // Find location for start of blocked section, -1 means none
                         int blocked = -1;
+                        boolean firstsignalfound = false;
                         for (int i = 0; i < oldposlist.length; i++) {
                             if (blocked != -1) {
                                 break;
                             }
+                            // Prevent front train being blocked at train at back due to lack of iloccupied
+                            // Ignore blocked status until first signal is found,
+                            // no worries for direct collision as if rs exists, train will be blocked;
+                            // if rs does not exist (by interlock del), there must be an other location
+                            if (!firstsignalfound) {
+                                Sign test = getSignFromLoc(oldposlist[i]);
+                                if (test != null) {
+                                    firstsignalfound = true;
+                                }
+                                continue;
+                            }
+                            // Check for each location
                             for (int j = 0; j < il2poslist.length - 1; j++) {
-                                // Check for each location
+                                // Occupied by interlocking list
                                 if (oldposlist[i].equals(il2poslist[j])) {
                                     blocked = i;
                                     break;

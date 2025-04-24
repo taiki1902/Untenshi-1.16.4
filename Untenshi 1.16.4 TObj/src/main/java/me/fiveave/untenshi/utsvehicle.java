@@ -135,7 +135,8 @@ class utsvehicle {
         this.setStaaccel(false);
         this.setBrake(9);
         this.setMascon(0);
-        this.setCurrent(-480.0);
+        this.setCurrent(0);
+        this.setBcpressure(480);
         this.setAtsping(0);
         this.setAtspnear(false);
         this.setOverrun(false);
