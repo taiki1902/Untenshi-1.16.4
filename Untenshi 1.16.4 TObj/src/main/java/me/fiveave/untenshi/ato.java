@@ -116,7 +116,7 @@ class ato {
             }
             // Red light waiting procedure
             if (nextredlight && lv.getSpeed() == 0) {
-                waitDepart(lv);
+                waitDepart(lv, null, null);
             }
             // Potentially over speed limit / next speed limit in 1 s
             if (lv.getSpeed() + slopeaccelnow > (distnow < speed1s(lv) ? lowerSpeed : currentlimit)) {
@@ -181,19 +181,20 @@ class ato {
                 lv.setAtostoptime(-1);
                 lv.setAtodest(null);
                 lv.setAtospeed(-1);
-                waitDepart(lv);
+                waitDepart(lv, null, null);
             }
         }
     }
 
-    private static void waitDepart(utsvehicle lv) {
+    private static void waitDepart(utsvehicle lv, Location actualSiRefPos, Location cartactualpos) {
         if (lv != null && lv.getTrain() != null && lv.getDriverseat().getEntity() != null) {
             boolean notindist = true;
             double[] reqdist = new double[10];
             getAllReqdist(lv, minSpeedLimit(lv), 0, lv.getSpeeddrop(), reqdist, 0, 0);
             if (lv.getLastsisign() != null) {
-                Location actualSiRefPos = getActualRefPos(lv.getLastsisign(), lv.getSavedworld());
-                Location cartactualpos = getDriverseatActualPos(lv);
+                // Assuming positions will not be changed during loop, prevent lag
+                actualSiRefPos = actualSiRefPos == null ? getActualRefPos(lv.getLastsisign(), lv.getSavedworld()) : actualSiRefPos;
+                cartactualpos = cartactualpos == null ? getDriverseatActualPos(lv) : cartactualpos;
                 notindist = (distFormula(actualSiRefPos, cartactualpos)) > 5;
             }
             // Wait doors fully closed then depart (if have red light in 5 meters do not depart)
@@ -201,7 +202,10 @@ class ato {
                 lv.setBrake(0);
                 lv.setMascon(5);
             } else if (lv.isAtoautodep()) {
-                Bukkit.getScheduler().runTaskLater(plugin, () -> waitDepart(lv), tickdelay);
+                // Return as final variables
+                Location finalCartactualpos = cartactualpos;
+                Location finalActualSiRefPos = actualSiRefPos;
+                Bukkit.getScheduler().runTaskLater(plugin, () -> waitDepart(lv, finalActualSiRefPos, finalCartactualpos), tickdelay);
             }
         }
     }
