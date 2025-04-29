@@ -14,6 +14,7 @@ import org.bukkit.block.Sign;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 
 import static me.fiveave.untenshi.ato.atoSys;
 import static me.fiveave.untenshi.ato.openDoorProcedure;
@@ -190,135 +191,134 @@ class motion {
     }
 
     private static void interlocking(utsvehicle lv) {
-        if (lv.getIlposlist() != null && lv.getIlposlist().length > 0) {
-            Location[] oldposlist = lv.getIlposlist();
-            // Server becomes very laggy if some trains wait for other trains for a long time, require fix
-            // Check conditions to change signal
-            int furthestoccupied = oldposlist.length - 1;
-            boolean ispriority = true;
-            // mg2: other trains
-            for (MinecartGroup mg2 : vehicle.keySet()) {
-                if (!mg2.equals(lv.getTrain()) && vehicle.get(mg2) != null) {
-                    utsvehicle lv2 = vehicle.get(mg2);
-                    // Check resettable sign of other trains
-                    Location[] rssign2locs = lv2.getRsposlist();
-                    if (rssign2locs != null) {
-                        signalOrderPtnResult result2 = getSignalOrderPtnResult(lv2);
-                        // Check for each location
-                        for (int i = oldposlist.length - 1; i >= 0; i--) {
-                            for (int j = 0; j < rssign2locs.length; j++) {
-                                Location location = rssign2locs[j];
-                                // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
-                                int minno = Math.min(result2.halfptnlen - 1, Math.max(0, j - lv2.getRsoccupiedpos()));
-                                // Resettable sign signal of lv2 is supposed to be 0 km/h by resettable sign
-                                if (oldposlist[i].equals(location) && i < furthestoccupied && result2.ptnsisp[minno] == 0) {
-                                    furthestoccupied = i;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    // Check occupied interlocking path of other trains
-                    Location[] il2posoccupied = lv2.getIlposoccupied();
-                    if (il2posoccupied != null) {
-                        // Check for each location
-                        for (int i = oldposlist.length - 1; i >= 0; i--) {
-                            for (Location location : il2posoccupied) {
-                                // Occupied by interlocking route
-                                if (oldposlist[i].equals(location) && i < furthestoccupied) {
-                                    furthestoccupied = i;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    // Check for priority
-                    // Fighting with other's unoccupied interlocking route
-                    Location[] il2poslist = lv2.getIlposlist();
-                    if (il2poslist != null) {
-                        // Find location for start of blocked section, -1 means none
-                        int blocked = -1;
-                        // Prevent front train being blocked at train at back due to lack of iloccupied
-                        // Ignore blocked status until first signal is found,
-                        // no worries for direct collision as if rs exists, train will be blocked;
-                        // if rs does not exist (by interlock del), there must be an other location
-                        int searchstart = 0;
-                        for (int i = 0; i < oldposlist.length; i++) {
-                            if (isLocOfSign(oldposlist[i])) {
-                                searchstart = i;
+        if (lv.getIlposlist() == null || lv.getIlposlist().length == 0) {
+            return;
+        }
+        Location[] oldposlist = lv.getIlposlist();
+        // Server becomes very laggy if some trains wait for other trains for a long time, require fix
+        // Check conditions to change signal
+        int furthestoccupied = oldposlist.length - 1;
+        boolean ispriority = true;
+        // Prevent front train being blocked at train at back due to lack of iloccupied
+        // Ignore blocked status until first signal is found,
+        // no worries for direct collision as if rs exists, train will be blocked;
+        // if rs does not exist (by interlock del), there must be an other location
+        int searchstart = 0;
+        for (int i = 0; i < oldposlist.length; i++) {
+            if (isLocOfSign(oldposlist[i])) {
+                searchstart = i;
+                break;
+            }
+        }
+        // mg2: other trains
+        for (MinecartGroup mg2 : vehicle.keySet()) {
+            if (!mg2.equals(lv.getTrain()) && vehicle.get(mg2) != null) {
+                utsvehicle lv2 = vehicle.get(mg2);
+                // Check resettable sign of other trains
+                Location[] rssign2locs = lv2.getRsposlist();
+                if (rssign2locs != null) {
+                    signalOrderPtnResult result2 = getSignalOrderPtnResult(lv2);
+                    // Check for each location
+                    for (int i = oldposlist.length - 1; i >= 0; i--) {
+                        for (int j = 0; j < rssign2locs.length; j++) {
+                            Location location = rssign2locs[j];
+                            // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
+                            int minno = Math.min(result2.halfptnlen - 1, Math.max(0, j - lv2.getRsoccupiedpos()));
+                            // Resettable sign signal of lv2 is supposed to be 0 km/h by resettable sign
+                            if (oldposlist[i].equals(location) && i < furthestoccupied && result2.ptnsisp[minno] == 0) {
+                                furthestoccupied = i;
                                 break;
                             }
                         }
-                        // Find blocked signal
-                        for (int i = searchstart; i < oldposlist.length; i++) {
-                            if (blocked != -1) {
+                    }
+                }
+                // Check occupied interlocking path of other trains
+                Location[] il2posoccupied = lv2.getIlposoccupied();
+                if (il2posoccupied != null) {
+                    // Check for each location
+                    for (int i = oldposlist.length - 1; i >= 0; i--) {
+                        for (Location location : il2posoccupied) {
+                            // Occupied by interlocking route
+                            if (oldposlist[i].equals(location) && i < furthestoccupied) {
+                                furthestoccupied = i;
                                 break;
                             }
-                            // Check for each location
-                            for (int j = 0; j < il2poslist.length - 1; j++) {
-                                // Occupied by interlocking list
-                                if (oldposlist[i].equals(il2poslist[j])) {
-                                    blocked = i;
-                                    break;
-                                }
-                            }
                         }
+                    }
+                }
+                // Check for priority
+                // Fighting with other's unoccupied interlocking route
+                Location[] il2poslist = lv2.getIlposlist();
+                if (il2poslist != null) {
+                    // Find location for start of blocked section, -1 means none
+                    int blocked = -1;
+                    // Find blocked signal
+                    for (int i = searchstart; i < oldposlist.length; i++) {
                         if (blocked != -1) {
-                            // Sign closer to this train
-                            int firstsign = 0;
-                            for (int i = 0; i <= blocked; i++) {
-                                firstsign = i;
-                                // If sign is found
-                                if (isLocOfSign(oldposlist[i])) {
-                                    break;
-                                }
-                            }
-                            // Sign closer to part being blocked
-                            int lastsign = blocked;
-                            for (int i = blocked; i >= 0; i--) {
-                                lastsign = i;
-                                // If sign is found
-                                if (isLocOfSign(oldposlist[i])) {
-                                    break;
-                                }
-                            }
-                            // firstsign == lastsign means the front sign of train is last before blocked section
-                            // Check priority
-                            if (firstsign == lastsign && lv.getIlenterqueuetime() > lv2.getIlenterqueuetime() && lv.getIlpriority() <= lv2.getIlpriority()) {
-                                ispriority = false;
+                            break;
+                        }
+                        // Check for each location
+                        for (int j = 0; j < il2poslist.length - 1; j++) {
+                            // Occupied by interlocking list
+                            if (oldposlist[i].equals(il2poslist[j])) {
+                                blocked = i;
                                 break;
                             }
                         }
                     }
-                }
-            }
-            // Is first priority? If yes then continue, if no then wait
-            if (ispriority) {
-                // Occupy and set signals when ok
-                signalOrderPtnResult result = getSignalOrderPtnResult(lv);
-                int orderno = 0;
-                // Set signs with new signal and speed
-                for (int signno = furthestoccupied; signno >= 0; signno--) {
-                    // settable: Sign to be set
-                    Sign settable = getSignFromLoc(oldposlist[signno]);
-                    if (settable != null) {
-                        updateSignals(settable, "set " + result.ptnsisi[orderno] + " " + result.ptnsisp[orderno]);
-                        // Cannot exceed halfptnlen
-                        if (orderno + 1 != result.halfptnlen) {
-                            orderno++;
+                    if (blocked != -1) {
+                        // Sign closer to this train
+                        int firstsign = 0;
+                        for (int i = 0; i <= blocked; i++) {
+                            firstsign = i;
+                            // If sign is found
+                            if (isLocOfSign(oldposlist[i])) {
+                                break;
+                            }
+                        }
+                        // Sign closer to part being blocked
+                        int lastsign = blocked;
+                        for (int i = blocked; i >= 0; i--) {
+                            lastsign = i;
+                            // If sign is found
+                            if (isLocOfSign(oldposlist[i])) {
+                                break;
+                            }
+                        }
+                        // firstsign == lastsign means the front sign of train is last before blocked section
+                        // Check priority
+                        if (firstsign == lastsign && lv.getIlenterqueuetime() > lv2.getIlenterqueuetime() && lv.getIlpriority() <= lv2.getIlpriority()) {
+                            ispriority = false;
+                            break;
                         }
                     }
                 }
-                // Set as occupied
-                Location[] newiloccupied = new Location[furthestoccupied];
-                // Put in ilposoccupied
-                System.arraycopy(oldposlist, 0, newiloccupied, 0, furthestoccupied);
-                lv.setIlposoccupied(newiloccupied);
-                // Delete other's resettable sign (check all locations to prevent bug)
-                for (Location eachloc : newiloccupied) {
-                    deleteOthersRs(lv, eachloc);
+            }
+        }
+        // Is first priority? If yes then continue, if no then wait
+        if (ispriority) {
+            // Occupy and set signals when ok
+            signalOrderPtnResult result = getSignalOrderPtnResult(lv);
+            int orderno = 0;
+            // Set signs with new signal and speed
+            for (int signno = furthestoccupied; signno >= 0; signno--) {
+                // settable: Sign to be set
+                Sign settable = getSignFromLoc(oldposlist[signno]);
+                if (settable != null) {
+                    updateSignals(settable, "set " + result.ptnsisi[orderno] + " " + result.ptnsisp[orderno]);
+                    // Cannot exceed halfptnlen
+                    if (orderno + 1 != result.halfptnlen) {
+                        orderno++;
+                    }
                 }
             }
+            // Set as occupied
+            Location[] newiloccupied = new Location[furthestoccupied];
+            // Put in ilposoccupied
+            System.arraycopy(oldposlist, 0, newiloccupied, 0, furthestoccupied);
+            lv.setIlposoccupied(newiloccupied);
+            // Delete other's resettable sign (check all locations to prevent bug)
+            Arrays.stream(newiloccupied).forEach(eachloc -> deleteOthersRs(lv, eachloc));
         }
     }
 
