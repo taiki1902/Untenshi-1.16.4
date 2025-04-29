@@ -21,8 +21,7 @@ import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.events.trainSound;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.*;
-import static me.fiveave.untenshi.speedsign.getActualRefPos;
-import static me.fiveave.untenshi.speedsign.getSignFromLoc;
+import static me.fiveave.untenshi.speedsign.*;
 
 class motion {
 
@@ -193,6 +192,7 @@ class motion {
     private static void interlocking(utsvehicle lv) {
         if (lv.getIlposlist() != null && lv.getIlposlist().length > 0) {
             Location[] oldposlist = lv.getIlposlist();
+            // Server becomes very laggy if some trains wait for other trains for a long time, require fix
             // Check conditions to change signal
             int furthestoccupied = oldposlist.length - 1;
             boolean ispriority = true;
@@ -238,21 +238,21 @@ class motion {
                     if (il2poslist != null) {
                         // Find location for start of blocked section, -1 means none
                         int blocked = -1;
-                        boolean firstsignalfound = false;
+                        // Prevent front train being blocked at train at back due to lack of iloccupied
+                        // Ignore blocked status until first signal is found,
+                        // no worries for direct collision as if rs exists, train will be blocked;
+                        // if rs does not exist (by interlock del), there must be an other location
+                        int searchstart = 0;
                         for (int i = 0; i < oldposlist.length; i++) {
-                            if (blocked != -1) {
+                            if (isLocOfSign(oldposlist[i])) {
+                                searchstart = i;
                                 break;
                             }
-                            // Prevent front train being blocked at train at back due to lack of iloccupied
-                            // Ignore blocked status until first signal is found,
-                            // no worries for direct collision as if rs exists, train will be blocked;
-                            // if rs does not exist (by interlock del), there must be an other location
-                            if (!firstsignalfound) {
-                                Sign test = getSignFromLoc(oldposlist[i]);
-                                if (test != null) {
-                                    firstsignalfound = true;
-                                }
-                                continue;
+                        }
+                        // Find blocked signal
+                        for (int i = searchstart; i < oldposlist.length; i++) {
+                            if (blocked != -1) {
+                                break;
                             }
                             // Check for each location
                             for (int j = 0; j < il2poslist.length - 1; j++) {
@@ -267,20 +267,18 @@ class motion {
                             // Sign closer to this train
                             int firstsign = 0;
                             for (int i = 0; i <= blocked; i++) {
-                                Sign test = getSignFromLoc(oldposlist[i]);
                                 firstsign = i;
                                 // If sign is found
-                                if (test != null) {
+                                if (isLocOfSign(oldposlist[i])) {
                                     break;
                                 }
                             }
                             // Sign closer to part being blocked
                             int lastsign = 0;
                             for (int i = blocked; i >= 0; i--) {
-                                Sign test = getSignFromLoc(oldposlist[i]);
                                 lastsign = i;
                                 // If sign is found
-                                if (test != null) {
+                                if (isLocOfSign(oldposlist[i])) {
                                     break;
                                 }
                             }
@@ -405,7 +403,7 @@ class motion {
         Location stoppos = lv.getStoppos();
         Location cartactualpos = getDriverseatActualPos(lv);
         double stopdist = distFormula(stoppos, cartactualpos);
-        int stopdistcm = (int) (stopdist * 100);
+        int stopdistcm = (int) Math.round(stopdist * 100);
         return new StopPosResult(stopdist, stopdistcm);
     }
 

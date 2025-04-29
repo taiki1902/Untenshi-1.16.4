@@ -24,19 +24,29 @@ class speedsign extends SignAction {
         return new Location(world, getLoc(loctext, 0), getLoc(loctext, 1), getLoc(loctext, 2));
     }
 
+    static boolean isLocOfSign(Location loc) {
+        BlockState bl = loc.getBlock().getState();
+        return bl instanceof Sign;
+    }
+
     static Sign getSignFromLoc(Location loc) {
         BlockState bl = loc.getBlock().getState();
-        return bl instanceof Sign ? (Sign) bl : null;
+        return isLocOfSign(loc) ? (Sign) bl : null;
+    }
+
+    static boolean isLocOfChest(Location loc) {
+        BlockState bl = loc.getBlock().getState();
+        return bl instanceof Chest;
     }
 
     static Chest getChestFromLoc(Location loc) {
         BlockState bl = loc.getBlock().getState();
-        return bl instanceof Chest ? (Chest) bl : null;
+        return isLocOfChest(loc) ? (Chest) bl : null;
     }
 
     static Location getActualRefPos(Location loc, World w) {
         int[] blkoffset = new int[]{0, 0, 0};
-        if (w.getBlockAt(loc).getState() instanceof Sign) {
+        if (isLocOfSign(loc)) {
             Sign sign = (Sign) w.getBlockAt(loc).getState();
             if (sign instanceof WallSign) {
                 blkoffset[1] = 1;
