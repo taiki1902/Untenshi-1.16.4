@@ -274,7 +274,7 @@ class motion {
                                 }
                             }
                             // Sign closer to part being blocked
-                            int lastsign = 0;
+                            int lastsign = blocked;
                             for (int i = blocked; i >= 0; i--) {
                                 lastsign = i;
                                 // If sign is found
