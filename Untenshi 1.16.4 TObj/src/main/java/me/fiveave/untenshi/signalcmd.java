@@ -36,6 +36,71 @@ class signalcmd implements CommandExecutor, TabCompleter {
         }
     }
 
+    static boolean isIlClear(ItemMeta mat, World world, boolean lossy) {
+        boolean isclear = true;
+        if (mat instanceof BookMeta) {
+            BookMeta bk = (BookMeta) mat;
+            int pgcount = bk.getPageCount();
+            // Get pages from books
+            for (int pgno = 1; pgno <= pgcount; pgno++) {
+                String str = bk.getPage(pgno);
+                String[] trysplitstr = str.split(" ", 3);
+                Location loc1 = getFullLoc(world, str);
+                if (trysplitstr[0].equals("try")) {
+                    Location fullloc2 = getFullLoc(world, trysplitstr[2]);
+                    Chest refchest2 = getChestFromLoc(fullloc2);
+                    isclear = tryItemIsIlClear(refchest2, isclear, world, lossy);
+                    // No reading other locations after try statement
+                    break;
+                }
+                for (MinecartGroup mg2 : vehicle.keySet()) {
+                    if (vehicle.get(mg2) != null) {
+                        utsvehicle lv2 = vehicle.get(mg2);
+                        // Get rsposlist (if not lossy)
+                        if (!lossy) {
+                            Location[] rssign2locs = lv2.getRsposlist();
+                            if (rssign2locs != null) {
+                                signalOrderPtnResult result2 = getSignalOrderPtnResult(lv2);
+                                // Check for each location
+                                for (int j = 0; j < rssign2locs.length; j++) {
+                                    Location location = rssign2locs[j];
+                                    // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
+                                    int minno = Math.min(result2.halfptnlen - 1, Math.max(0, j - lv2.getRsoccupiedpos()));
+                                    // Resettable sign signal of lv2 is supposed to be 0 km/h by resettable sign
+                                    if (result2.ptnsisp[minno] == 0 && loc1.equals(location)) {
+                                        isclear = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        // Get ilposoccupied
+                        Location[] il2posoccupied = lv2.getIlposoccupied();
+                        if (il2posoccupied != null) {
+                            for (Location loc2 : il2posoccupied) {
+                                if (loc1.equals(loc2)) {
+                                    isclear = false;
+                                    break;
+                                }
+                            }
+                        }
+                        // Get ilposlist
+                        Location[] il2poslist = lv2.getIlposoccupied();
+                        if (il2poslist != null) {
+                            for (Location loc2 : il2poslist) {
+                                if (loc1.equals(loc2)) {
+                                    isclear = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return isclear;
+    }
+
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         try {
             if (sender instanceof BlockCommandSender) {
@@ -76,72 +141,24 @@ class signalcmd implements CommandExecutor, TabCompleter {
                         case "getilclear":
                         case "getilclearlossy":
                             Chest refchest = getChestFromLoc(getFullLoc(world, inputpos));
-                            for (int itemno = 0; itemno < 27; itemno++) {
-                                ItemMeta mat = null;
-                                try {
-                                    assert refchest != null;
-                                    mat = Objects.requireNonNull(refchest.getBlockInventory().getItem(itemno)).getItemMeta();
-                                } catch (Exception ignored) {
+                            boolean lossy = args[3].equals("getilclearlossy");
+                            boolean isclear = true;
+                            isclear = tryItemIsIlClear(refchest, isclear, world, lossy);
+                            Block blk = ((BlockCommandSender) sender).getBlock();
+                            if (isclear) {
+                                Bukkit.dispatchCommand(sender, String.format("data modify block %s %s %s SuccessCount set value 15", blk.getX(), blk.getY(), blk.getZ()));
+                                int delay = 4;
+                                if (args.length == 5) {
+                                    int newdelay = parseInt(args[4]);
+                                    delay = newdelay == -1 ? -1 : Math.max(delay, newdelay);
                                 }
-                                if (mat instanceof BookMeta) {
-                                    boolean isclear = true;
-                                    BookMeta bk = (BookMeta) mat;
-                                    int pgcount = bk.getPageCount();
-                                    // Get pages from books
-                                    for (int pgno = 1; pgno <= pgcount; pgno++) {
-                                        String str = bk.getPage(pgno);
-                                        Location loc1 = getFullLoc(world, str);
-                                        for (MinecartGroup mg2 : vehicle.keySet()) {
-                                            if (vehicle.get(mg2) != null) {
-                                                utsvehicle lv2 = vehicle.get(mg2);
-                                                // Get rsposlist (if not lossy)
-                                                if (args[3].equals("getilclear")) {
-                                                    Location[] rssign2locs = lv2.getRsposlist();
-                                                    if (rssign2locs != null) {
-                                                        signalOrderPtnResult result2 = getSignalOrderPtnResult(lv2);
-                                                        // Check for each location
-                                                        for (int j = 0; j < rssign2locs.length; j++) {
-                                                            Location location = rssign2locs[j];
-                                                            // Maximum is result.halfptnlen - 1, cannot exceed (else index not exist and value will be null)
-                                                            int minno = Math.min(result2.halfptnlen - 1, Math.max(0, j - lv2.getRsoccupiedpos()));
-                                                            // Resettable sign signal of lv2 is supposed to be 0 km/h by resettable sign
-                                                            if (result2.ptnsisp[minno] == 0 && loc1.equals(location)) {
-                                                                isclear = false;
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                                // Get ilposoccupied
-                                                Location[] il2posoccupied = lv2.getIlposoccupied();
-                                                if (il2posoccupied != null) {
-                                                    for (Location loc2 : il2posoccupied) {
-                                                        if (loc1.equals(loc2)) {
-                                                            isclear = false;
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    Block blk = ((BlockCommandSender) sender).getBlock();
-                                    if (isclear) {
-                                        Bukkit.dispatchCommand(sender, String.format("data modify block %s %s %s SuccessCount set value 15", blk.getX(), blk.getY(), blk.getZ()));
-                                        int delay = 4;
-                                        if (args.length == 5) {
-                                            int newdelay = Integer.parseInt(args[4]);
-                                            delay = newdelay == -1 ? -1 : Math.max(delay, newdelay);
-                                        }
-                                        if (delay != -1) {
-                                            Bukkit.getScheduler().runTaskLater(plugin, () -> resetSuccessCount(blk), delay);
-                                        }
-                                        generalMsg(sender, ChatColor.RESET, getLang("secclear"));
-                                    } else {
-                                        Bukkit.getScheduler().runTaskLater(plugin, () -> resetSuccessCount(blk), 1);
-                                        generalMsg(sender, ChatColor.RESET, getLang("secnotclear"));
-                                    }
+                                if (delay != -1) {
+                                    Bukkit.getScheduler().runTaskLater(plugin, () -> resetSuccessCount(blk), delay);
                                 }
+                                generalMsg(sender, ChatColor.RESET, getLang("secclear"));
+                            } else {
+                                Bukkit.getScheduler().runTaskLater(plugin, () -> resetSuccessCount(blk), 1);
+                                generalMsg(sender, ChatColor.RESET, getLang("secnotclear"));
                             }
                             break;
                         default:
@@ -156,6 +173,25 @@ class signalcmd implements CommandExecutor, TabCompleter {
             e.printStackTrace();
         }
         return true;
+    }
+
+    private static boolean tryItemIsIlClear(Chest refchest, boolean isclear, World world, boolean lossy) {
+        if (refchest != null) {
+            for (int itemno = 0; itemno < 27; itemno++) {
+                ItemMeta mat = null;
+
+                try {
+                    mat = Objects.requireNonNull(refchest.getBlockInventory().getItem(itemno)).getItemMeta();
+                } catch (Exception ignored) {
+                }
+                isclear = isIlClear(mat, world, lossy);
+                // If one of them is not clear then result is not clear
+                if (!isclear) {
+                    break;
+                }
+            }
+        }
+        return isclear;
     }
 
     @Override

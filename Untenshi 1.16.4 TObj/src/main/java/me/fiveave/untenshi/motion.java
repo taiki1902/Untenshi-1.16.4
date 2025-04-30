@@ -195,7 +195,6 @@ class motion {
             return;
         }
         Location[] oldposlist = lv.getIlposlist();
-        // Server becomes very laggy if some trains wait for other trains for a long time, require fix
         // Check conditions to change signal
         int furthestoccupied = oldposlist.length - 1;
         boolean ispriority = true;

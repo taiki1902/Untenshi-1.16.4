@@ -24,6 +24,7 @@ import java.util.Objects;
 import static java.lang.Integer.parseInt;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.main.*;
+import static me.fiveave.untenshi.signalcmd.isIlClear;
 import static me.fiveave.untenshi.speedsign.*;
 import static me.fiveave.untenshi.utsvehicle.initVehicle;
 
@@ -87,7 +88,7 @@ class signalsign extends SignAction {
         ilListRemoveShift(lv, targetloc);
         ilOccupiedRemoveShift(lv, targetloc);
         if (resetrs) {
-            rsListRemoveShift(lv, targetloc);
+            rsListRemoveShift(lv);
         }
     }
 
@@ -121,7 +122,7 @@ class signalsign extends SignAction {
         }
     }
 
-    static void rsListRemoveShift(utsvehicle lv, Location targetloc) {
+    static void rsListRemoveShift(utsvehicle lv) {
         // Resettable sign list
         if (lv.getRsposlist() != null) {
             lv.setRsposlist(null);
@@ -165,6 +166,83 @@ class signalsign extends SignAction {
                 lv2.setRsposlist(newloc);
             }
         });
+    }
+
+    private static void readIlBook(utsvehicle lv, World world, ItemMeta mat) {
+        if (mat instanceof BookMeta) {
+            BookMeta bk = (BookMeta) mat;
+            int pgcount = bk.getPageCount();
+            for (int pgno = 1; pgno <= pgcount; pgno++) {
+                String str = bk.getPage(pgno);
+                String[] trysplitstr = str.split(" ", 3);
+                Location[] oldilpos = lv.getIlposlist();
+                Location[] newilpos;
+                if (trysplitstr[0].equals("try")) {
+                    Location fullloc2 = getFullLoc(world, trysplitstr[2]);
+                    Chest refchest2 = getChestFromLoc(fullloc2);
+                    tryIlChest(lv, world, refchest2, trysplitstr[1]);
+                    // No reading other locations after try statement
+                    break;
+                }
+                Location setloc = getFullLoc(world, str);
+                // Anti duplicating causing interlock pattern to be set twice, thus bugging out, assuming all pages are written
+                Location[] iloccupied = lv.getIlposoccupied();
+                if (iloccupied != null && iloccupied.length > 0 && pgno == 1 && setloc.equals(iloccupied[0])) {
+                    break;
+                }
+                // Null or not? If null just put new
+                if (oldilpos == null || oldilpos.length == 0) {
+                    newilpos = new Location[1];
+                    newilpos[0] = setloc;
+                }
+                // If not add new ones in if not duplicated
+                else if (!setloc.equals(oldilpos[oldilpos.length - 1])) {
+                    int oldilposlen = oldilpos.length;
+                    newilpos = new Location[oldilposlen + 1];
+                    // Array copy and set new positions
+                    System.arraycopy(oldilpos, 0, newilpos, 0, oldilposlen);
+                    newilpos[oldilposlen] = getFullLoc(world, str);
+                }
+                // If duplicated just copy old to new
+                else {
+                    newilpos = oldilpos;
+                }
+                // Set ilposlist
+                lv.setIlposlist(newilpos);
+            }
+        }
+    }
+
+    private static void tryIlChest(utsvehicle lv, World world, Chest refchest, String tagprefix) {
+        boolean found = false;
+        for (int itemno = 0; itemno < 27; itemno++) {
+            ItemMeta mat;
+            try {
+                mat = Objects.requireNonNull(refchest.getBlockInventory().getItem(itemno)).getItemMeta();
+                found = isIlClear(mat, world, false);
+                if (found) {
+                    String tagname = tagprefix + itemno;
+                    // Check for duplicated tags and time (prevent two trains occupying same path)
+                    for (MinecartGroup mg2 : vehicle.keySet()) {
+                        if (mg2.getProperties().getTags().contains(tagname)) {
+                            found = false;
+                        }
+                    }
+                    // Tag not used then assign
+                    if (found) {
+                        readIlBook(lv, world, mat);
+                        // Add tag for point switches
+                        lv.getTrain().getProperties().addTags(tagname);
+                        break;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        // Try again 1 tick later if cannot find
+        if (!found) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> tryIlChest(lv, world, refchest, tagprefix), 1);
+        }
     }
 
     boolean checkType(SignActionEvent e) {
@@ -305,7 +383,7 @@ class signalsign extends SignAction {
                                         // lastsisign and lastsisp are for detecting signal change
                                         lv.setLastsisign(warn.getLocation());
                                         String warnsi = warn.getLine(2).split(" ")[1];
-                                        int warnsp = Integer.parseInt(warn.getLine(2).split(" ")[2]);
+                                        int warnsp = parseInt(warn.getLine(2).split(" ")[2]);
                                         lv.setLastsisp(warnsp);
                                         signalmsg = signalName(warnsi);
                                         if (signalmsg.isEmpty()) {
@@ -326,59 +404,27 @@ class signalsign extends SignAction {
                             break;
                         case "interlock":
                             if (cartevent.isAction(SignActionType.GROUP_ENTER, SignActionType.REDSTONE_ON) && cartevent.hasRailedMember() && cartevent.isPowered()) {
-                                Location fullloc = getFullLoc(cartevent.getWorld(), cartevent.getLine(3));
                                 String[] l2 = cartevent.getLine(2).split(" ");
+                                Location fullloc = getFullLoc(cartevent.getWorld(), cartevent.getLine(3));
                                 Chest refchest = getChestFromLoc(fullloc);
                                 if (l2.length == 3 && l2[2].equals("del")) {
                                     iLListandOccupiedRemoveShift(lv, fullloc, true);
                                 } else if ((l2.length == 2 || l2.length == 3) && refchest != null) {
                                     for (int itemno = 0; itemno < 27; itemno++) {
-                                        ItemMeta mat = null;
                                         try {
-                                            mat = Objects.requireNonNull(refchest.getBlockInventory().getItem(itemno)).getItemMeta();
+                                            ItemMeta mat = Objects.requireNonNull(refchest.getBlockInventory().getItem(itemno)).getItemMeta();
+                                            readIlBook(lv, cartevent.getWorld(), mat);
                                         } catch (Exception ignored) {
                                         }
-                                        if (mat instanceof BookMeta) {
-                                            BookMeta bk = (BookMeta) mat;
-                                            int pgcount = bk.getPageCount();
-                                            for (int pgno = 1; pgno <= pgcount; pgno++) {
-                                                String str = bk.getPage(pgno);
-                                                Location[] oldilpos = lv.getIlposlist();
-                                                Location[] newilpos;
-                                                Location setloc = getFullLoc(cartevent.getWorld(), str);
-                                                // Anti duplicating causing interlock pattern to be set twice, thus bugging out
-                                                Location[] iloccupied = lv.getIlposoccupied();
-                                                if (iloccupied != null && iloccupied.length > 0 && pgno == 1 && setloc.equals(iloccupied[0])) {
-                                                    break;
-                                                }
-                                                // Null or not? If null just put new
-                                                if (oldilpos == null || oldilpos.length == 0) {
-                                                    newilpos = new Location[1];
-                                                    newilpos[0] = setloc;
-                                                }
-                                                // If not add new ones in if not duplicated
-                                                else if (!setloc.equals(oldilpos[oldilpos.length - 1])) {
-                                                    int oldilposlen = oldilpos.length;
-                                                    newilpos = new Location[oldilposlen + 1];
-                                                    // Array copy and set new positions
-                                                    System.arraycopy(oldilpos, 0, newilpos, 0, oldilposlen);
-                                                    newilpos[oldilposlen] = getFullLoc(cartevent.getWorld(), str);
-                                                }
-                                                // If duplicated just copy old to new
-                                                else {
-                                                    newilpos = oldilpos;
-                                                }
-                                                lv.setIlposlist(newilpos);
-                                                lv.setIlenterqueuetime(System.currentTimeMillis());
-                                                if (l2.length == 3) {
-                                                    lv.setIlpriority(Integer.parseInt(l2[2]));
-                                                } else {
-                                                    lv.setIlpriority(0);
-                                                }
-                                            }
-                                            lv.setSignalorderptn(cartevent.getLine(2).split(" ")[1]);
-                                        }
                                     }
+                                    if (l2.length == 3) {
+                                        lv.setIlpriority(parseInt(l2[2]));
+                                    } else {
+                                        lv.setIlpriority(0);
+                                    }
+                                    // Set ilenterqueuetime and ilpriority
+                                    lv.setSignalorderptn(cartevent.getLine(2).split(" ")[1]);
+                                    lv.setIlenterqueuetime(System.currentTimeMillis());
                                 }
                             }
                             break;

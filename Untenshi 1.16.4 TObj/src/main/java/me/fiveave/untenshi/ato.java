@@ -110,13 +110,16 @@ class ato {
                     }
                 }
             }
-            // Cancel braking? (with additional thinking time) (why does multiplying by brakeintinittime0 work? idk?)
+            // Cancel braking? (with additional thinking time)
             if (tempdist > reqdist[6] + getThinkingDistance(lv, saspeed + safeslopeaccelsel, lowerSpeed, decel, 6, slopeaccelsel, 3) && !lv.isOverrun()) {
                 lv.setAtoforcebrake(false);
             }
-            // Red light waiting procedure
-            if (nextredlight && lv.getSpeed() == 0) {
-                waitDepart(lv, null, null);
+            // 0 km/h signal waiting procedure (1 m (+ 1 m before signal) distance with signal)
+            if (nextredlight && lv.getSpeed() == 0 && signaldist < 2) {
+                if (finalbrake < 8) {
+                    finalbrake = 8;
+                }
+                finalmascon = 0;
             }
             // Potentially over speed limit / next speed limit in 1 s
             if (lv.getSpeed() + slopeaccelnow > (distnow < speed1s(lv) ? lowerSpeed : currentlimit)) {
@@ -201,6 +204,7 @@ class ato {
             if (lv.getDooropen() == 0 && lv.isDoorconfirm() && lv.getBrake() != 9 && (lv.getLastsisp() != 0 || notindist) && lv.isAtoautodep() && lv.getAtsforced() == 0) {
                 lv.setBrake(0);
                 lv.setMascon(5);
+                lv.setAtoautodep(false);
             } else if (lv.isAtoautodep()) {
                 // Return as final variables
                 Location finalCartactualpos = cartactualpos;
