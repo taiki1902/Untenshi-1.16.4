@@ -820,11 +820,13 @@ class motion {
         // Driver seat may be flipped, therefore must test
         // Get longest length to get actual head and driver seat
         HeadAndTailResult result = getHeadAndTailResult(lv.getTrain());
+        // Different reference positions for front and back train directions
+        Location refloc = lv.getTrain().head().equals(lv.getDriverseat()) ? result.tailLoc : result.headLoc;
         Location retDriverseat = getCartActualRefPos(lv.getDriverseat(), false);
-        double length = distFormula(retDriverseat, result.tailLoc);
+        double length = distFormula(retDriverseat, refloc);
         // Test for flipped case
         Location testDriverseat = getCartActualRefPos(lv.getDriverseat(), true);
-        double testlength = distFormula(testDriverseat, result.tailLoc);
+        double testlength = distFormula(testDriverseat, refloc);
         if (testlength > length) {
             retDriverseat = testDriverseat;
         }

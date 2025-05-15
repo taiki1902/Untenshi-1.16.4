@@ -172,11 +172,13 @@ class signalsign extends SignAction {
         if (mat instanceof BookMeta) {
             BookMeta bk = (BookMeta) mat;
             int pgcount = bk.getPageCount();
+            // Test for all pages
             for (int pgno = 1; pgno <= pgcount; pgno++) {
                 String str = bk.getPage(pgno);
                 String[] trysplitstr = str.split(" ", 3);
                 Location[] oldilpos = lv.getIlposlist();
                 Location[] newilpos;
+                // try statement
                 if (trysplitstr[0].equals("try")) {
                     Location fullloc2 = getFullLoc(world, trysplitstr[2]);
                     Chest refchest2 = getChestFromLoc(fullloc2);
@@ -215,6 +217,7 @@ class signalsign extends SignAction {
 
     private static void tryIlChest(utsvehicle lv, World world, Chest refchest, String tagprefix) {
         boolean found = false;
+        // Test for all items in chest
         for (int itemno = 0; itemno < 27; itemno++) {
             ItemMeta mat;
             try {

@@ -46,6 +46,7 @@ class signalcmd implements CommandExecutor, TabCompleter {
                 String str = bk.getPage(pgno);
                 String[] trysplitstr = str.split(" ", 3);
                 Location loc1 = getFullLoc(world, str);
+                // try statement
                 if (trysplitstr[0].equals("try")) {
                     Location fullloc2 = getFullLoc(world, trysplitstr[2]);
                     Chest refchest2 = getChestFromLoc(fullloc2);
