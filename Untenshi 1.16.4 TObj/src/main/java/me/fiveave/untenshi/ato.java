@@ -191,15 +191,17 @@ class ato {
 
     private static void waitDepart(utsvehicle lv, Location actualSiRefPos, Location cartactualpos) {
         if (lv != null && lv.getTrain() != null && lv.getDriverseat().getEntity() != null) {
+            boolean notindist = true;
             double[] reqdist = new double[10];
             getAllReqdist(lv, minSpeedLimit(lv), 0, lv.getSpeeddrop(), reqdist, 0, 0);
             if (lv.getLastsisign() != null) {
                 // Assuming positions will not be changed during loop, prevent lag
                 actualSiRefPos = actualSiRefPos == null ? getActualRefPos(lv.getLastsisign(), lv.getSavedworld()) : actualSiRefPos;
                 cartactualpos = cartactualpos == null ? getDriverseatActualPos(lv) : cartactualpos;
+                notindist = (distFormula(actualSiRefPos, cartactualpos)) > 5;
             }
-            // Wait doors fully closed then depart (if have red light do not depart)
-            if (lv.getDooropen() == 0 && lv.isDoorconfirm() && lv.getBrake() != 9 && lv.getLastsisp() != 0 && lv.isAtoautodep() && lv.getAtsforced() == 0) {
+            // Wait doors fully closed then depart (if have red light in 5 meters do not depart)
+            if (lv.getDooropen() == 0 && lv.isDoorconfirm() && lv.getBrake() != 9 && (lv.getLastsisp() != 0 || notindist) && lv.isAtoautodep() && lv.getAtsforced() == 0) {
                 lv.setBrake(0);
                 lv.setMascon(5);
                 lv.setAtoautodep(false);
