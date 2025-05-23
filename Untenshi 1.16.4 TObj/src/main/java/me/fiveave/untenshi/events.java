@@ -33,6 +33,10 @@ import static me.fiveave.untenshi.utsdriver.initDriver;
 
 class events implements Listener {
 
+    static final String RUN_ACCEL = "run_accel";
+    static final String RUN_DECEL = "run_decel";
+    static final String RUN_CONST = "run_const";
+
     static void toEB(utsvehicle lv) {
         if (lv.getLd() != null && noFreemodeOrATO(lv.getLd()) && lv.getBrake() != 9 && lv.getSpeed() > 20 && lv.getAtsforced() != 2 && lv.getAtsping() == 0) {
             // Misuse EB
@@ -240,6 +244,102 @@ class events implements Listener {
                     if (lv.getLd() != null) {
                         lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, 0.5f, 1.5f);
                     }
+                    break;
+                case RUN_ACCEL:
+                    if (!main.runningSoundsEnable) {
+                        return;
+                    }
+                    String accelSoundName = main.runningSoundAccelName; // Default
+                    if (main.traindata != null && main.traindata.dataconfig != null) {
+                        String trainKey = "";
+                        String currentTrainDisplayName = lv.getTrain().getProperties().getDisplayName();
+                        String seltrainname = "";
+                        if (main.traindata.dataconfig.isConfigurationSection("trains")) {
+                            for (String tname : main.traindata.dataconfig.getConfigurationSection("trains").getKeys(false)) {
+                                if (currentTrainDisplayName.contains(tname) && tname.length() > seltrainname.length()) {
+                                    seltrainname = tname;
+                                }
+                            }
+                        }
+                        if (seltrainname.isEmpty()) {
+                            seltrainname = "default";
+                        }
+                        trainKey = seltrainname;
+                        String trainSpecificSound = main.traindata.dataconfig.getString("trains." + trainKey + ".running_sounds.acceleration_sound");
+                        if (trainSpecificSound != null && !trainSpecificSound.isEmpty()) {
+                            accelSoundName = trainSpecificSound;
+                        }
+                    }
+                    final String finalAccelSoundName = accelSoundName;
+                    lv.getTrain().forEach(mm -> {
+                        if (finalAccelSoundName != null && !finalAccelSoundName.isEmpty()) {
+                            mm.getEntity().getWorld().playSound(mm.getEntity().getLocation(), finalAccelSoundName, main.runningSoundVolume, 1.2f);
+                        }
+                    });
+                    break;
+                case RUN_DECEL:
+                    if (!main.runningSoundsEnable) {
+                        return;
+                    }
+                    String decelSoundName = main.runningSoundDecelName; // Default
+                    if (main.traindata != null && main.traindata.dataconfig != null) {
+                        String trainKey = "";
+                        String currentTrainDisplayName = lv.getTrain().getProperties().getDisplayName();
+                        String seltrainname = "";
+                        if (main.traindata.dataconfig.isConfigurationSection("trains")) {
+                            for (String tname : main.traindata.dataconfig.getConfigurationSection("trains").getKeys(false)) {
+                                if (currentTrainDisplayName.contains(tname) && tname.length() > seltrainname.length()) {
+                                    seltrainname = tname;
+                                }
+                            }
+                        }
+                        if (seltrainname.isEmpty()) {
+                            seltrainname = "default";
+                        }
+                        trainKey = seltrainname;
+                        String trainSpecificSound = main.traindata.dataconfig.getString("trains." + trainKey + ".running_sounds.deceleration_sound");
+                        if (trainSpecificSound != null && !trainSpecificSound.isEmpty()) {
+                            decelSoundName = trainSpecificSound;
+                        }
+                    }
+                    final String finalDecelSoundName = decelSoundName;
+                    lv.getTrain().forEach(mm -> {
+                        if (finalDecelSoundName != null && !finalDecelSoundName.isEmpty()) {
+                            mm.getEntity().getWorld().playSound(mm.getEntity().getLocation(), finalDecelSoundName, main.runningSoundVolume, 0.8f);
+                        }
+                    });
+                    break;
+                case RUN_CONST:
+                    if (!main.runningSoundsEnable) {
+                        return;
+                    }
+                    String constSoundName = main.runningSoundConstName; // Default
+                    if (main.traindata != null && main.traindata.dataconfig != null) {
+                        String trainKey = "";
+                        String currentTrainDisplayName = lv.getTrain().getProperties().getDisplayName();
+                        String seltrainname = "";
+                        if (main.traindata.dataconfig.isConfigurationSection("trains")) {
+                            for (String tname : main.traindata.dataconfig.getConfigurationSection("trains").getKeys(false)) {
+                                if (currentTrainDisplayName.contains(tname) && tname.length() > seltrainname.length()) {
+                                    seltrainname = tname;
+                                }
+                            }
+                        }
+                        if (seltrainname.isEmpty()) {
+                            seltrainname = "default";
+                        }
+                        trainKey = seltrainname;
+                        String trainSpecificSound = main.traindata.dataconfig.getString("trains." + trainKey + ".running_sounds.constant_speed_sound");
+                        if (trainSpecificSound != null && !trainSpecificSound.isEmpty()) {
+                            constSoundName = trainSpecificSound;
+                        }
+                    }
+                    final String finalConstSoundName = constSoundName;
+                    lv.getTrain().forEach(mm -> {
+                        if (finalConstSoundName != null && !finalConstSoundName.isEmpty()) {
+                            mm.getEntity().getWorld().playSound(mm.getEntity().getLocation(), finalConstSoundName, main.runningSoundVolume, 1.0f);
+                        }
+                    });
                     break;
             }
         }

@@ -5,3 +5,11 @@ trains:
     ebdecel: 5.2
     speeds: [ 21, 41, 61, 81, 111, 130 ]
     twohandled: false
+    # Running sound configuration for this train type
+    # These can be overridden by specific train configurations
+    running_sounds:
+      acceleration_sound: "minecraft:entity.minecart.riding"
+      deceleration_sound: "minecraft:entity.minecart.riding"
+      constant_speed_sound: "minecraft:entity.minecart.riding"
+      # Volume and thresholds are typically global (from config.yml)
+      # but could be made per-train if desired in a future enhancement.

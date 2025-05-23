@@ -42,6 +42,7 @@ class utsvehicle {
     private double current; // Electric current
     private double bcpressure; // Brake cylinder pressure
     private double speed; // Train speed
+    private double previousSpeed; // Train speed in the previous tick
     private double atospeed; // ATO target speed
     private Location stoppos; // Stop position at station
     private Location atodest; // ATO target destination
@@ -162,6 +163,7 @@ class utsvehicle {
         this.setBeinglogged(false);
         this.setRsoccupiedpos(-1);
         this.setAtoautodep(false);
+        this.setPreviousSpeed(0.0);
     }
 
     static void initVehicle(MinecartGroup mg) {
@@ -576,5 +578,13 @@ class utsvehicle {
 
     public void setAtoforceslopebrake(boolean atoforceslopebrake) {
         this.atoforceslopebrake = atoforceslopebrake;
+    }
+
+    public double getPreviousSpeed() {
+        return previousSpeed;
+    }
+
+    public void setPreviousSpeed(double previousSpeed) {
+        this.previousSpeed = previousSpeed;
     }
 }

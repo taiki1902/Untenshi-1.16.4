@@ -21,3 +21,28 @@ stationsignstop: false
 
 # Language (default en_US), you may also use other languages, file format: lang_(language)
 lang: 'en_US'
+
+##############################
+#     Running Sounds Config    #
+##############################
+
+running_sounds:
+  # Enable or disable running sounds entirely
+  enable: true
+  # Sound event names from sounds.json or resource pack
+  # It is highly recommended to use custom sounds for a better experience.
+  # Default Minecraft minecart sounds are used as placeholders.
+  acceleration_sound: "minecraft:entity.minecart.riding" # Played when the train is accelerating
+  deceleration_sound: "minecraft:entity.minecart.riding" # Played when the train is decelerating
+  constant_speed_sound: "minecraft:entity.minecart.riding" # Played when the train is at a relatively constant speed
+  # Minimum speed (km/h) for the constant speed sound to play
+  min_speed_for_constant_sound: 10.0
+  # General volume for running sounds (0.0 to 1.0)
+  volume: 0.5
+  # Thresholds for detecting significant speed changes for sound playback (km/h per tick)
+  # Adjust these based on how sensitive you want the sound triggers to be.
+  # Smaller values mean more frequent sound changes.
+  acceleration_threshold: 0.5
+  deceleration_threshold: 0.5
+  # Threshold (km/h) for how much speed can vary within a tick while still considering it "constant" for sound playback
+  constant_speed_threshold: 0.1

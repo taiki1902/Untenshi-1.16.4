@@ -40,6 +40,18 @@ public final class main extends JavaPlugin implements Listener {
     static abstractfile traindata;
     static abstractfile playerdata;
     static abstractfile signalorder;
+
+    // Running Sound Configuration
+    static boolean runningSoundsEnable = true;
+    static String runningSoundAccelName = "minecraft:entity.minecart.riding";
+    static String runningSoundDecelName = "minecraft:entity.minecart.riding";
+    static String runningSoundConstName = "minecraft:entity.minecart.riding";
+    static double runningSoundMinSpeed = 10.0;
+    static float runningSoundVolume = 0.5f;
+    static double runningSoundAccelThreshold = 0.5;
+    static double runningSoundDecelThreshold = 0.5;
+    static double runningSoundConstThreshold = 0.1;
+
     final stoppos sign1 = new stoppos();
     final speedsign sign2 = new speedsign();
     final signalsign sign3 = new signalsign();
@@ -139,6 +151,22 @@ public final class main extends JavaPlugin implements Listener {
         vehicle.put(lv.getTrain(), new utsvehicle(lv.getTrain()));
     }
 
+    static void loadRunningSoundConfig() {
+        if (config != null && config.dataconfig != null) {
+            runningSoundsEnable = config.dataconfig.getBoolean("running_sounds.enable", true);
+            runningSoundAccelName = config.dataconfig.getString("running_sounds.acceleration_sound", "minecraft:entity.minecart.riding");
+            runningSoundDecelName = config.dataconfig.getString("running_sounds.deceleration_sound", "minecraft:entity.minecart.riding");
+            runningSoundConstName = config.dataconfig.getString("running_sounds.constant_speed_sound", "minecraft:entity.minecart.riding");
+            runningSoundMinSpeed = config.dataconfig.getDouble("running_sounds.min_speed_for_constant_sound", 10.0);
+            runningSoundVolume = (float) config.dataconfig.getDouble("running_sounds.volume", 0.5);
+            runningSoundAccelThreshold = config.dataconfig.getDouble("running_sounds.acceleration_threshold", 0.5);
+            runningSoundDecelThreshold = config.dataconfig.getDouble("running_sounds.deceleration_threshold", 0.5);
+            runningSoundConstThreshold = config.dataconfig.getDouble("running_sounds.constant_speed_threshold", 0.1);
+        } else {
+            // Fallback or log error if config not loaded
+            plugin.getLogger().warning("Could not load running_sounds configuration. Using default values.");
+        }
+    }
 
     @Override
     public void onEnable() {
@@ -153,7 +181,8 @@ public final class main extends JavaPlugin implements Listener {
         traindata = new abstractfile(this, "traindata.yml");
         playerdata = new abstractfile(this, "playerdata.yml");
         signalorder = new abstractfile(this, "signalorder.yml");
-        this.saveDefaultConfig();
+        this.saveDefaultConfig(); // Ensures config.yml exists with defaults if not present
+        loadRunningSoundConfig(); // Load the running sound config values
         PluginManager pm = this.getServer().getPluginManager();
         Objects.requireNonNull(this.getCommand("uts")).setExecutor(new cmds());
         Objects.requireNonNull(this.getCommand("uts")).setTabCompleter(new cmds());

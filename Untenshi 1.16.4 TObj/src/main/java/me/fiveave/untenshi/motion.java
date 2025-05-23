@@ -20,6 +20,9 @@ import static me.fiveave.untenshi.ato.atoSys;
 import static me.fiveave.untenshi.ato.openDoorProcedure;
 import static me.fiveave.untenshi.cmds.generalMsg;
 import static me.fiveave.untenshi.events.trainSound;
+import static me.fiveave.untenshi.events.RUN_ACCEL;
+import static me.fiveave.untenshi.events.RUN_DECEL;
+import static me.fiveave.untenshi.events.RUN_CONST;
 import static me.fiveave.untenshi.main.*;
 import static me.fiveave.untenshi.signalsign.*;
 import static me.fiveave.untenshi.speedsign.*;
@@ -127,6 +130,18 @@ class motion {
         }
         // Cancel TC motion-related sign actions
         if (!stationstop) mg.getActions().clear();
+    // Running sounds
+    double previousSpeed = lv.getPreviousSpeed();
+    double currentSpeed = lv.getSpeed();
+    if (main.runningSoundsEnable) { // Check if sounds are enabled globally
+        if (currentSpeed > previousSpeed + main.runningSoundAccelThreshold) {
+            trainSound(lv, RUN_ACCEL);
+        } else if (currentSpeed < previousSpeed - main.runningSoundDecelThreshold) {
+            trainSound(lv, RUN_DECEL);
+        } else if (currentSpeed > main.runningSoundMinSpeed && Math.abs(currentSpeed - previousSpeed) < main.runningSoundConstThreshold) {
+            trainSound(lv, RUN_CONST);
+        }
+    }
         // Shock when stopping
         String shock = lv.getSpeed() == 0 && lv.getSpeed() < oldspeed ? " " + ChatColor.GRAY + String.format("%.2f km/h/s", decelnow) : "";
         // Combine properties and action bar
@@ -153,6 +168,8 @@ class motion {
         atoSys(lv, mg);
         // Stop position
         stopPos(lv, shock);
+    // Update previous speed for next tick
+    lv.setPreviousSpeed(currentSpeed);
     }
 
     static void driverSystem(utsdriver ld) {
