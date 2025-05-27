@@ -1,0 +1,117 @@
+help_1title: 基本的なコマンド 1/3 ページ
+help_2title: 列車の設定 2/3 ページ
+help_3title: 運転說明 3/3 ページ
+help_cmdlist: 'コマンド列表:'
+help_show: ヘルプを表示する
+help_activateinfo: 運転モードを切り替える
+help_acinfo: ATS / ATC 復帰する
+help_showdetails: コマンドを入力して、詳細情報を取得します。
+help_seinfo: 運転席を切り替える
+help_painfo: 車内放送
+help_reloadinfo: コンフィグをリロードする
+help_freemodeinfo: フリーモードを設定する
+help_allowatoinfo: ATO の使用を許可する
+help_usermanuallink: '取扱説明書のリンク:'
+help_pagenotexist: このページは存在していません。正確なページ数を入力してください。
+help_usage: '使い方:'
+item_upwand: 上
+item_nwand: 切
+item_downwand: 下
+item_leftwand: 左
+item_rightwand: 右
+item_doorbutton: ドアボタン
+item_sblever: 方向切替
+item_ebbutton: 非常停止
+activate: '運転モード:'
+activate_on: オン
+activate_off: オフ
+activate_set: 列車が設定されました。
+activate_onalready: 運転モードをオンにしました!
+activate_offalready: 運転モードをオフにしました!
+activate_onfirst: まず運転モードをオンにしてください!
+activate_offfirst: まず運転モードをオフにしてください!
+activate_info1: '[true: オン]'
+activate_info2: '[false: オフ]'
+activate_notowner: 列車の所有者ではありません!
+activate_sitincart: まず列車に座ってください!
+door: 'ドア:'
+door_opening: 開きます
+door_closing: 閉まります
+door_opened: 開いています
+door_closed: 閉まっています
+door_openinmotion: 運転中にドアを開けないでください!
+eb_stop: 非常制動停車
+eb_misuse: 非常ブレーキ
+reaccel: 駅構内再加速
+ac_success: 復帰が成功しました。
+ac_failed: 復帰が失敗しました。
+ac_noneed: 復帰する必要がありません。
+freemode: 'フリーモード:'
+freemode_info1: '[true: オン]'
+freemode_info2: '[false: オフ]'
+ato: 'ATO 使用許可:'
+ato_info1: '[true: ATO 使用許可オン]'
+ato_info2: '[false: ATO 使用許可オフ]'
+ato_detectpattern: ATO 運転パターン 発見しました。
+ato_detectstoptime: ATO 停車時間 設定しました。
+ato_patterncancel: ATO パターン 取り消しました。
+sb_success: 運転方向の切り替えが成功しました。
+sb_inmotion: 運転中に方向を切り替えないでください!
+se_success: 運転席の切り替えが成功しました。
+se_failed: 運転席の切り替えが失敗しました。
+se_inmotion: 運転中に運転席を切り替えないでください!
+p_b8: 常用ブレーキ動作
+p_eb: 非常ブレーキ動作
+p_near: パターン接近
+stoppos: '停止位置:'
+stoppos_next: 次は、停車です!
+stoppos_perfect: '停止位置: Excellent!'
+stoppos_great: '停止位置: Great!'
+stoppos_good: '停止位置: Good!'
+stoppos_over: オーバーラン
+stoppos_seriousover: 停止範囲を大幅に超えると運転を終了します。
+stoppos_reqfix: 停止位置を修正してください!
+signal_set: '信号:'
+signal_warn: '信号予告:'
+signal_change: '信号変更:'
+signal_signchange: サインの変更に成功しました。
+signal_typewrong: 信号の種類は正確ではありません。(R / YY / Y / YG / G / ATC)
+signal_g: 進行
+signal_yg: 減速
+signal_y: 注意
+signal_yy: 警戒
+signal_r: 停止
+speedlimit_del: 解除
+speedlimit_set: '速度制限:'
+speedlimit_warn: '速度制限予告:'
+dir_front: 前
+dir_back: 後
+dir_info: '運転方向:'
+dir_north: 北
+dir_south: 南
+dir_east: 東
+dir_west: 西
+dir_north_east: 北東
+dir_north_west: 北西
+dir_south_east: 南東
+dir_south_west: 南西
+dir_notexist: この方向は存在しません。
+driverlog_notuts: Untenshi タイプの列車ではありません。
+driverlog_on: 測定が始まります。
+driverlog_off: 測定が完了しました。
+reloaded: コンフィグがリロードされました。
+cmdnotexist: コマンドが存在していません。正確なコマンドを入力してください。
+playeronlycmd: このコマンドを入力できるのはプレイヤーだけです!
+cmdblkonlycmd: このコマンドを入力できるのはコマンドブロックだけです!
+error: エラーが発生しました。
+noperm: 権限が足りません!
+speed: '速度:'
+points: '点数:'
+panoempty: テキストを空にすることはできません!
+collidebuffer: 車止め激突
+argwrong: 引数が正しくありません。
+signimproper: このサインが正しく設定されていません。
+tcblocking: 前に塞いでいる TrainCarts のオブジェクトがあります。
+nopoints: 点数が足りないので、運転が終了しました。
+secclear: 区間が空いています。
+secnotclear: 区間が空いていません。

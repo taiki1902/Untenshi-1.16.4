@@ -1,0 +1,23 @@
+##############################
+#    Untenshi Main Config    #
+##############################
+
+# IMPORTANT: Any value out of recommended range may cause malfunction
+# Speed drop: 0 - 0.5
+
+# Neutral speed drop rate (km/h/s) (default 0.1)
+speeddroprate: 0.1
+
+# Allow EB usage to stop trains (default true)
+allowebstop: true
+
+# Allow re-acceleration in station (default true)
+allowreaccel: true
+
+# Let trains stop using station signs (default false)
+# NOTE: Unless your know what you are doing, please set this value to false
+# As setting it to true may cause malfunction
+stationsignstop: false
+
+# Language (default en_US), you may also use other languages, file format: lang_(language)
+lang: 'en_US'

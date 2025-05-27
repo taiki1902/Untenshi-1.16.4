@@ -1,0 +1,7 @@
+trains:
+  default:
+    accel: 3.5
+    decel: 3.5
+    ebdecel: 5.2
+    speeds: [ 21, 41, 61, 81, 111, 130 ]
+    twohandled: false
