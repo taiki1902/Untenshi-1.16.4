@@ -58,8 +58,15 @@ class motion {
 
     static void motionSystem(utsvehicle lv) {
         // From Config
-        double oldspeed = lv.getSpeed();
+        double oldspeed = lv.getSpeed(); // Capture speed from previous tick
         boolean stationstop = plugin.getConfig().getBoolean("stationsignstop");
+
+        // Running Sounds Logic - Initial checks and variable setup
+        boolean runningSoundsEnabled = lv.isRunningSoundsEnabled();
+        double currentSpeed = oldspeed; // Initialize currentSpeed with oldspeed, will be updated by physics
+        double previousSpeed = oldspeed;
+        // speedDifference will be calculated after currentSpeed is updated by physics
+
         // Init train
         MinecartGroup mg = lv.getTrain();
         TrainProperties tprop = mg.getProperties();
@@ -75,12 +82,12 @@ class motion {
         // Set real current
         if (ectarget < ecnow) {
             lv.setCurrent((ecnow - ectarget) > currentpertick ? ecnow - currentpertick : ectarget);
-            if (ecnow > 0 && ecnow - currentpertick > 0) {
+            if (runningSoundsEnabled && ecnow > 0 && ecnow - currentpertick > 0) {
                 trainSound(lv, "accel_off");
             }
         } else if (ectarget > ecnow) {
             lv.setCurrent((ectarget - ecnow) > currentpertick ? ecnow + currentpertick : ectarget);
-            if (ecnow + currentpertick > 0 && ecnow + currentpertick < ectarget) {
+            if (runningSoundsEnabled && ecnow + currentpertick > 0 && ecnow + currentpertick < ectarget) {
                 trainSound(lv, "accel_on");
             }
         }
@@ -91,12 +98,12 @@ class motion {
         // Set real pressure
         if (bcptarget < bcpnow) {
             lv.setBcpressure((bcpnow - bcptarget) > bcppertick ? bcpnow - bcppertick : bcptarget);
-            if (bcpnow > 0 && bcpnow - bcppertick > 0) {
+            if (runningSoundsEnabled && bcpnow > 0 && bcpnow - bcppertick > 0) {
                 trainSound(lv, "brake_release");
             }
         } else if (bcptarget > bcpnow) {
             lv.setBcpressure((bcptarget - bcpnow) > bcppertick ? bcpnow + bcppertick : bcptarget);
-            if (bcpnow + bcppertick > 0 && bcpnow + bcppertick < bcptarget) {
+            if (runningSoundsEnabled && bcpnow + bcppertick > 0 && bcpnow + bcppertick < bcptarget) {
                 trainSound(lv, "brake_apply");
             }
         }
@@ -144,6 +151,56 @@ class motion {
         catchSignalUpdate(lv);
         // Interlocking stuff
         interlocking(lv);
+
+        // Update currentSpeed after physics calculations and calculate speedDifference
+        currentSpeed = lv.getSpeed();
+        double speedDifference = currentSpeed - previousSpeed;
+
+        // Running Sounds Logic - Sound playback
+        if (runningSoundsEnabled) {
+            // Acceleration Sound
+            if (speedDifference > lv.getAccelThreshold() && currentSpeed > lv.getRunSoundMinSpeed()) {
+                if (!lv.getCurrentPlayingSound().equals(lv.getAccelSound())) {
+                    trainSound(lv, "stop_current_sound_if_any");
+                    trainSound(lv, lv.getAccelSound(), lv.getSoundVolume(), false);
+                    lv.setCurrentPlayingSound(lv.getAccelSound());
+                }
+            }
+            // Deceleration Sound
+            else if (speedDifference < -lv.getDecelThreshold() && currentSpeed > lv.getRunSoundMinSpeed()) {
+                if (!lv.getCurrentPlayingSound().equals(lv.getDecelSound())) {
+                    trainSound(lv, "stop_current_sound_if_any");
+                    trainSound(lv, lv.getDecelSound(), lv.getSoundVolume(), false);
+                    lv.setCurrentPlayingSound(lv.getDecelSound());
+                }
+            }
+            // Constant Speed (Running) Sound
+            else if (Math.abs(speedDifference) <= lv.getRunSpeedThreshold() && currentSpeed >= lv.getRunSoundMinSpeed()) {
+                if (!lv.getCurrentPlayingSound().equals(lv.getRunSound())) {
+                    trainSound(lv, "stop_current_sound_if_any");
+                    trainSound(lv, lv.getRunSound(), lv.getSoundVolume(), true);
+                    lv.setCurrentPlayingSound(lv.getRunSound());
+                }
+            }
+            // Stop Running Sound if speed too low (and it was the run sound playing)
+            else if (currentSpeed < lv.getRunSoundMinSpeed() && lv.getCurrentPlayingSound().equals(lv.getRunSound())) {
+                trainSound(lv, "stop_current_sound_if_any");
+                lv.setCurrentPlayingSound("");
+            }
+            // No Specific Sound (Sound Fades or Stops for non-run sounds, or if run sound needs to stop due to low speed)
+            else {
+                if (!lv.getCurrentPlayingSound().isEmpty() && !lv.getCurrentPlayingSound().equals(lv.getRunSound())) {
+                    trainSound(lv, "stop_current_sound_if_any");
+                    lv.setCurrentPlayingSound("");
+                }
+                // This check is important to stop the run sound if speed drops and wasn't caught by the specific "else if" above
+                if (currentSpeed < lv.getRunSoundMinSpeed() && lv.getCurrentPlayingSound().equals(lv.getRunSound())) {
+                    trainSound(lv, "stop_current_sound_if_any");
+                    lv.setCurrentPlayingSound("");
+                }
+            }
+        }
+
         // Types of speeding
         boolean isoverspeed0 = lv.getSpeed() > minSpeedLimit(lv);
         boolean isoverspeed3 = lv.getSpeed() > minSpeedLimit(lv) + 3 || lv.getSignallimit() == 0;

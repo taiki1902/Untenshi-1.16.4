@@ -206,40 +206,75 @@ class events implements Listener {
         }
     }
 
+    // New overloaded trainSound method
+    public static void trainSound(utsvehicle lv, String soundName, float volume, boolean loop) {
+        if (lv.getTrain() == null) {
+            return;
+        }
+        if (soundName.equals("stop_current_sound_if_any")) {
+            String currentSound = lv.getCurrentPlayingSound();
+            if (currentSound != null && !currentSound.isEmpty()) {
+                for (Player player : lv.getTrain().getPlayers()) {
+                    player.stopSound(currentSound);
+                }
+                lv.setCurrentPlayingSound("");
+                lv.setSoundTickCounter(0);
+            }
+            return;
+        }
+        // Play a new sound
+        for (Player player : lv.getTrain().getPlayers()) {
+            player.playSound(player.getLocation(), soundName, volume, 1.0f);
+        }
+        if (loop) {
+            lv.setCurrentPlayingSound(soundName);
+        }
+    }
+
     static void trainSound(utsvehicle lv, String type) {
-        if (lv.getTrain() != null) {
+        if (lv.getTrain() == null) {
+            return;
+        }
+        float configVolume = lv.isRunningSoundsEnabled() ? lv.getSoundVolume() : 1.0f;
+
+        // Handle non-accel/decel sounds first
+        switch (type) {
+            case "mascon":
+                if (lv.getLd() != null) {
+                    lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOOD_PLACE, configVolume * 0.5f, 1.5f);
+                }
+                break;
+            case "ebbutton":
+                if (lv.getLd() != null) {
+                    lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, configVolume * 0.5f, 0.75f);
+                }
+                break;
+            case "sblever":
+                if (lv.getLd() != null) {
+                    lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_FENCE_GATE_CLOSE, configVolume * 0.5f, 1.25f);
+                }
+                break;
+            case "doorbutton":
+                if (lv.getLd() != null) {
+                    lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, configVolume * 0.5f, 1.5f);
+                }
+                break;
+        }
+
+        // Original accel/decel sounds, only play if new running sound system is disabled
+        if (!lv.isRunningSoundsEnabled()) {
             switch (type) {
                 case "brake_apply":
-                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 0.75f));
+                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, configVolume * 0.025f, 0.75f));
                     break;
                 case "brake_release":
-                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, 0.025f, 1.5f));
+                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_REDSTONE_TORCH_BURNOUT, configVolume * 0.025f, 1.5f));
                     break;
                 case "accel_on":
-                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_EXTEND, 0.01f, 2f));
+                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_EXTEND, configVolume * 0.01f, 2f));
                     break;
                 case "accel_off":
-                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_CONTRACT, 0.01f, 2f));
-                    break;
-                case "mascon":
-                    if (lv.getLd() != null) {
-                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOOD_PLACE, 0.5f, 1.5f);
-                    }
-                    break;
-                case "ebbutton":
-                    if (lv.getLd() != null) {
-                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, 0.5f, 0.75f);
-                    }
-                    break;
-                case "sblever":
-                    if (lv.getLd() != null) {
-                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_FENCE_GATE_CLOSE, 0.5f, 1.25f);
-                    }
-                    break;
-                case "doorbutton":
-                    if (lv.getLd() != null) {
-                        lv.getLd().getP().playSound(lv.getLd().getP().getLocation(), Sound.BLOCK_WOODEN_TRAPDOOR_CLOSE, 0.5f, 1.5f);
-                    }
+                    lv.getTrain().forEach(mm -> mm.getEntity().makeSound(Sound.BLOCK_PISTON_CONTRACT, configVolume * 0.01f, 2f));
                     break;
             }
         }

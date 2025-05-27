@@ -72,6 +72,19 @@ class utsvehicle {
     private MinecartMember driverseat; // Cart belonging to driver seat
     private long ilenterqueuetime; // Enter queue time for interlocking
 
+    // Running sounds fields
+    private String accelSound;
+    private String decelSound;
+    private String runSound;
+    private float soundVolume;
+    private int runSoundMinSpeed;
+    private double accelThreshold;
+    private double decelThreshold;
+    private double runSpeedThreshold;
+    private boolean runningSoundsEnabled;
+    private String currentPlayingSound = ""; // To keep track of looping sounds
+    private int soundTickCounter = 0; // Generic counter for sound logic if needed
+
     utsvehicle(MinecartGroup mg) {
         try {
             this.setTrain(mg);
@@ -95,6 +108,20 @@ class utsvehicle {
         if (seltrainname.isEmpty()) {
             seltrainname = "default";
         }
+
+        // Load running sound settings from config.yml
+        runningSoundsEnabled = plugin.getConfig().getBoolean("runningsounds.enable", true);
+        soundVolume = (float) plugin.getConfig().getDouble("runningsounds.volume", 1.0);
+        runSoundMinSpeed = plugin.getConfig().getInt("runningsounds.run_sound_min_speed", 10);
+        accelThreshold = plugin.getConfig().getDouble("runningsounds.accel_threshold", 0.1);
+        decelThreshold = plugin.getConfig().getDouble("runningsounds.decel_threshold", 0.1);
+        runSpeedThreshold = plugin.getConfig().getDouble("runningsounds.run_speed_threshold", 0.05);
+
+        // Load default sound event names from config.yml
+        String defaultAccelSound = plugin.getConfig().getString("runningsounds.default_accel_sound", "minecraft:custom.train_accel");
+        String defaultDecelSound = plugin.getConfig().getString("runningsounds.default_decel_sound", "minecraft:custom.train_decel");
+        String defaultRunSound = plugin.getConfig().getString("runningsounds.default_run_sound", "minecraft:custom.train_run");
+
         double tempaccel = 0;
         double tempdecel = 0;
         double tempebdecel = 0;
@@ -118,6 +145,12 @@ class utsvehicle {
             traindata.dataconfig.set(tDataInfo + ".twohandled", false);
             traindata.save();
         }
+
+        // Load train-specific sounds from traindata.yml, using defaults if not specified
+        accelSound = traindata.dataconfig.getString(tDataInfo + ".accel_sound", defaultAccelSound);
+        decelSound = traindata.dataconfig.getString(tDataInfo + ".decel_sound", defaultDecelSound);
+        runSound = traindata.dataconfig.getString(tDataInfo + ".run_sound", defaultRunSound);
+
         this.setSpeeddrop(plugin.getConfig().getDouble("speeddroprate"));
         this.setAccel(tempaccel);
         this.setDecel(tempdecel);
@@ -576,5 +609,58 @@ class utsvehicle {
 
     public void setAtoforceslopebrake(boolean atoforceslopebrake) {
         this.atoforceslopebrake = atoforceslopebrake;
+    }
+
+    // Getter methods for running sounds fields
+    public String getAccelSound() {
+        return accelSound;
+    }
+
+    public String getDecelSound() {
+        return decelSound;
+    }
+
+    public String getRunSound() {
+        return runSound;
+    }
+
+    public float getSoundVolume() {
+        return soundVolume;
+    }
+
+    public int getRunSoundMinSpeed() {
+        return runSoundMinSpeed;
+    }
+
+    public double getAccelThreshold() {
+        return accelThreshold;
+    }
+
+    public double getDecelThreshold() {
+        return decelThreshold;
+    }
+
+    public double getRunSpeedThreshold() {
+        return runSpeedThreshold;
+    }
+
+    public boolean isRunningSoundsEnabled() {
+        return runningSoundsEnabled;
+    }
+
+    public String getCurrentPlayingSound() {
+        return currentPlayingSound;
+    }
+
+    public void setCurrentPlayingSound(String currentPlayingSound) {
+        this.currentPlayingSound = currentPlayingSound;
+    }
+
+    public int getSoundTickCounter() {
+        return soundTickCounter;
+    }
+
+    public void setSoundTickCounter(int soundTickCounter) {
+        this.soundTickCounter = soundTickCounter;
     }
 }

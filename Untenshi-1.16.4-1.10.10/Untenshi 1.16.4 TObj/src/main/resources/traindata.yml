@@ -5,3 +5,9 @@ trains:
     ebdecel: 5.2
     speeds: [ 21, 41, 61, 81, 111, 130 ]
     twohandled: false
+    # Optional: Sound played during acceleration (overrides default)
+    # accel_sound: "minecraft:custom.train_model_accel"
+    # Optional: Sound played during deceleration (overrides default)
+    # decel_sound: "minecraft:custom.train_model_decel"
+    # Optional: Sound played when running at constant speed (overrides default)
+    # run_sound: "minecraft:custom.train_model_run"

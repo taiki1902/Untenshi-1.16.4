@@ -21,3 +21,27 @@ stationsignstop: false
 
 # Language (default en_US), you may also use other languages, file format: lang_(language)
 lang: 'en_US'
+
+##############################
+#  Running Sounds Settings   #
+##############################
+
+runningsounds:
+  # Enable or disable running sounds (true/false)
+  enable: true
+  # Volume of running sounds (0.0-1.0)
+  volume: 1.0
+  # Default sound for acceleration
+  default_accel_sound: "minecraft:custom.train_accel"
+  # Default sound for deceleration
+  default_decel_sound: "minecraft:custom.train_decel"
+  # Default sound for running at constant speed
+  default_run_sound: "minecraft:custom.train_run"
+  # Minimum speed (km/h) to play running sound
+  run_sound_min_speed: 10
+  # Acceleration threshold to trigger acceleration sound
+  accel_threshold: 0.1
+  # Deceleration threshold to trigger deceleration sound
+  decel_threshold: 0.1
+  # Speed change threshold to consider the train as running at a constant speed
+  run_speed_threshold: 0.05
